@@ -1,40 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { CometCard } from "@/components/ui/comet-card";
+import { usePageTransition } from "@/components/page-transition";
 
 interface ExperienceCardProps {
   name: string;
   href: string;
   logo: string;
-  logoWidth?: number;
-  logoHeight?: number;
 }
 
-export function ExperienceCard({
-  name,
-  href,
-  logo,
-  logoWidth = 120,
-  logoHeight = 60,
-}: ExperienceCardProps) {
+export function ExperienceCard({ name, href, logo }: ExperienceCardProps) {
+  const { navigateTo } = usePageTransition();
+
   return (
-    <Link href={href} className="block">
-      <CometCard className="cursor-pointer">
-        <div className="flex h-80 w-72 flex-col items-center justify-center gap-6 rounded-2xl border border-neutral-800 bg-neutral-950 p-8">
+    <div onClick={() => navigateTo(href)} className="block cursor-pointer">
+      <CometCard>
+        <div className="flex h-72 w-64 items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-950 p-6 md:h-80 md:w-72 md:p-8">
           <Image
             src={logo}
             alt={`${name} logo`}
-            width={logoWidth}
-            height={logoHeight}
-            className="object-contain"
+            width={200}
+            height={120}
+            className="w-full object-contain"
           />
-          <span className="text-xl font-semibold tracking-wide text-white">
-            {name}
-          </span>
         </div>
       </CometCard>
-    </Link>
+    </div>
   );
 }
