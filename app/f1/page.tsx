@@ -150,7 +150,7 @@ function F1Content() {
     racePhotos: {
       monaco: "/f1/circuits/photos/monaco.jpg",
       british: "/f1/circuits/photos/british.jpg",
-      italian: "/f1/circuits/photos/italian.jpg",
+      italian: "/f1/circuits/photos/italian.png",
       singapore: "/f1/circuits/photos/singapore.jpg",
     },
   };

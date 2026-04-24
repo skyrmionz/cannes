@@ -24,7 +24,7 @@ export function LogoHeader({ className }: LogoHeaderProps) {
       />
       <div className="h-6 w-px bg-white/40" />
       <Image
-        src="/logos/salesforce.png"
+        src="/logos/salesforce-v2.png"
         alt="Salesforce"
         width={120}
         height={50}

@@ -260,7 +260,7 @@ export function QuestionScreen({
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs leading-none font-bold text-white">
                   N
                 </span>
                 Next
@@ -271,7 +271,7 @@ export function QuestionScreen({
             onClick={onBack}
             className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs leading-none font-bold text-white">
               B
             </span>
             Back
