@@ -148,10 +148,10 @@ function F1Content() {
   const circuitPreview: PreviewConfig = {
     type: "circuit",
     racePhotos: {
-      monaco: "/f1/circuits/photos/monaco.jpg?v=2",
-      british: "/f1/circuits/photos/british.jpg?v=2",
-      italian: "/f1/circuits/photos/italian.png?v=2",
-      singapore: "/f1/circuits/photos/singapore.jpg?v=2",
+      monaco: "/f1/circuits/photos/monaco.jpg",
+      british: "/f1/circuits/photos/british.jpg",
+      italian: "/f1/circuits/photos/italian.png",
+      singapore: "/f1/circuits/photos/singapore.jpg",
     },
   };
 
