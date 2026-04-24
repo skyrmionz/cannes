@@ -2,9 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  TransitionProvider,
-} from "@/components/page-transition";
+import { TransitionProvider } from "@/components/page-transition";
 import { StartScreen } from "@/components/f1/start-screen";
 import { IntroScreen } from "@/components/f1/intro-screen";
 import { NameEntry } from "@/components/f1/name-entry";
@@ -15,17 +13,6 @@ import {
 import { LoadingScreen } from "@/components/f1/loading-screen";
 import { ResultScreen } from "@/components/f1/result-screen";
 import { SpeedLines } from "@/components/f1/speed-lines";
-
-const drivingStyles: QuestionOption[] = [
-  { id: "oversteer", label: "Oversteer", description: "Sharp and precise" },
-  { id: "understeer", label: "Understeer", description: "Stable and smooth" },
-  {
-    id: "aggressive",
-    label: "Aggressive",
-    description: "High-speed and intense",
-  },
-  { id: "smooth", label: "Smooth", description: "Minimal and efficient" },
-];
 
 const drivers: QuestionOption[] = [
   {
@@ -52,6 +39,17 @@ const drivers: QuestionOption[] = [
     description: "The Entertainer",
     image: "/f1/drivers/norris.png",
   },
+];
+
+const drivingStyles: QuestionOption[] = [
+  { id: "oversteer", label: "Oversteer", description: "Sharp and precise" },
+  { id: "understeer", label: "Understeer", description: "Stable and smooth" },
+  {
+    id: "aggressive",
+    label: "Aggressive",
+    description: "High-speed and intense",
+  },
+  { id: "smooth", label: "Smooth", description: "Minimal and efficient" },
 ];
 
 const circuits: QuestionOption[] = [
@@ -103,6 +101,7 @@ const stepTransition = {
 
 function F1Content() {
   const [showStart, setShowStart] = useState(true);
+  const [resetting, setResetting] = useState(false);
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [driverName, setDriverName] = useState("");
@@ -136,13 +135,17 @@ function F1Content() {
   );
 
   const handleStartOver = useCallback(() => {
-    setStep(1);
-    setDirection(1);
-    setDriverName("");
-    setDrivingStyle(null);
-    setDriver(null);
-    setCircuit(null);
-    setShowStart(true);
+    setResetting(true);
+    setTimeout(() => {
+      setStep(1);
+      setDirection(1);
+      setDriverName("");
+      setDrivingStyle(null);
+      setDriver(null);
+      setCircuit(null);
+      setShowStart(true);
+      setResetting(false);
+    }, 600);
   }, []);
 
   const renderStep = () => {
@@ -161,20 +164,20 @@ function F1Content() {
       case 3:
         return (
           <QuestionScreen
-            title="What's your driving style?"
-            options={drivingStyles}
-            selectedId={drivingStyle}
-            onSelect={(id) => handleQuestionSelect(setDrivingStyle, id)}
+            title="Which driver resonates with you?"
+            options={drivers}
+            selectedId={driver}
+            onSelect={(id) => handleQuestionSelect(setDriver, id)}
             onBack={goBack}
           />
         );
       case 4:
         return (
           <QuestionScreen
-            title="Which driver resonates with you?"
-            options={drivers}
-            selectedId={driver}
-            onSelect={(id) => handleQuestionSelect(setDriver, id)}
+            title="What's your driving style?"
+            options={drivingStyles}
+            selectedId={drivingStyle}
+            onSelect={(id) => handleQuestionSelect(setDrivingStyle, id)}
             onBack={goBack}
           />
         );
@@ -204,6 +207,19 @@ function F1Content() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
+      {/* Fade-to-black overlay for Start Over transition */}
+      <AnimatePresence>
+        {resetting && (
+          <motion.div
+            className="fixed inset-0 z-[60] bg-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Start screen overlay */}
       <AnimatePresence>
         {showStart && <StartScreen onStart={handleStart} />}

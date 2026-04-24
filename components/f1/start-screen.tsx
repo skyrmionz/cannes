@@ -23,9 +23,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
         priority
       />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="rounded-sm bg-black/60 px-10 py-4 backdrop-blur-sm">
+        <div className="w-full bg-black/60 py-4 backdrop-blur-sm">
           <motion.p
-            className="text-lg uppercase tracking-[0.3em] text-white"
+            className="text-center text-lg uppercase tracking-[0.3em] text-white"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{
               duration: 1.5,
