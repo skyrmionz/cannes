@@ -232,10 +232,10 @@ export function QuestionScreen({
               )}
 
               <div className="p-3 md:p-4">
-                <div className="text-sm font-semibold uppercase tracking-wider text-white md:text-base">
+                <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-white md:text-sm">
                   {option.label}
                 </div>
-                <div className="mt-0.5 text-xs text-[#b0b0b0]">
+                <div className="mt-0.5 text-[10px] text-[#b0b0b0] md:text-xs">
                   {option.description}
                 </div>
               </div>
