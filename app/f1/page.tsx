@@ -9,6 +9,7 @@ import { NameEntry } from "@/components/f1/name-entry";
 import {
   QuestionScreen,
   type QuestionOption,
+  type PreviewConfig,
 } from "@/components/f1/question-screen";
 import { LoadingScreen } from "@/components/f1/loading-screen";
 import { ResultScreen } from "@/components/f1/result-screen";
@@ -126,13 +127,27 @@ function F1Content() {
   const handleQuestionSelect = useCallback(
     (setter: (id: string) => void, id: string) => {
       setter(id);
-      setTimeout(() => {
-        setDirection(1);
-        setStep((s) => s + 1);
-      }, 400);
     },
     []
   );
+
+  const driverPreview: PreviewConfig = {
+    type: "driver",
+    carImages: {
+      hamilton: "/f1/drivers/hamilton-car.png",
+      verstappen: "/f1/drivers/verstappen-car.png",
+      leclerc: "/f1/drivers/leclerc-car.png",
+      norris: "/f1/drivers/norris-car.png",
+    },
+  };
+
+  const stylePreview: PreviewConfig = {
+    type: "style",
+  };
+
+  const circuitPreview: PreviewConfig = {
+    type: "circuit",
+  };
 
   const handleStartOver = useCallback(() => {
     setResetting(true);
@@ -168,7 +183,9 @@ function F1Content() {
             options={drivers}
             selectedId={driver}
             onSelect={(id) => handleQuestionSelect(setDriver, id)}
+            onNext={goForward}
             onBack={goBack}
+            preview={driverPreview}
           />
         );
       case 4:
@@ -178,7 +195,9 @@ function F1Content() {
             options={drivingStyles}
             selectedId={drivingStyle}
             onSelect={(id) => handleQuestionSelect(setDrivingStyle, id)}
+            onNext={goForward}
             onBack={goBack}
+            preview={stylePreview}
           />
         );
       case 5:
@@ -188,7 +207,9 @@ function F1Content() {
             options={circuits}
             selectedId={circuit}
             onSelect={(id) => handleQuestionSelect(setCircuit, id)}
+            onNext={goForward}
             onBack={goBack}
+            preview={circuitPreview}
           />
         );
       case 6:

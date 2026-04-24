@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback } from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { LogoHeader } from "./logo-header";
 
@@ -13,12 +13,22 @@ export interface QuestionOption {
   image?: string;
 }
 
+export interface PreviewConfig {
+  type: "driver" | "style" | "circuit";
+  /** For drivers: map of id -> car image path */
+  carImages?: Record<string, string>;
+  /** For circuits: map of id -> race photo path */
+  racePhotos?: Record<string, string>;
+}
+
 interface QuestionScreenProps {
   title: string;
   options: QuestionOption[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onNext: () => void;
   onBack: () => void;
+  preview?: PreviewConfig;
 }
 
 export function QuestionScreen({
@@ -26,16 +36,10 @@ export function QuestionScreen({
   options,
   selectedId,
   onSelect,
+  onNext,
   onBack,
+  preview,
 }: QuestionScreenProps) {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [title]);
-
   const handleSelect = useCallback(
     (id: string) => {
       onSelect(id);
@@ -44,7 +48,7 @@ export function QuestionScreen({
   );
 
   const hasImages = options.some((o) => o.image);
-  const isDrivers = hasImages && options[0]?.image?.includes("drivers");
+  const selectedOption = options.find((o) => o.id === selectedId);
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
@@ -79,11 +83,106 @@ export function QuestionScreen({
         </div>
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
+      {/* Preview / confirmation area */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4">
+        <AnimatePresence mode="wait">
+          {selectedOption && preview && (
+            <motion.div
+              key={selectedId}
+              className="flex flex-col items-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              {preview.type === "driver" && (
+                <div className="flex items-end gap-6 md:gap-10">
+                  {/* Driver headshot */}
+                  <div className="relative h-40 w-32 md:h-56 md:w-44">
+                    <Image
+                      src={selectedOption.image || ""}
+                      alt={selectedOption.label}
+                      fill
+                      className="object-contain object-bottom"
+                    />
+                  </div>
+                  {/* Team car */}
+                  {preview.carImages?.[selectedId!] && (
+                    <div className="relative h-24 w-48 md:h-32 md:w-64">
+                      <Image
+                        src={preview.carImages[selectedId!]}
+                        alt={`${selectedOption.label}'s car`}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
-      {/* Bottom section: horizontal card row */}
-      <div className="relative z-10 px-4 pb-20 md:px-8">
+              {preview.type === "style" && (
+                <div className="flex flex-col items-center">
+                  {/* Visual representation of driving style */}
+                  <div className="relative flex h-32 w-64 items-center justify-center md:h-40 md:w-80">
+                    <StyleVisual styleId={selectedId!} />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  <p className="mt-1 text-xs text-[#b0b0b0]">
+                    {selectedOption.description}
+                  </p>
+                </div>
+              )}
+
+              {preview.type === "circuit" && (
+                <div className="flex flex-col items-center">
+                  {/* Circuit race photo */}
+                  {preview.racePhotos?.[selectedId!] ? (
+                    <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
+                      <Image
+                        src={preview.racePhotos[selectedId!]}
+                        alt={selectedOption.label}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 border border-neutral-700" />
+                    </div>
+                  ) : (
+                    /* Fallback: show the circuit diagram larger */
+                    <div className="relative h-40 w-64 md:h-48 md:w-80">
+                      <Image
+                        src={selectedOption.image || ""}
+                        alt={selectedOption.label}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Placeholder when nothing is selected */}
+        {!selectedOption && (
+          <motion.p
+            className="text-sm uppercase tracking-wider text-neutral-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Select an option below
+          </motion.p>
+        )}
+      </div>
+
+      {/* Bottom section: horizontal card row + buttons */}
+      <div className="relative z-10 px-4 pb-8 md:px-8 md:pb-12">
         <div
           className={cn(
             "mx-auto flex gap-3 md:gap-4",
@@ -97,11 +196,11 @@ export function QuestionScreen({
               key={option.id}
               onClick={() => handleSelect(option.id)}
               className={cn(
-                "group flex-shrink-0 overflow-hidden rounded-sm border text-left transition-all",
-                hasImages ? "w-44 md:w-56" : "w-44 md:w-52",
+                "group flex-shrink-0 overflow-hidden rounded-sm border text-left transition-colors",
+                hasImages ? "w-40 md:w-48" : "w-40 md:w-48",
                 selectedId === option.id
-                  ? "border-[#E10600] bg-[#1a1a1a] shadow-[0_0_24px_rgba(225,6,0,0.3)] scale-[1.05]"
-                  : "border-neutral-800 bg-[#111] hover:border-neutral-500 hover:scale-[1.03] hover:bg-[#1a1a1a]"
+                  ? "border-[#E10600] bg-[#1a1a1a] shadow-[0_0_24px_rgba(225,6,0,0.3)]"
+                  : "border-neutral-800 bg-[#111] hover:border-neutral-500 hover:bg-[#1a1a1a]"
               )}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -111,23 +210,20 @@ export function QuestionScreen({
               <div
                 className={cn(
                   "h-[2px] w-full transition-colors",
-                  selectedId === option.id ? "bg-[#E10600]" : "bg-transparent group-hover:bg-neutral-700"
+                  selectedId === option.id
+                    ? "bg-[#E10600]"
+                    : "bg-transparent group-hover:bg-neutral-700"
                 )}
               />
 
               {option.image && (
-                <div
-                  className={cn(
-                    "relative w-full bg-[#0a0a0a]",
-                    isDrivers ? "h-32 md:h-40" : "h-24 md:h-28"
-                  )}
-                >
+                <div className="relative h-20 w-full bg-[#0a0a0a] md:h-24">
                   <Image
                     src={option.image}
                     alt={option.label}
                     fill
                     className={
-                      isDrivers
+                      option.image.includes("drivers")
                         ? "object-contain object-bottom"
                         : "object-contain p-2"
                     }
@@ -135,11 +231,11 @@ export function QuestionScreen({
                 </div>
               )}
 
-              <div className="p-3 md:p-4">
-                <div className="text-xs font-semibold uppercase tracking-wider text-white md:text-sm">
+              <div className="p-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-white">
                   {option.label}
                 </div>
-                <div className="mt-0.5 text-[11px] text-[#b0b0b0] md:text-xs">
+                <div className="mt-0.5 text-[11px] text-[#b0b0b0]">
                   {option.description}
                 </div>
               </div>
@@ -147,13 +243,27 @@ export function QuestionScreen({
           ))}
         </div>
 
-        {/* Back button at bottom-right like F1 game */}
+        {/* Navigation buttons */}
         <motion.div
-          className="mx-auto mt-6 flex max-w-5xl justify-end"
+          className="mx-auto mt-6 flex max-w-5xl items-center justify-end gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.4 }}
         >
+          <AnimatePresence>
+            {selectedId && (
+              <motion.button
+                onClick={onNext}
+                className="rounded-sm bg-[#E10600] px-8 py-2.5 text-sm font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#c00500]"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                Next
+              </motion.button>
+            )}
+          </AnimatePresence>
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
@@ -167,4 +277,136 @@ export function QuestionScreen({
       </div>
     </div>
   );
+}
+
+/** Visual representation of driving styles using animated SVG graphics */
+function StyleVisual({ styleId }: { styleId: string }) {
+  switch (styleId) {
+    case "oversteer":
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+            {/* Sharp zigzag line representing precision */}
+            <motion.polyline
+              points="10,80 50,20 90,80 130,20 170,80 190,30"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+            <motion.polyline
+              points="10,80 50,20 90,80 130,20 170,80 190,30"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.3}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+              style={{ filter: "blur(4px)" }}
+            />
+          </svg>
+        </div>
+      );
+    case "understeer":
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+            {/* Smooth wave representing stability */}
+            <motion.path
+              d="M10,50 C40,20 60,20 90,50 C120,80 140,80 170,50 C185,35 195,40 195,50"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            />
+            <motion.path
+              d="M10,50 C40,20 60,20 90,50 C120,80 140,80 170,50 C185,35 195,40 195,50"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              opacity={0.3}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: "easeInOut" }}
+              style={{ filter: "blur(4px)" }}
+            />
+          </svg>
+        </div>
+      );
+    case "aggressive":
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+            {/* Aggressive spike pattern */}
+            <motion.polyline
+              points="10,50 30,15 45,70 60,10 80,85 100,5 120,90 140,15 160,75 180,20 195,50"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+            <motion.polyline
+              points="10,50 30,15 45,70 60,10 80,85 100,5 120,90 140,15 160,75 180,20 195,50"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.4}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
+              style={{ filter: "blur(6px)" }}
+            />
+          </svg>
+        </div>
+      );
+    case "smooth":
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+            {/* Minimal gentle curve */}
+            <motion.path
+              d="M10,60 C60,55 80,45 100,45 C120,45 140,42 190,40"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+            />
+            <motion.path
+              d="M10,60 C60,55 80,45 100,45 C120,45 140,42 190,40"
+              fill="none"
+              stroke="#E10600"
+              strokeWidth="3"
+              strokeLinecap="round"
+              opacity={0.3}
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1.5, delay: 0.3, ease: "easeInOut" }}
+              style={{ filter: "blur(4px)" }}
+            />
+          </svg>
+        </div>
+      );
+    default:
+      return null;
+  }
 }
