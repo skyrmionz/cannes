@@ -37,7 +37,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Ready to start your engine?
+          Ready to make history?
         </motion.h1>
 
         <motion.button

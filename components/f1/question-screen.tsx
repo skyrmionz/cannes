@@ -197,7 +197,7 @@ export function QuestionScreen({
               onClick={() => handleSelect(option.id)}
               className={cn(
                 "group flex-shrink-0 overflow-hidden rounded-sm border text-left transition-colors",
-                hasImages ? "w-40 md:w-48" : "w-40 md:w-48",
+                hasImages ? "w-48 md:w-56" : "w-48 md:w-56",
                 selectedId === option.id
                   ? "border-[#E10600] bg-[#1a1a1a] shadow-[0_0_24px_rgba(225,6,0,0.3)]"
                   : "border-neutral-800 bg-[#111] hover:border-neutral-500 hover:bg-[#1a1a1a]"
@@ -217,7 +217,7 @@ export function QuestionScreen({
               />
 
               {option.image && (
-                <div className="relative h-20 w-full bg-[#0a0a0a] md:h-24">
+                <div className="relative h-24 w-full bg-[#0a0a0a] md:h-32">
                   <Image
                     src={option.image}
                     alt={option.label}
@@ -231,11 +231,11 @@ export function QuestionScreen({
                 </div>
               )}
 
-              <div className="p-3">
-                <div className="text-xs font-semibold uppercase tracking-wider text-white">
+              <div className="p-3 md:p-4">
+                <div className="text-sm font-semibold uppercase tracking-wider text-white md:text-base">
                   {option.label}
                 </div>
-                <div className="mt-0.5 text-[11px] text-[#b0b0b0]">
+                <div className="mt-0.5 text-xs text-[#b0b0b0]">
                   {option.description}
                 </div>
               </div>
