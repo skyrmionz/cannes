@@ -123,7 +123,7 @@ export function QuestionScreen({
               {preview.type === "style" && (
                 <div className="flex flex-col items-center">
                   {/* Visual representation of driving style */}
-                  <div className="relative flex h-32 w-64 items-center justify-center md:h-40 md:w-80">
+                  <div className="relative flex h-48 w-80 items-center justify-center md:h-64 md:w-[28rem]">
                     <StyleVisual styleId={selectedId!} />
                   </div>
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
@@ -288,7 +288,7 @@ function StyleVisual({ styleId }: { styleId: string }) {
     case "oversteer":
       return (
         <div className="flex flex-col items-center gap-3">
-          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+          <svg viewBox="0 0 200 100" className="h-36 w-64 md:h-48 md:w-80">
             {/* Sharp zigzag line representing precision */}
             <motion.polyline
               points="10,80 50,20 90,80 130,20 170,80 190,30"
@@ -320,7 +320,7 @@ function StyleVisual({ styleId }: { styleId: string }) {
     case "understeer":
       return (
         <div className="flex flex-col items-center gap-3">
-          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+          <svg viewBox="0 0 200 100" className="h-36 w-64 md:h-48 md:w-80">
             {/* Smooth wave representing stability */}
             <motion.path
               d="M10,50 C40,20 60,20 90,50 C120,80 140,80 170,50 C185,35 195,40 195,50"
@@ -350,7 +350,7 @@ function StyleVisual({ styleId }: { styleId: string }) {
     case "aggressive":
       return (
         <div className="flex flex-col items-center gap-3">
-          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+          <svg viewBox="0 0 200 100" className="h-36 w-64 md:h-48 md:w-80">
             {/* Aggressive spike pattern */}
             <motion.polyline
               points="10,50 30,15 45,70 60,10 80,85 100,5 120,90 140,15 160,75 180,20 195,50"
@@ -382,7 +382,7 @@ function StyleVisual({ styleId }: { styleId: string }) {
     case "smooth":
       return (
         <div className="flex flex-col items-center gap-3">
-          <svg viewBox="0 0 200 100" className="h-24 w-48 md:h-32 md:w-56">
+          <svg viewBox="0 0 200 100" className="h-36 w-64 md:h-48 md:w-80">
             {/* Minimal gentle curve */}
             <motion.path
               d="M10,60 C60,55 80,45 100,45 C120,45 140,42 190,40"
