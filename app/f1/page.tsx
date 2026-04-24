@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   TransitionProvider,
-  usePageTransition,
 } from "@/components/page-transition";
 import { StartScreen } from "@/components/f1/start-screen";
 import { IntroScreen } from "@/components/f1/intro-screen";
@@ -29,10 +28,30 @@ const drivingStyles: QuestionOption[] = [
 ];
 
 const drivers: QuestionOption[] = [
-  { id: "hamilton", label: "Lewis Hamilton", description: "The Icon" },
-  { id: "verstappen", label: "Max Verstappen", description: "The Relentless" },
-  { id: "leclerc", label: "Charles Leclerc", description: "The Romantic" },
-  { id: "norris", label: "Lando Norris", description: "The Entertainer" },
+  {
+    id: "hamilton",
+    label: "Lewis Hamilton",
+    description: "The Icon",
+    image: "/f1/drivers/hamilton.png",
+  },
+  {
+    id: "verstappen",
+    label: "Max Verstappen",
+    description: "The Relentless",
+    image: "/f1/drivers/verstappen.png",
+  },
+  {
+    id: "leclerc",
+    label: "Charles Leclerc",
+    description: "The Romantic",
+    image: "/f1/drivers/leclerc.png",
+  },
+  {
+    id: "norris",
+    label: "Lando Norris",
+    description: "The Entertainer",
+    image: "/f1/drivers/norris.png",
+  },
 ];
 
 const circuits: QuestionOption[] = [
@@ -40,21 +59,25 @@ const circuits: QuestionOption[] = [
     id: "monaco",
     label: "Monaco Grand Prix",
     description: "Precision and prestige",
+    image: "/f1/circuits/monaco.png",
   },
   {
     id: "british",
     label: "British Grand Prix",
     description: "Historic and legendary",
+    image: "/f1/circuits/british.png",
   },
   {
     id: "italian",
     label: "Italian Grand Prix",
     description: "Speed and chaos",
+    image: "/f1/circuits/italian.png",
   },
   {
     id: "singapore",
     label: "Singapore Grand Prix",
     description: "Brutal and raw",
+    image: "/f1/circuits/singapore.png",
   },
 ];
 
@@ -79,8 +102,6 @@ const stepTransition = {
 };
 
 function F1Content() {
-  const { navigateTo } = usePageTransition();
-
   const [showStart, setShowStart] = useState(true);
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -104,10 +125,7 @@ function F1Content() {
   }, []);
 
   const handleQuestionSelect = useCallback(
-    (
-      setter: (id: string) => void,
-      id: string,
-    ) => {
+    (setter: (id: string) => void, id: string) => {
       setter(id);
       setTimeout(() => {
         setDirection(1);
@@ -116,6 +134,16 @@ function F1Content() {
     },
     []
   );
+
+  const handleStartOver = useCallback(() => {
+    setStep(1);
+    setDirection(1);
+    setDriverName("");
+    setDrivingStyle(null);
+    setDriver(null);
+    setCircuit(null);
+    setShowStart(true);
+  }, []);
 
   const renderStep = () => {
     switch (step) {
@@ -166,7 +194,7 @@ function F1Content() {
         return (
           <ResultScreen
             driverName={driverName}
-            onStartOver={() => navigateTo("/")}
+            onStartOver={handleStartOver}
           />
         );
       default:

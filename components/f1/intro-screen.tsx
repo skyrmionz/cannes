@@ -33,7 +33,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
       >
-        So let&apos;s make you one
+        Ready to start your engine?
       </motion.h1>
 
       <motion.button
@@ -43,7 +43,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.5 }}
       >
-        Next
+        Start
       </motion.button>
     </div>
   );

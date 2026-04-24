@@ -16,19 +16,19 @@ export function LogoHeader({ className }: LogoHeaderProps) {
       )}
     >
       <Image
-        src="/logos/f1.svg"
+        src="/logos/f1.png"
         alt="F1"
-        width={80}
-        height={40}
-        className="h-8 w-auto brightness-0 invert"
+        width={100}
+        height={50}
+        className="h-8 w-auto object-contain"
       />
       <div className="h-6 w-px bg-white/40" />
       <Image
         src="/logos/salesforce.png"
         alt="Salesforce"
-        width={80}
-        height={40}
-        className="h-8 w-auto brightness-0 invert"
+        width={120}
+        height={50}
+        className="h-10 w-auto object-contain"
       />
     </div>
   );
