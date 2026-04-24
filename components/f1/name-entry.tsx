@@ -68,14 +68,14 @@ export function NameEntry({
         >
           <button
             onClick={onBack}
-            className="rounded-sm border border-neutral-700 px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-[#E10600] hover:text-white"
+            className="rounded-sm border border-neutral-700 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-[#E10600] hover:text-white"
           >
             Back
           </button>
           <button
             onClick={onNext}
             disabled={!driverName.trim()}
-            className="rounded-sm bg-[#E10600] px-10 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-sm bg-[#E10600] px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500] disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>

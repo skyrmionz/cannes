@@ -98,7 +98,7 @@ export function QuestionScreen({
               {preview.type === "driver" && (
                 <div className="flex items-end gap-6 md:gap-10">
                   {/* Driver headshot */}
-                  <div className="relative h-40 w-32 md:h-56 md:w-44">
+                  <div className="relative h-52 w-40 md:h-72 md:w-56">
                     <Image
                       src={selectedOption.image || ""}
                       alt={selectedOption.label}
@@ -108,7 +108,7 @@ export function QuestionScreen({
                   </div>
                   {/* Team car */}
                   {preview.carImages?.[selectedId!] && (
-                    <div className="relative h-24 w-48 md:h-32 md:w-64">
+                    <div className="relative h-28 w-52 md:h-36 md:w-72">
                       <Image
                         src={preview.carImages[selectedId!]}
                         alt={`${selectedOption.label}'s car`}
@@ -254,12 +254,15 @@ export function QuestionScreen({
             {selectedId && (
               <motion.button
                 onClick={onNext}
-                className="rounded-sm bg-[#E10600] px-8 py-2.5 text-sm font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#c00500]"
+                className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
               >
+                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold text-white">
+                  N
+                </span>
                 Next
               </motion.button>
             )}

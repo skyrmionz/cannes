@@ -147,6 +147,12 @@ function F1Content() {
 
   const circuitPreview: PreviewConfig = {
     type: "circuit",
+    racePhotos: {
+      monaco: "/f1/circuits/photos/monaco.jpg",
+      british: "/f1/circuits/photos/british.jpg",
+      italian: "/f1/circuits/photos/italian.jpg",
+      singapore: "/f1/circuits/photos/singapore.jpg",
+    },
   };
 
   const handleStartOver = useCallback(() => {
