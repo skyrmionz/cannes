@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
-import { AuroraBackground } from "@/components/ui/aurora-background";
+import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
 import { LogoHeader } from "@/components/loreal/logo-header";
 import { MirrorScreen } from "@/components/loreal/mirror-screen";
 import { NameEntry } from "@/components/loreal/name-entry";
@@ -175,54 +175,66 @@ function LorealContent() {
   };
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
-      <div className="relative z-10 flex min-h-screen w-full flex-col overflow-hidden">
-        {/* Fade-to-white overlay for Start Over transition */}
-        <AnimatePresence>
-          {resetting && (
+    <BackgroundGradientAnimation
+      gradientBackgroundStart="rgb(230, 225, 240)"
+      gradientBackgroundEnd="rgb(220, 235, 245)"
+      firstColor="180, 160, 255"
+      secondColor="140, 200, 255"
+      thirdColor="255, 160, 210"
+      fourthColor="160, 230, 220"
+      fifthColor="220, 180, 255"
+      pointerColor="180, 180, 255"
+      size="80%"
+      blendingValue="hard-light"
+      interactive={!showStart}
+      containerClassName="!h-auto min-h-screen"
+      className="relative z-10 flex min-h-screen w-full flex-col overflow-hidden"
+    >
+      {/* Fade-to-white overlay for Start Over transition */}
+      <AnimatePresence>
+        {resetting && (
+          <motion.div
+            className="fixed inset-0 z-[60] bg-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Mirror start screen overlay */}
+      <AnimatePresence>
+        {showStart && <MirrorScreen onStart={handleStart} />}
+      </AnimatePresence>
+
+      {/* Persistent logo header */}
+      {!showStart && (
+        <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
+          <LogoHeader className="mb-4" />
+        </div>
+      )}
+
+      {/* Step content — only this zooms */}
+      {!showStart && (
+        <div className="relative flex-1">
+          <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              className="fixed inset-0 z-[60] bg-white"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Mirror start screen overlay */}
-        <AnimatePresence>
-          {showStart && <MirrorScreen onStart={handleStart} />}
-        </AnimatePresence>
-
-        {/* Persistent logo header */}
-        {!showStart && (
-          <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
-            <LogoHeader className="mb-4" />
-          </div>
-        )}
-
-        {/* Step content — only this zooms */}
-        {!showStart && (
-          <div className="relative flex-1">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={step}
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={stepTransition}
-                className="absolute inset-0"
-              >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </AuroraBackground>
+              key={step}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={stepTransition}
+              className="absolute inset-0"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
+    </BackgroundGradientAnimation>
   );
 }
 
