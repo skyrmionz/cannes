@@ -28,7 +28,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
     <div className="flex h-full w-full flex-col items-center justify-center">
 
         <motion.h2
-          className="text-center font-serif text-3xl font-light tracking-wide text-white md:text-4xl"
+          className="text-center font-serif text-3xl font-light tracking-wide text-neutral-800 md:text-4xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
@@ -43,7 +43,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
           onChange={(e) => onNameChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Your name"
-          className="mt-10 w-full max-w-sm rounded-sm border border-white/20 bg-white/10 px-6 py-4 text-center font-serif text-lg text-white placeholder-white/40 outline-none backdrop-blur-md transition-all focus:border-[#C8A96E] focus:ring-2 focus:ring-[#C8A96E]/30"
+          className="mt-10 w-full max-w-sm rounded-sm border border-neutral-300 bg-white/70 px-6 py-4 text-center font-serif text-lg text-neutral-800 placeholder-neutral-400 outline-none backdrop-blur-md transition-all focus:border-[#C8A96E] focus:ring-2 focus:ring-[#C8A96E]/30"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
@@ -57,7 +57,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
         >
           <button
             onClick={onBack}
-            className="rounded-sm border border-white/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-[#C8A96E] hover:text-white"
+            className="rounded-sm border border-neutral-300 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-[#C8A96E] hover:text-neutral-700"
           >
             Back
           </button>

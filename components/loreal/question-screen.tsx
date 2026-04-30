@@ -78,7 +78,7 @@ export function QuestionScreen({
               transition={{ delay: 0.1, duration: 0.4 }}
             />
             <motion.h2
-              className="mb-6 text-center font-serif text-2xl font-light tracking-wide text-white md:text-3xl"
+              className="mb-6 text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
@@ -110,7 +110,7 @@ export function QuestionScreen({
                               "h-7 w-7 transition-colors duration-500",
                               isSelected
                                 ? "text-[#C8A96E]"
-                                : "text-white/50 group-hover:text-white/70"
+                                : "text-neutral-400 group-hover:text-neutral-500"
                             )}
                             strokeWidth={1.5}
                           />
@@ -118,7 +118,7 @@ export function QuestionScreen({
                         <span
                           className={cn(
                             "text-center font-serif text-sm leading-tight transition-colors duration-500 md:text-base",
-                            isSelected ? "text-white" : "text-white/60"
+                            isSelected ? "text-neutral-800" : "text-neutral-500"
                           )}
                         >
                           {option.label}
@@ -144,7 +144,7 @@ export function QuestionScreen({
             {selectedId && (
               <motion.button
                 onClick={onNext}
-                className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-white/40 transition-colors hover:text-white/70"
+                className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
@@ -159,9 +159,9 @@ export function QuestionScreen({
           </AnimatePresence>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-white/40 transition-colors hover:text-white/70"
+            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-white/20 text-xs font-bold leading-none text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-300 text-xs font-bold leading-none text-white">
               B
             </span>
             Back

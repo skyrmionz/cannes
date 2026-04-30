@@ -26,13 +26,13 @@ export function AnimatedBorder({
         )}
       />
       <div
-        className="relative h-full w-full rounded-[inherit]"
+        className={cn(
+          "relative h-full w-full rounded-[inherit] transition-colors duration-500",
+          active ? "bg-white" : "bg-white/70"
+        )}
         style={{
-          backdropFilter: "blur(12px) saturate(150%)",
-          background: active
-            ? "rgba(20, 15, 40, 0.85)"
-            : "rgba(255, 255, 255, 0.08)",
-          border: active ? "none" : "1px solid rgba(255, 255, 255, 0.2)",
+          border: active ? "none" : "1px solid rgba(0,0,0,0.08)",
+          backdropFilter: "blur(8px)",
         }}
       >
         {children}

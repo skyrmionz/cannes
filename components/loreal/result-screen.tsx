@@ -54,7 +54,7 @@ export function ResultScreen({
     <div className="flex h-full w-full flex-col items-center overflow-y-auto px-4 py-8">
       <div className="flex w-full max-w-lg flex-col items-center">
         <motion.h2
-          className="text-center font-serif text-2xl font-light tracking-wide text-white md:text-3xl"
+          className="text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -64,7 +64,7 @@ export function ResultScreen({
         </motion.h2>
 
         <motion.p
-          className="mt-4 max-w-sm text-center text-sm leading-relaxed text-white/60"
+          className="mt-4 max-w-sm text-center text-sm leading-relaxed text-neutral-500"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.5 }}
@@ -74,7 +74,7 @@ export function ResultScreen({
 
         {/* QR Code */}
         <motion.div
-          className="mt-8 rounded-lg border border-white/20 bg-white p-4 shadow-sm"
+          className="mt-8 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.55, duration: 0.5 }}
@@ -105,7 +105,7 @@ export function ResultScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.75, duration: 0.5 }}
         >
-          <p className="mb-3 text-center text-xs uppercase tracking-[0.2em] text-white/40">
+          <p className="mb-3 text-center text-xs uppercase tracking-[0.2em] text-neutral-400">
             Your recommended products
           </p>
           <div className="space-y-2">
@@ -114,14 +114,10 @@ export function ResultScreen({
               return (
                 <div
                   key={product.id}
-                  className="flex items-center gap-3 rounded-sm border border-white/20 px-4 py-3"
-                  style={{
-                    backdropFilter: "blur(12px) saturate(150%)",
-                    background: "rgba(255, 255, 255, 0.1)",
-                  }}
+                  className="flex items-center gap-3 rounded-sm border border-neutral-200 bg-white px-4 py-3"
                 >
                   <Icon className="h-5 w-5 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
-                  <span className="font-serif text-sm text-white/80">
+                  <span className="font-serif text-sm text-neutral-700">
                     {product.name}
                   </span>
                 </div>
@@ -132,7 +128,7 @@ export function ResultScreen({
 
         <motion.button
           onClick={onStartOver}
-          className="mt-8 rounded-sm border border-white/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-[#C8A96E] hover:text-white"
+          className="mt-8 rounded-sm border border-neutral-300 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-[#C8A96E] hover:text-neutral-700"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5 }}
