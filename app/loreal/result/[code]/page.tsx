@@ -36,7 +36,7 @@ export default function ResultPage({
           alt="L'Oréal"
           width={160}
           height={60}
-          className="mb-8 h-12 w-auto"
+          className="mb-8 h-12 w-auto brightness-0"
         />
         <p className="text-center font-serif text-lg text-neutral-500">
           This link is invalid. Please visit the consultation booth to start a
@@ -54,7 +54,7 @@ export default function ResultPage({
           alt="L'Oréal"
           width={160}
           height={60}
-          className="mb-8 h-12 w-auto"
+          className="mb-8 h-12 w-auto brightness-0"
         />
         <p className="text-center font-serif text-lg text-neutral-500">
           This beauty kit code has expired. Please visit the consultation booth
@@ -85,7 +85,7 @@ export default function ResultPage({
             alt="L'Oréal"
             width={160}
             height={60}
-            className="mb-10 h-12 w-auto"
+            className="mb-10 h-12 w-auto brightness-0"
           />
         </motion.div>
 

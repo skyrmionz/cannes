@@ -21,6 +21,15 @@ export const AuroraBackground = ({
       )}
       {...props}
     >
+      {/* White neon glow border */}
+      <div
+        className="pointer-events-none absolute inset-0 z-20"
+        style={{
+          boxShadow:
+            "inset 0 0 60px rgba(255,255,255,0.95), inset 0 0 120px rgba(255,255,255,0.6), inset 0 0 200px rgba(255,255,255,0.3)",
+        }}
+      />
+
       <div
         className="absolute inset-0 overflow-hidden"
         style={
@@ -35,7 +44,7 @@ export const AuroraBackground = ({
       >
         <div
           className={cn(
-            `after:animate-aurora pointer-events-none absolute -inset-[10px] [background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%] opacity-30 blur-[10px] filter will-change-transform after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-multiply after:content-[""]`,
+            `after:animate-aurora pointer-events-none absolute -inset-[10px] [background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%] opacity-60 blur-[10px] filter will-change-transform after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-darken after:content-[""]`,
 
             showRadialGradient &&
               `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`,
