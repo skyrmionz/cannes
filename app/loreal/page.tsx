@@ -30,6 +30,12 @@ const skincareProductOptions: LorealOption[] = [
   { id: "sunscreen", label: "Sunscreen", icon: "shield" },
 ];
 
+const skincareTimeOptions: LorealOption[] = [
+  { id: "day", label: "Day", icon: "sun" },
+  { id: "night", label: "Night", icon: "sun-moon" },
+  { id: "both", label: "Both", icon: "sparkles" },
+];
+
 const stepVariants = {
   enter: (direction: number) => ({
     y: direction > 0 ? 60 : -60,
@@ -59,6 +65,7 @@ function LorealContent() {
   const [skinRoutine, setSkinRoutine] = useState<string | null>(null);
   const [skinType, setSkinType] = useState<string | null>(null);
   const [preferredProduct, setPreferredProduct] = useState<string | null>(null);
+  const [skincareTime, setSkincareTime] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
     setDirection(1);
@@ -87,6 +94,7 @@ function LorealContent() {
       setSkinRoutine(null);
       setSkinType(null);
       setPreferredProduct(null);
+      setSkincareTime(null);
       setShowStart(true);
       setResetting(false);
     }, 600);
@@ -137,8 +145,19 @@ function LorealContent() {
           />
         );
       case 5:
-        return <LoadingScreen onComplete={goForward} />;
+        return (
+          <QuestionScreen
+            title="What time in the day do you wear skincare?"
+            options={skincareTimeOptions}
+            selectedId={skincareTime}
+            onSelect={setSkincareTime}
+            onNext={goForward}
+            onBack={goBack}
+          />
+        );
       case 6:
+        return <LoadingScreen onComplete={goForward} />;
+      case 7:
         return (
           <ResultScreen
             name={name}
@@ -154,12 +173,12 @@ function LorealContent() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
-      {/* Fade-to-black overlay for Start Over transition */}
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      {/* Fade-to-white overlay for Start Over transition */}
       <AnimatePresence>
         {resetting && (
           <motion.div
-            className="fixed inset-0 z-[60] bg-black"
+            className="fixed inset-0 z-[60] bg-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -175,22 +194,20 @@ function LorealContent() {
 
       {/* Main experience content */}
       {!showStart && (
-        <>
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={step}
-              custom={direction}
-              variants={stepVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={stepTransition}
-              className="absolute inset-0"
-            >
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
-        </>
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={stepVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={stepTransition}
+            className="absolute inset-0"
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
       )}
     </div>
   );

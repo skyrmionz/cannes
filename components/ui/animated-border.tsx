@@ -20,7 +20,7 @@ export function AnimatedBorder({
   }
 
   return (
-    <div className={cn("relative overflow-hidden rounded-[inherit]", className)}>
+    <div className={cn("relative overflow-hidden rounded-[inherit] p-[2px]", className)}>
       <div
         className={cn(
           "absolute inset-[-1000%] animate-[spin_3s_linear_infinite]",
@@ -28,7 +28,7 @@ export function AnimatedBorder({
           borderClassName
         )}
       />
-      <div className="relative h-full w-full rounded-[inherit] bg-[#111]">
+      <div className="relative h-full w-full rounded-[inherit] bg-white">
         {children}
       </div>
     </div>

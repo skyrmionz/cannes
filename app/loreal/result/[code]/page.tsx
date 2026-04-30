@@ -4,12 +4,20 @@ import { useMemo } from "react";
 import { use } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
+import { Sparkle, Droplet, FlaskConical, ShieldCheck, type LucideIcon } from "lucide-react";
 import {
   decodeResultData,
   isExpired,
   getRecommendations,
   type LorealProduct,
 } from "@/lib/loreal-products";
+
+const categoryIcons: Record<string, LucideIcon> = {
+  cleanser: Sparkle,
+  moisturizer: Droplet,
+  serum: FlaskConical,
+  sunscreen: ShieldCheck,
+};
 
 export default function ResultPage({
   params,
@@ -22,15 +30,15 @@ export default function ResultPage({
 
   if (!data) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4">
         <Image
           src="/logos/loreal.png"
           alt="L'Oréal"
           width={160}
           height={60}
-          className="mb-8 h-12 w-auto brightness-0 invert"
+          className="mb-8 h-12 w-auto"
         />
-        <p className="text-center font-serif text-lg text-neutral-400">
+        <p className="text-center font-serif text-lg text-neutral-500">
           This link is invalid. Please visit the consultation booth to start a
           new session.
         </p>
@@ -40,15 +48,15 @@ export default function ResultPage({
 
   if (expired) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4">
         <Image
           src="/logos/loreal.png"
           alt="L'Oréal"
           width={160}
           height={60}
-          className="mb-8 h-12 w-auto brightness-0 invert"
+          className="mb-8 h-12 w-auto"
         />
-        <p className="text-center font-serif text-lg text-neutral-400">
+        <p className="text-center font-serif text-lg text-neutral-500">
           This beauty kit code has expired. Please visit the consultation booth
           to start a new session.
         </p>
@@ -63,8 +71,7 @@ export default function ResultPage({
   );
 
   return (
-    <div className="relative min-h-screen bg-black">
-      {/* Subtle gold glow */}
+    <div className="relative min-h-screen bg-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(200,169,110,0.06)_0%,transparent_60%)]" />
 
       <div className="relative z-10 flex flex-col items-center px-4 py-10">
@@ -78,7 +85,7 @@ export default function ResultPage({
             alt="L'Oréal"
             width={160}
             height={60}
-            className="mb-10 h-12 w-auto brightness-0 invert"
+            className="mb-10 h-12 w-auto"
           />
         </motion.div>
 
@@ -89,7 +96,7 @@ export default function ResultPage({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
             Your code
           </p>
           <p className="mt-2 font-mono text-4xl font-bold tracking-[0.3em] text-[#C8A96E]">
@@ -99,7 +106,7 @@ export default function ResultPage({
 
         {/* Personalized heading */}
         <motion.h1
-          className="mt-8 text-center font-serif text-2xl font-light tracking-wide text-white"
+          className="mt-8 text-center font-serif text-2xl font-light tracking-wide text-neutral-800"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
@@ -109,7 +116,7 @@ export default function ResultPage({
         </motion.h1>
 
         <motion.p
-          className="mt-3 max-w-sm text-center text-sm leading-relaxed text-neutral-400"
+          className="mt-3 max-w-sm text-center text-sm leading-relaxed text-neutral-500"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.5 }}
@@ -125,29 +132,27 @@ export default function ResultPage({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.5 }}
         >
-          <p className="mb-3 text-center text-xs uppercase tracking-[0.2em] text-neutral-500">
+          <p className="mb-3 text-center text-xs uppercase tracking-[0.2em] text-neutral-400">
             Your recommended products
           </p>
           <div className="space-y-2">
-            {products.map((product: LorealProduct, i: number) => (
-              <motion.div
-                key={product.id}
-                className="rounded-sm border border-neutral-800 bg-[#111] p-4"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.1, duration: 0.4 }}
-              >
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#C8A96E]">
-                  {product.line}
-                </p>
-                <p className="mt-1 font-serif text-base text-white">
-                  {product.name}
-                </p>
-                <p className="mt-1 text-xs leading-relaxed text-neutral-500">
-                  {product.description}
-                </p>
-              </motion.div>
-            ))}
+            {products.map((product: LorealProduct, i: number) => {
+              const Icon = categoryIcons[product.category] ?? Sparkle;
+              return (
+                <motion.div
+                  key={product.id}
+                  className="flex items-center gap-3 rounded-sm border border-neutral-200 bg-white px-4 py-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 + i * 0.1, duration: 0.4 }}
+                >
+                  <Icon className="h-5 w-5 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
+                  <span className="font-serif text-sm text-neutral-700">
+                    {product.name}
+                  </span>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
       </div>

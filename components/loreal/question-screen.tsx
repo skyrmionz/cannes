@@ -15,6 +15,7 @@ import {
   Droplet,
   FlaskConical,
   ShieldCheck,
+  SunMoon,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ const iconMap: Record<string, LucideIcon> = {
   droplet: Droplet,
   flask: FlaskConical,
   shield: ShieldCheck,
+  "sun-moon": SunMoon,
 };
 
 interface QuestionScreenProps {
@@ -68,12 +70,16 @@ export function QuestionScreen({
   );
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-[#0a0a0a]" showRadialGradient>
+    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient>
       <div className="relative z-10 flex min-h-screen w-full flex-col">
-        {/* Top section */}
+        {/* Top section — logo only */}
         <div className="px-6 pt-8 md:px-12 md:pt-10">
-          <LogoHeader className="mb-8 md:mb-10" />
-          <div className="mx-auto max-w-4xl">
+          <LogoHeader className="mb-4" />
+        </div>
+
+        {/* Center area — question title tight above cards */}
+        <div className="flex flex-1 flex-col items-center justify-center px-4">
+          <div className="mx-auto max-w-4xl w-full flex flex-col items-center">
             <motion.div
               className="mb-2 h-[2px] w-16 bg-[#C8A96E]"
               initial={{ width: 0 }}
@@ -81,68 +87,64 @@ export function QuestionScreen({
               transition={{ delay: 0.1, duration: 0.4 }}
             />
             <motion.h2
-              className="font-serif text-2xl font-light tracking-wide text-white md:text-3xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              className="mb-6 text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
             >
               {title}
             </motion.h2>
-          </div>
-        </div>
 
-        {/* Center selection area */}
-        <div className="flex flex-1 items-center justify-center px-4">
-          <div className="mx-auto flex flex-wrap justify-center gap-3 md:gap-4">
-            {options.map((option, i) => {
-              const Icon = iconMap[option.icon];
-              const isSelected = selectedId === option.id;
-              return (
-                <motion.button
-                  key={option.id}
-                  onClick={() => handleSelect(option.id)}
-                  className="rounded-sm"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.07, duration: 0.45 }}
-                >
-                  <AnimatedBorder
-                    active={isSelected}
-                    className={cn(
-                      "rounded-sm",
-                      !isSelected && "border border-neutral-800 bg-[#111] hover:border-neutral-500 hover:bg-[#1a1a1a]"
-                    )}
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+              {options.map((option, i) => {
+                const Icon = iconMap[option.icon];
+                const isSelected = selectedId === option.id;
+                return (
+                  <motion.button
+                    key={option.id}
+                    onClick={() => handleSelect(option.id)}
+                    className="rounded-sm"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + i * 0.07, duration: 0.45 }}
                   >
-                    <div
+                    <AnimatedBorder
+                      active={isSelected}
                       className={cn(
-                        "group flex w-36 flex-col items-center gap-4 rounded-sm p-6 transition-all md:w-44 md:p-8",
-                        isSelected ? "bg-[#111]" : ""
+                        "rounded-sm",
+                        !isSelected && "border border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
                       )}
                     >
-                      {Icon && (
-                        <Icon
-                          className={cn(
-                            "h-7 w-7 transition-colors",
-                            isSelected
-                              ? "text-[#C8A96E]"
-                              : "text-neutral-400 group-hover:text-neutral-300"
-                          )}
-                          strokeWidth={1.5}
-                        />
-                      )}
-                      <span
+                      <div
                         className={cn(
-                          "text-center font-serif text-sm leading-tight transition-colors md:text-base",
-                          isSelected ? "text-white" : "text-neutral-300"
+                          "group flex w-36 flex-col items-center gap-4 rounded-sm p-6 transition-all md:w-44 md:p-8"
                         )}
                       >
-                        {option.label}
-                      </span>
-                    </div>
-                  </AnimatedBorder>
-                </motion.button>
-              );
-            })}
+                        {Icon && (
+                          <Icon
+                            className={cn(
+                              "h-7 w-7 transition-colors",
+                              isSelected
+                                ? "text-[#C8A96E]"
+                                : "text-neutral-400 group-hover:text-neutral-500"
+                            )}
+                            strokeWidth={1.5}
+                          />
+                        )}
+                        <span
+                          className={cn(
+                            "text-center font-serif text-sm leading-tight transition-colors md:text-base",
+                            isSelected ? "text-neutral-800" : "text-neutral-500"
+                          )}
+                        >
+                          {option.label}
+                        </span>
+                      </div>
+                    </AnimatedBorder>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -158,7 +160,7 @@ export function QuestionScreen({
               {selectedId && (
                 <motion.button
                   onClick={onNext}
-                  className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+                  className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
@@ -173,9 +175,9 @@ export function QuestionScreen({
             </AnimatePresence>
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+              className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
             >
-              <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold leading-none text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-300 text-xs font-bold leading-none text-white">
                 B
               </span>
               Back
