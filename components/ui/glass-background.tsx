@@ -30,12 +30,18 @@ const iridFragmentShader = `
   vec3 thinFilmInterference(float cosTheta, float thickness) {
     float delta = thickness * cosTheta;
 
+    // Wavelengths tuned to produce purples, pinks, and blues
     vec3 color;
-    color.r = 0.5 + 0.5 * cos(6.2832 * (delta / 650.0 + 0.0));
-    color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 530.0 + 0.0));
-    color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 460.0 + 0.0));
+    color.r = 0.5 + 0.5 * cos(6.2832 * (delta / 580.0 + 0.1));
+    color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 520.0 + 0.33));
+    color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 420.0 + 0.05));
 
-    return color;
+    // Boost purples/pinks: push red and blue up, suppress green slightly
+    color.r = color.r * 1.1;
+    color.g = color.g * 0.7;
+    color.b = color.b * 1.15;
+
+    return clamp(color, 0.0, 1.0);
   }
 
   void main() {
@@ -67,14 +73,14 @@ const iridFragmentShader = `
     // Soft diffuse from normals for gentle shadows in folds
     float diffuse = 0.5 + 0.5 * dot(normal, normalize(vec3(0.3, 0.5, 0.8)));
 
-    // White base with iridescent color mixed in via fresnel + normal variation
-    float iriStrength = fresnel * 0.65 + (1.0 - NdotV * NdotV) * 0.35;
-    vec3 base = vec3(0.97, 0.97, 0.98) * diffuse;
-    vec3 color = mix(base, iridescentColor, iriStrength * 0.55);
+    // White base with iridescent color mixed in strongly
+    float iriStrength = fresnel * 0.6 + (1.0 - NdotV * NdotV) * 0.4;
+    vec3 base = vec3(0.96, 0.95, 0.98) * diffuse;
+    vec3 color = mix(base, iridescentColor, iriStrength * 0.7);
     color += specular;
 
-    // Keep it bright overall
-    color = mix(color, vec3(1.0), 0.15);
+    // Keep it bright but don't wash out colors
+    color = mix(color, vec3(1.0), 0.08);
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -196,25 +202,25 @@ function Scene() {
   return (
     <>
       <GlassSheet
-        position={[0, 0, -1.2]}
-        rotation={[0.02, 0.02, -0.08]}
-        size={[13, 8]}
+        position={[0, 0, -1.5]}
+        rotation={[0.02, 0.02, -0.05]}
+        size={[18, 12]}
         seed={1}
         speed={0.12}
         thicknessBase={400}
       />
       <GlassSheet
-        position={[-1.8, 0.4, -0.15]}
-        rotation={[-0.12, 0.18, -0.24]}
-        size={[8.5, 5.5]}
+        position={[-1, 0.3, -0.4]}
+        rotation={[-0.1, 0.15, -0.18]}
+        size={[14, 10]}
         seed={4.2}
         speed={0.16}
         thicknessBase={550}
       />
       <GlassSheet
-        position={[1.7, -0.35, 0.25]}
-        rotation={[0.14, -0.16, 0.18]}
-        size={[8, 5]}
+        position={[1.2, -0.2, 0.2]}
+        rotation={[0.12, -0.12, 0.14]}
+        size={[14, 10]}
         seed={8.5}
         speed={0.18}
         thicknessBase={700}
