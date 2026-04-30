@@ -20,20 +20,21 @@ function createLiquidGlassGeometry(
     const y = pos.getY(i);
 
     const broad =
-      Math.sin(x * 0.9 + seed) * 0.35 +
-      Math.cos(y * 0.75 + seed * 1.4) * 0.3 +
-      Math.sin((x + y) * 0.55 + seed * 0.8) * 0.28;
+      Math.sin(x * 0.9 + seed) * 0.3 +
+      Math.cos(y * 0.75 + seed * 1.4) * 0.25;
+
+    const folds =
+      Math.sin(x * 2.2 + seed * 0.8) * 0.2 +
+      Math.cos(y * 2.5 + seed * 1.3) * 0.18 +
+      Math.sin((x + y) * 1.8 + seed * 0.6) * 0.15 +
+      Math.cos((x - y) * 2.0 + seed * 1.1) * 0.12;
 
     const ripple =
-      Math.sin(x * 2.4 + y * 1.6 + seed) * 0.08 +
-      Math.cos(x * 1.8 - y * 2.2 + seed * 1.2) * 0.06;
+      Math.sin(x * 3.5 + y * 2.8 + seed) * 0.08 +
+      Math.cos(x * 2.8 - y * 3.2 + seed * 1.2) * 0.06 +
+      Math.sin(x * 4.5 + seed * 2.0) * Math.cos(y * 4.0 + seed) * 0.04;
 
-    const micro =
-      Math.sin(x * 5.0 + seed * 2.0) *
-      Math.cos(y * 4.5 + seed) *
-      0.025;
-
-    pos.setZ(i, broad + ripple + micro);
+    pos.setZ(i, broad + folds + ripple);
   }
 
   geo.computeVertexNormals();
@@ -103,16 +104,16 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.05}
-        metalness={0.8}
+        roughness={0.04}
+        metalness={0.85}
         iridescence={1}
-        iridescenceIOR={2.0}
+        iridescenceIOR={2.3}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 280]}
         clearcoat={1}
         clearcoatRoughness={0.02}
-        envMapIntensity={4}
+        envMapIntensity={5}
         side={THREE.DoubleSide}
-        color="#e8e2ff"
+        color="#ddd4f8"
       />
     </mesh>
   );
@@ -121,12 +122,14 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={2.2} color="#ffffff" />
-      <directionalLight position={[4, 5, 6]} intensity={2.4} color="#ffffff" />
-      <directionalLight position={[-5, 2, 3]} intensity={1.2} color="#dbeafe" />
-      <pointLight position={[-3, 3, 4]} intensity={1.8} color="#ffffff" />
-      <pointLight position={[3, -2, 3]} intensity={1.1} color="#ffd6f3" />
-      <pointLight position={[0, 0, 5]} intensity={1.4} color="#dff7ff" />
+      <ambientLight intensity={1.8} color="#e8e0ff" />
+      <directionalLight position={[4, 5, 6]} intensity={2.5} color="#e0d8ff" />
+      <directionalLight position={[-5, 2, 3]} intensity={2} color="#c0d8ff" />
+      <directionalLight position={[0, -3, 5]} intensity={1.5} color="#f0d0f0" />
+      <pointLight position={[-3, 3, 4]} intensity={2.5} color="#a8c8ff" />
+      <pointLight position={[3, -2, 3]} intensity={2} color="#e0a0e8" />
+      <pointLight position={[0, 2, 5]} intensity={1.8} color="#b8d8ff" />
+      <pointLight position={[-2, -2, 4]} intensity={1.5} color="#d0b0f0" />
 
       <MirrorSheet
         position={[0, 0, -1.2]}
@@ -153,7 +156,7 @@ function Scene() {
         thicknessBase={230}
       />
 
-      <Environment preset="studio" />
+      <Environment preset="city" />
     </>
   );
 }
