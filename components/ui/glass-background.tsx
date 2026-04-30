@@ -18,10 +18,10 @@ function createDisplacedGeometry(
     const x = pos.getX(i);
     const y = pos.getY(i);
     const displacement =
-      Math.sin(x * 1.2 + seed) * 0.3 +
-      Math.sin(y * 0.8 + seed * 1.5) * 0.25 +
-      Math.sin((x + y) * 0.6 + seed * 0.7) * 0.2 +
-      Math.cos(x * 2.1 - y * 1.3 + seed * 2) * 0.15;
+      Math.sin(x * 1.2 + seed) * 0.5 +
+      Math.sin(y * 0.8 + seed * 1.5) * 0.4 +
+      Math.sin((x + y) * 0.6 + seed * 0.7) * 0.35 +
+      Math.cos(x * 2.1 - y * 1.3 + seed * 2) * 0.25;
     pos.setZ(i, displacement);
   }
   geo.computeVertexNormals();
@@ -70,17 +70,16 @@ function GlassSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        transparent
-        opacity={0.35}
-        roughness={0.05}
-        metalness={0.1}
+        roughness={0.15}
+        metalness={0.9}
         iridescence={1}
-        iridescenceIOR={1.8}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 250]}
+        iridescenceIOR={2.2}
+        iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
-        clearcoatRoughness={0.05}
-        envMapIntensity={1.2}
+        clearcoatRoughness={0.02}
+        envMapIntensity={2.5}
         side={THREE.DoubleSide}
+        color="#e8e0f0"
       />
     </mesh>
   );
@@ -89,10 +88,11 @@ function GlassSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} intensity={1.2} />
-      <pointLight position={[-3, 2, 3]} intensity={0.8} color="#ffd0e8" />
-      <pointLight position={[2, -2, 2]} intensity={0.5} color="#d0e0ff" />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[5, 5, 5]} intensity={2} />
+      <directionalLight position={[-4, 3, -2]} intensity={1} color="#e0d0ff" />
+      <pointLight position={[-3, 2, 3]} intensity={1.5} color="#ffd0e8" />
+      <pointLight position={[2, -2, 2]} intensity={1} color="#d0e0ff" />
 
       <GlassSheet
         position={[-0.8, 0.3, 0]}
