@@ -29,12 +29,12 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
       <div className="relative z-20 flex flex-col items-center">
         {/* Gold circle around logo + text */}
         <div
-          className="flex flex-col items-center rounded-full border-2 border-[#C8A96E]/40 px-16 py-20 md:px-24 md:py-28"
+          className="flex flex-col items-center rounded-full border border-white/20 px-16 py-20 md:px-24 md:py-28"
           style={{
-            backdropFilter: "blur(8px) saturate(120%)",
-            background: "rgba(255,255,255,0.15)",
+            backdropFilter: "blur(12px) saturate(150%)",
+            background: "rgba(255,255,255,0.08)",
             boxShadow:
-              "0 0 30px rgba(200,169,110,0.1), inset 0 0 30px rgba(200,169,110,0.05)",
+              "0 0 40px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.15)",
           }}
         >
           <motion.div
@@ -47,13 +47,13 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
               alt="L'Oréal"
               width={320}
               height={120}
-              className="h-24 w-auto object-contain brightness-0 md:h-32"
+              className="h-24 w-auto object-contain md:h-32"
               priority
             />
           </motion.div>
 
           <motion.p
-            className="mt-1 font-serif text-lg tracking-wide text-neutral-600 md:text-xl"
+            className="mt-1 font-serif text-lg tracking-wide text-white/80 md:text-xl"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.8 }}
@@ -62,7 +62,7 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
           </motion.p>
 
           <motion.p
-            className="mt-8 text-xs uppercase tracking-[0.3em] text-neutral-400"
+            className="mt-8 text-xs uppercase tracking-[0.3em] text-white/40"
             animate={{ opacity: [0.3, 0.8, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >

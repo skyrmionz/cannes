@@ -176,14 +176,14 @@ function LorealContent() {
 
   return (
     <BackgroundGradientAnimation
-      gradientBackgroundStart="rgb(230, 225, 240)"
-      gradientBackgroundEnd="rgb(220, 235, 245)"
-      firstColor="180, 160, 255"
-      secondColor="140, 200, 255"
-      thirdColor="255, 160, 210"
-      fourthColor="160, 230, 220"
-      fifthColor="220, 180, 255"
-      pointerColor="180, 180, 255"
+      gradientBackgroundStart="rgb(80, 70, 110)"
+      gradientBackgroundEnd="rgb(40, 50, 80)"
+      firstColor="120, 80, 200"
+      secondColor="60, 160, 240"
+      thirdColor="220, 80, 180"
+      fourthColor="40, 200, 200"
+      fifthColor="180, 120, 255"
+      pointerColor="140, 100, 255"
       size="80%"
       blendingValue="hard-light"
       interactive={!showStart}

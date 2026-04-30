@@ -17,7 +17,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
     <div className="flex h-full w-full flex-col items-center justify-center">
 
         <motion.h2
-          className="max-w-md text-center font-serif text-xl font-light tracking-wide text-neutral-800 md:text-2xl"
+          className="max-w-md text-center font-serif text-xl font-light tracking-wide text-white md:text-2xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -25,7 +25,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
           We&apos;re putting together your personal beauty kit now!
         </motion.h2>
 
-        <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-neutral-200">
+        <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-white/20">
           <motion.div
             className="h-full rounded-full bg-[#C8A96E]"
             initial={{ width: "0%" }}
