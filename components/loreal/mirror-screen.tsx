@@ -53,7 +53,7 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
             </motion.div>
 
             <motion.p
-              className="mt-3 font-serif text-lg tracking-wide text-neutral-600 md:text-xl"
+              className="mt-1 font-serif text-lg tracking-wide text-neutral-600 md:text-xl"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
