@@ -40,7 +40,7 @@ const skincareTimeOptions: LorealOption[] = [
 
 const stepVariants = {
   enter: (direction: number) => ({
-    scale: direction > 0 ? 1.15 : 0.85,
+    scale: direction > 0 ? 0.85 : 1.15,
     opacity: 0,
   }),
   center: {
@@ -48,7 +48,7 @@ const stepVariants = {
     opacity: 1,
   },
   exit: (direction: number) => ({
-    scale: direction > 0 ? 0.85 : 1.15,
+    scale: direction > 0 ? 1.15 : 0.85,
     opacity: 0,
   }),
 };
