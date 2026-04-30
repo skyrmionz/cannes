@@ -74,8 +74,8 @@ function MirrorSheet({
 
     if (matRef.current) {
       matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.4) * 35,
-        thicknessBase + 200 + Math.cos(t * 0.25) * 40,
+        thicknessBase + Math.sin(t * 0.4) * 60,
+        thicknessBase + 300 + Math.cos(t * 0.25) * 80,
       ];
     }
 
@@ -106,9 +106,9 @@ function MirrorSheet({
         ref={matRef}
         roughness={0.03}
         metalness={0.9}
-        iridescence={0.6}
-        iridescenceIOR={1.8}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 200]}
+        iridescence={1}
+        iridescenceIOR={2.4}
+        iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
         clearcoatRoughness={0.01}
         envMapIntensity={5}
