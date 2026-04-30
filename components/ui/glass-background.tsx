@@ -92,32 +92,17 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.02}
-        metalness={0}
-        transmission={0.92}
-        thickness={1.2}
-        ior={1.8}
+        roughness={0.03}
+        metalness={0.95}
         iridescence={1}
-        iridescenceIOR={2.5}
+        iridescenceIOR={2.4}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
         clearcoatRoughness={0.01}
-        envMapIntensity={4}
-        specularIntensity={1}
-        specularColor={new THREE.Color("#d0c0ff")}
-        transparent
+        envMapIntensity={6}
         side={THREE.DoubleSide}
-        color="#f0eaff"
+        color="#fbf8ff"
       />
-    </mesh>
-  );
-}
-
-function BackdropPlane() {
-  return (
-    <mesh position={[0, 0, -3]}>
-      <planeGeometry args={[20, 16]} />
-      <meshBasicMaterial color="#f0ecff" />
     </mesh>
   );
 }
@@ -132,8 +117,6 @@ function Scene() {
       <pointLight position={[-2, 3, 4]} intensity={2.5} color="#d8c8ff" />
       <pointLight position={[3, -2, 3]} intensity={2} color="#e4d0ff" />
       <pointLight position={[0, 0, 6]} intensity={1.5} color="#f0eeff" />
-
-      <BackdropPlane />
 
       <MirrorSheet
         position={[0, 0, -1.5]}
@@ -170,8 +153,8 @@ function GlassCanvas() {
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 50 }}
       dpr={[1, 1.5]}
-      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-      style={{ background: "#f0ecff" }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      style={{ background: "transparent" }}
     >
       <Suspense fallback={null}>
         <Scene />
