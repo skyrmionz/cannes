@@ -36,13 +36,13 @@ const iridFragmentShader = `
     color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 540.0 + 0.35));
     color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 440.0 + 0.02));
 
-    // Suppress greens hard, keep lavender purples and soft pinks
-    color.r = color.r * 1.05;
+    // Suppress greens, keep lavender and soft blue
+    color.r = color.r * 0.9;
     color.g = color.g * 0.5;
     color.b = color.b * 1.2;
 
     // Brighten toward white so colors stay light/pastel
-    color = mix(color, vec3(1.0), 0.35);
+    color = mix(color, vec3(1.0), 0.4);
 
     return clamp(color, 0.0, 1.0);
   }
@@ -265,12 +265,7 @@ export function GlassBackground({
       <div
         className="pointer-events-none fixed inset-0"
         style={{
-          background: `
-            radial-gradient(circle at 20% 25%, rgba(255,255,255,0.95), transparent 32%),
-            radial-gradient(circle at 78% 30%, rgba(191,219,254,0.55), transparent 38%),
-            radial-gradient(circle at 48% 75%, rgba(252,231,243,0.65), transparent 42%),
-            linear-gradient(135deg, #f8f7ff 0%, #eef6ff 45%, #fff7fb 100%)
-          `,
+          background: "linear-gradient(135deg, #f8f7ff 0%, #f0eeff 50%, #f8f7ff 100%)",
         }}
       />
       <div className="pointer-events-none fixed inset-0">

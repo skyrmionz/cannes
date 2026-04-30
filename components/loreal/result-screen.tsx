@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
 import { Sparkle, Droplet, FlaskConical, ShieldCheck, type LucideIcon } from "lucide-react";
+import { LogoHeader } from "@/components/loreal/logo-header";
 import {
   getRecommendations,
   generateResultCode,
@@ -52,6 +53,15 @@ export function ResultScreen({
   return (
     <div className="flex h-full w-full flex-col items-center justify-center px-4">
       <div className="flex w-full max-w-lg flex-col items-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="mb-6"
+        >
+          <LogoHeader />
+        </motion.div>
+
         <motion.h2
           className="text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
           initial={{ opacity: 0, y: 10 }}
@@ -78,35 +88,37 @@ export function ResultScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.5 }}
         >
-          <div className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-            <QRCodeSVG
-              value={qrUrl}
-              size={140}
-              bgColor="#FFFFFF"
-              fgColor="#000000"
-              level="M"
-            />
-          </div>
-
           <div className="w-full max-w-xs">
             <p className="mb-2 text-center text-xs uppercase tracking-[0.2em] text-neutral-400 md:text-left">
               Your recommended products
             </p>
-            <div className="space-y-1.5">
-              {products.map((product: LorealProduct) => {
-                const Icon = categoryIcons[product.category] ?? Sparkle;
-                return (
-                  <div
-                    key={product.id}
-                    className="flex items-center gap-3 rounded-sm border border-neutral-200 bg-white px-3 py-2.5"
-                  >
-                    <Icon className="h-4 w-4 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
-                    <span className="font-serif text-sm text-neutral-700">
-                      {product.name}
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="flex items-start gap-5">
+              <div className="shrink-0 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+                <QRCodeSVG
+                  value={qrUrl}
+                  size={120}
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+
+              <div className="flex-1 space-y-1.5">
+                {products.map((product: LorealProduct) => {
+                  const Icon = categoryIcons[product.category] ?? Sparkle;
+                  return (
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 py-2"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
+                      <span className="font-serif text-xs text-neutral-700">
+                        {product.name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </motion.div>

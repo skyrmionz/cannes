@@ -197,8 +197,8 @@ function LorealContent() {
         {showStart && <MirrorScreen onStart={handleStart} />}
       </AnimatePresence>
 
-      {/* Persistent logo header */}
-      {!showStart && (
+      {/* Logo header — hidden on loading and result steps */}
+      {!showStart && step < 6 && (
         <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
           <LogoHeader className="mb-4" />
         </div>
