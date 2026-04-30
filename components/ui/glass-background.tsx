@@ -2,9 +2,83 @@
 
 import { useRef, useMemo, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
+
+const iridVertexShader = `
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    vNormal = normalize(normalMatrix * normal);
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = -mvPosition.xyz;
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+const iridFragmentShader = `
+  uniform float uTime;
+  uniform float uThicknessBase;
+
+  varying vec3 vNormal;
+  varying vec3 vViewPosition;
+  varying vec2 vUv;
+
+  vec3 thinFilmInterference(float cosTheta, float thickness) {
+    float delta = thickness * cosTheta;
+
+    vec3 color;
+    color.r = 0.5 + 0.5 * cos(6.2832 * (delta / 650.0 + 0.0));
+    color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 530.0 + 0.0));
+    color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 460.0 + 0.0));
+
+    return color;
+  }
+
+  void main() {
+    vec3 normal = normalize(vNormal);
+    vec3 viewDir = normalize(vViewPosition);
+
+    float NdotV = abs(dot(normal, viewDir));
+
+    // Fresnel — stronger iridescence at glancing angles
+    float fresnel = pow(1.0 - NdotV, 2.5);
+
+    // Thin-film thickness varies across surface and time
+    float thickness = uThicknessBase
+      + sin(vUv.x * 8.0 + uTime * 0.3) * 80.0
+      + cos(vUv.y * 6.0 + uTime * 0.25) * 60.0
+      + sin((vUv.x + vUv.y) * 5.0 + uTime * 0.2) * 50.0;
+
+    vec3 iridescentColor = thinFilmInterference(NdotV, thickness);
+
+    // Specular highlight
+    vec3 lightDir1 = normalize(vec3(0.4, 0.5, 0.6));
+    vec3 lightDir2 = normalize(vec3(-0.5, 0.2, 0.3));
+    vec3 halfDir1 = normalize(viewDir + lightDir1);
+    vec3 halfDir2 = normalize(viewDir + lightDir2);
+    float spec1 = pow(max(dot(normal, halfDir1), 0.0), 120.0);
+    float spec2 = pow(max(dot(normal, halfDir2), 0.0), 80.0);
+    vec3 specular = vec3(1.0) * (spec1 * 0.7 + spec2 * 0.4);
+
+    // Soft diffuse from normals for gentle shadows in folds
+    float diffuse = 0.5 + 0.5 * dot(normal, normalize(vec3(0.3, 0.5, 0.8)));
+
+    // White base with iridescent color mixed in via fresnel + normal variation
+    float iriStrength = fresnel * 0.65 + (1.0 - NdotV * NdotV) * 0.35;
+    vec3 base = vec3(0.97, 0.97, 0.98) * diffuse;
+    vec3 color = mix(base, iridescentColor, iriStrength * 0.55);
+    color += specular;
+
+    // Keep it bright overall
+    color = mix(color, vec3(1.0), 0.15);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
 
 function createLiquidGlassGeometry(
   width: number,
@@ -41,7 +115,7 @@ function createLiquidGlassGeometry(
   return geo;
 }
 
-function MirrorSheet({
+function GlassSheet({
   position,
   rotation,
   size,
@@ -57,12 +131,20 @@ function MirrorSheet({
   thicknessBase: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const matRef = useRef<THREE.MeshPhysicalMaterial>(null);
+  const matRef = useRef<THREE.ShaderMaterial>(null);
   const basePositions = useRef<Float32Array | null>(null);
 
   const geometry = useMemo(
     () => createLiquidGlassGeometry(size[0], size[1], 96, seed),
     [size, seed]
+  );
+
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uThicknessBase: { value: thicknessBase },
+    }),
+    [thicknessBase]
   );
 
   useFrame((state) => {
@@ -73,10 +155,7 @@ function MirrorSheet({
     meshRef.current.rotation.z = rotation[2] + Math.sin(t * 0.15) * 0.015;
 
     if (matRef.current) {
-      matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.4) * 60,
-        thicknessBase + 300 + Math.cos(t * 0.25) * 80,
-      ];
+      matRef.current.uniforms.uTime.value = state.clock.elapsedTime;
     }
 
     const geo = meshRef.current.geometry;
@@ -102,18 +181,12 @@ function MirrorSheet({
 
   return (
     <mesh ref={meshRef} position={position} geometry={geometry}>
-      <meshPhysicalMaterial
+      <shaderMaterial
         ref={matRef}
-        roughness={0.03}
-        metalness={0.9}
-        iridescence={1}
-        iridescenceIOR={2.4}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
-        clearcoat={1}
-        clearcoatRoughness={0.01}
-        envMapIntensity={5}
+        vertexShader={iridVertexShader}
+        fragmentShader={iridFragmentShader}
+        uniforms={uniforms}
         side={THREE.DoubleSide}
-        color="#f8f6ff"
       />
     </mesh>
   );
@@ -122,74 +195,30 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={2.5} color="#ffffff" />
-      <directionalLight position={[4, 5, 6]} intensity={3} color="#ffffff" />
-      <directionalLight position={[-5, 2, 3]} intensity={2} color="#ffffff" />
-      <directionalLight position={[0, -3, 5]} intensity={1.5} color="#ffffff" />
-      <pointLight position={[-3, 3, 4]} intensity={1.5} color="#e0e8ff" />
-      <pointLight position={[3, -2, 3]} intensity={1.2} color="#ffe8f4" />
-      <pointLight position={[0, 0, 5]} intensity={1} color="#e8f0ff" />
-
-      <MirrorSheet
+      <GlassSheet
         position={[0, 0, -1.2]}
         rotation={[0.02, 0.02, -0.08]}
         size={[13, 8]}
         seed={1}
         speed={0.12}
-        thicknessBase={120}
+        thicknessBase={400}
       />
-      <MirrorSheet
+      <GlassSheet
         position={[-1.8, 0.4, -0.15]}
         rotation={[-0.12, 0.18, -0.24]}
         size={[8.5, 5.5]}
         seed={4.2}
         speed={0.16}
-        thicknessBase={180}
+        thicknessBase={550}
       />
-      <MirrorSheet
+      <GlassSheet
         position={[1.7, -0.35, 0.25]}
         rotation={[0.14, -0.16, 0.18]}
         size={[8, 5]}
         seed={8.5}
         speed={0.18}
-        thicknessBase={230}
+        thicknessBase={700}
       />
-
-      {/* Smooth gradient env sphere for clean reflections — no HDRI artifacts */}
-      <Environment background={false}>
-        <mesh scale={100}>
-          <sphereGeometry args={[1, 64, 64]} />
-          <shaderMaterial
-            side={THREE.BackSide}
-            uniforms={{
-              colorTop: { value: new THREE.Color("#f0edff") },
-              colorMid: { value: new THREE.Color("#ffffff") },
-              colorBot: { value: new THREE.Color("#fdf0fa") },
-            }}
-            vertexShader={`
-              varying vec3 vWorldPosition;
-              void main() {
-                vec4 worldPos = modelMatrix * vec4(position, 1.0);
-                vWorldPosition = worldPos.xyz;
-                gl_Position = projectionMatrix * viewMatrix * worldPos;
-              }
-            `}
-            fragmentShader={`
-              uniform vec3 colorTop;
-              uniform vec3 colorMid;
-              uniform vec3 colorBot;
-              varying vec3 vWorldPosition;
-              void main() {
-                float y = normalize(vWorldPosition).y;
-                vec3 col = y > 0.0
-                  ? mix(colorMid, colorTop, y)
-                  : mix(colorMid, colorBot, -y);
-                gl_FragColor = vec4(col, 1.0);
-              }
-            `}
-          />
-        </mesh>
-      </Environment>
     </>
   );
 }
