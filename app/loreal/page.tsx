@@ -8,7 +8,6 @@ import { NameEntry } from "@/components/loreal/name-entry";
 import { QuestionScreen, type LorealOption } from "@/components/loreal/question-screen";
 import { LoadingScreen } from "@/components/loreal/loading-screen";
 import { ResultScreen } from "@/components/loreal/result-screen";
-import { GoldLines } from "@/components/loreal/gold-lines";
 
 const skinRoutineOptions: LorealOption[] = [
   { id: "quick", label: "Quick & Easy", icon: "zap" },
@@ -177,7 +176,6 @@ function LorealContent() {
       {/* Main experience content */}
       {!showStart && (
         <>
-          <GoldLines />
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}

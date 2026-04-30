@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LogoHeader } from "./logo-header";
-import { LorealBg } from "./loreal-bg";
 
 interface NameEntryProps {
   name: string;
@@ -27,9 +27,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
-      <LorealBg />
-
+    <AuroraBackground className="!h-auto min-h-screen !bg-[#0a0a0a]" showRadialGradient>
       <div className="relative z-10 flex flex-col items-center">
         <LogoHeader className="mb-16" />
 
@@ -76,6 +74,6 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
           </button>
         </motion.div>
       </div>
-    </div>
+    </AuroraBackground>
   );
 }

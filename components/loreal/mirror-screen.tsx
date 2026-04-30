@@ -16,18 +16,19 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
       transition={{ duration: 0.7, ease: "easeInOut" }}
     >
       {/* Mirror surface */}
-      <div className="absolute inset-0 bg-gradient-to-b from-neutral-900 via-[#0c0c0c] to-neutral-900" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0c0c0c] to-[#0a0a0a]" />
 
-      {/* Ring light glow — white inset around edges */}
+      {/* White neon border — solid, thick, not fuzzy */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         style={{
+          border: "3px solid rgba(255, 255, 255, 0.9)",
           boxShadow:
-            "inset 0 0 120px rgba(255,255,255,0.18), inset 0 0 300px rgba(255,255,255,0.06), inset 0 0 40px rgba(255,255,255,0.12)",
+            "inset 0 0 15px rgba(255,255,255,0.25), inset 0 0 30px rgba(255,255,255,0.1), 0 0 15px rgba(255,255,255,0.25), 0 0 30px rgba(255,255,255,0.1)",
         }}
       />
 
-      {/* Animated shimmer sweep */}
+      {/* Animated shimmer sweep across mirror */}
       <motion.div
         className="absolute inset-0"
         style={{
@@ -46,7 +47,7 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
       </div>
 
       {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

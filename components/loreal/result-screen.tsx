@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LogoHeader } from "./logo-header";
-import { LorealBg } from "./loreal-bg";
 import {
   getRecommendations,
   generateResultCode,
@@ -45,10 +45,8 @@ export function ResultScreen({
   }, [name, skinRoutine, skinType, preferredProduct]);
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center overflow-hidden px-4 py-8">
-      <LorealBg />
-
-      <div className="relative z-10 flex w-full max-w-lg flex-col items-center">
+    <AuroraBackground className="!h-auto min-h-screen !bg-[#0a0a0a]" showRadialGradient>
+      <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -140,6 +138,6 @@ export function ResultScreen({
           Start Over
         </motion.button>
       </div>
-    </div>
+    </AuroraBackground>
   );
 }
