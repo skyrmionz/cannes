@@ -156,7 +156,41 @@ function Scene() {
         thicknessBase={230}
       />
 
-      <Environment preset="studio" />
+      {/* Smooth gradient env sphere for clean reflections — no HDRI artifacts */}
+      <Environment background={false}>
+        <mesh scale={100}>
+          <sphereGeometry args={[1, 64, 64]} />
+          <shaderMaterial
+            side={THREE.BackSide}
+            uniforms={{
+              colorTop: { value: new THREE.Color("#c8c0ff") },
+              colorMid: { value: new THREE.Color("#e8e0ff") },
+              colorBot: { value: new THREE.Color("#f0d8f0") },
+            }}
+            vertexShader={`
+              varying vec3 vWorldPosition;
+              void main() {
+                vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                vWorldPosition = worldPos.xyz;
+                gl_Position = projectionMatrix * viewMatrix * worldPos;
+              }
+            `}
+            fragmentShader={`
+              uniform vec3 colorTop;
+              uniform vec3 colorMid;
+              uniform vec3 colorBot;
+              varying vec3 vWorldPosition;
+              void main() {
+                float y = normalize(vWorldPosition).y;
+                vec3 col = y > 0.0
+                  ? mix(colorMid, colorTop, y)
+                  : mix(colorMid, colorBot, -y);
+                gl_FragColor = vec4(col, 1.0);
+              }
+            `}
+          />
+        </mesh>
+      </Environment>
     </>
   );
 }
