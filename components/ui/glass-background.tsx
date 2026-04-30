@@ -72,16 +72,16 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.08}
-        metalness={1}
+        roughness={0.05}
+        metalness={0.7}
         iridescence={1}
-        iridescenceIOR={2.4}
+        iridescenceIOR={2.2}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
-        clearcoatRoughness={0.01}
-        envMapIntensity={3}
+        clearcoatRoughness={0.02}
+        envMapIntensity={5}
         side={THREE.DoubleSide}
-        color="#b8c0e0"
+        color="#f4f2ff"
       />
     </mesh>
   );
@@ -90,12 +90,13 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={0.2} />
-      <directionalLight position={[4, 6, 5]} intensity={2.5} color="#e8e4ff" />
-      <directionalLight position={[-5, 3, -3]} intensity={1.5} color="#d0d8ff" />
-      <pointLight position={[-2, 3, 4]} intensity={2} color="#c8d0ff" />
-      <pointLight position={[3, -2, 3]} intensity={1.5} color="#e0d4ff" />
-      <pointLight position={[0, 0, 5]} intensity={1} color="#dde0ff" />
+      <ambientLight intensity={1.5} />
+      <directionalLight position={[4, 6, 5]} intensity={4} color="#f0ecff" />
+      <directionalLight position={[-5, 3, -3]} intensity={3} color="#e8e4ff" />
+      <directionalLight position={[0, -4, 4]} intensity={2.5} color="#f0f0ff" />
+      <pointLight position={[-2, 3, 4]} intensity={3} color="#e0d8ff" />
+      <pointLight position={[3, -2, 3]} intensity={2.5} color="#ece4ff" />
+      <pointLight position={[0, 0, 6]} intensity={2} color="#f0eeff" />
 
       {/* Large back sheet fills the frame */}
       <MirrorSheet
@@ -125,7 +126,7 @@ function Scene() {
         thicknessBase={240}
       />
 
-      <Environment preset="studio" />
+      <Environment preset="apartment" />
     </>
   );
 }
@@ -159,7 +160,7 @@ export function GlassBackground({
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full overflow-hidden bg-[#e8e4f0]",
+        "relative min-h-screen w-full overflow-hidden bg-[#f2f0fa]",
         containerClassName
       )}
     >
