@@ -6,6 +6,7 @@ interface AnimatedBorderProps {
   children: React.ReactNode;
   className?: string;
   borderClassName?: string;
+  innerClassName?: string;
   active?: boolean;
 }
 
@@ -13,6 +14,7 @@ export function AnimatedBorder({
   children,
   className,
   borderClassName,
+  innerClassName,
   active = true,
 }: AnimatedBorderProps) {
   return (
@@ -28,11 +30,11 @@ export function AnimatedBorder({
       <div
         className={cn(
           "relative h-full w-full rounded-[inherit] transition-colors duration-500",
-          active ? "bg-white" : "bg-white/70"
+          innerClassName ?? (active ? "bg-white" : "bg-white/70")
         )}
         style={{
           border: active ? "none" : "1px solid rgba(0,0,0,0.08)",
-          backdropFilter: "blur(8px)",
+          backdropFilter: innerClassName ? undefined : "blur(8px)",
         }}
       >
         {children}

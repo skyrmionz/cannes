@@ -47,6 +47,7 @@ function MirrorSheet({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.MeshPhysicalMaterial>(null);
+  const basePositions = useRef<Float32Array | null>(null);
 
   const geometry = useMemo(
     () => createCrumpledGeometry(size[0], size[1], 48, seed),
@@ -66,6 +67,25 @@ function MirrorSheet({
         thicknessBase + 300 + Math.cos(t * 0.25) * 80,
       ];
     }
+
+    const geo = meshRef.current.geometry;
+    const pos = geo.attributes.position;
+    if (!basePositions.current) {
+      basePositions.current = new Float32Array(pos.array);
+    }
+    const base = basePositions.current;
+    for (let i = 0; i < pos.count; i++) {
+      const bx = base[i * 3];
+      const by = base[i * 3 + 1];
+      const bz = base[i * 3 + 2];
+      const wave =
+        Math.sin(bx * 1.5 + t * 0.8) * 0.06 +
+        Math.cos(by * 2.0 + t * 0.6) * 0.05 +
+        Math.sin((bx + by) * 1.2 + t * 0.5) * 0.04;
+      pos.setZ(i, bz + wave);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
   });
 
   return (
@@ -75,13 +95,13 @@ function MirrorSheet({
         roughness={0.05}
         metalness={0.7}
         iridescence={1}
-        iridescenceIOR={2.2}
+        iridescenceIOR={2.5}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
         clearcoatRoughness={0.02}
         envMapIntensity={5}
         side={THREE.DoubleSide}
-        color="#f4f2ff"
+        color="#ede8ff"
       />
     </mesh>
   );
