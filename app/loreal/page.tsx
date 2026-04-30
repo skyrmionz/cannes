@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
-import { BackgroundGradientAnimation } from "@/components/ui/background-gradient-animation";
+import { CellophaneBackground } from "@/components/ui/cellophane-background";
 import { LogoHeader } from "@/components/loreal/logo-header";
 import { MirrorScreen } from "@/components/loreal/mirror-screen";
 import { NameEntry } from "@/components/loreal/name-entry";
@@ -175,20 +175,10 @@ function LorealContent() {
   };
 
   return (
-    <BackgroundGradientAnimation
-      gradientBackgroundStart="rgb(80, 70, 110)"
-      gradientBackgroundEnd="rgb(40, 50, 80)"
-      firstColor="120, 80, 200"
-      secondColor="60, 160, 240"
-      thirdColor="220, 80, 180"
-      fourthColor="40, 200, 200"
-      fifthColor="180, 120, 255"
-      pointerColor="140, 100, 255"
-      size="80%"
-      blendingValue="hard-light"
+    <CellophaneBackground
       interactive={!showStart}
       containerClassName="!h-auto min-h-screen"
-      className="relative z-10 flex min-h-screen w-full flex-col overflow-hidden"
+      className="flex min-h-screen w-full flex-col overflow-hidden"
     >
       {/* Fade-to-white overlay for Start Over transition */}
       <AnimatePresence>
@@ -234,7 +224,7 @@ function LorealContent() {
           </AnimatePresence>
         </div>
       )}
-    </BackgroundGradientAnimation>
+    </CellophaneBackground>
   );
 }
 
