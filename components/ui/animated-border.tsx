@@ -28,7 +28,7 @@ export function AnimatedBorder({
       <div
         className={cn(
           "absolute inset-[2px] rounded-[inherit] transition-colors duration-500",
-          active ? "bg-transparent" : "bg-neutral-200"
+          active ? "bg-transparent" : "bg-neutral-200/60"
         )}
       />
       <div className="relative h-full w-full rounded-[inherit] bg-white">

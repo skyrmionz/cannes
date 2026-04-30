@@ -53,7 +53,7 @@ export function ResultScreen({
   }, [name, skinRoutine, skinType, preferredProduct]);
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient>
+    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
       <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 10 }}

@@ -38,22 +38,22 @@ const skincareTimeOptions: LorealOption[] = [
 
 const stepVariants = {
   enter: (direction: number) => ({
-    y: direction > 0 ? 60 : -60,
+    scale: direction > 0 ? 1.15 : 0.85,
     opacity: 0,
   }),
   center: {
-    y: 0,
+    scale: 1,
     opacity: 1,
   },
   exit: (direction: number) => ({
-    y: direction > 0 ? -60 : 60,
+    scale: direction > 0 ? 0.85 : 1.15,
     opacity: 0,
   }),
 };
 
 const stepTransition = {
-  duration: 0.45,
-  ease: [0.32, 0.72, 0, 1] as const,
+  duration: 0.6,
+  ease: "easeInOut" as const,
 };
 
 function LorealContent() {

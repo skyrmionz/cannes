@@ -70,7 +70,7 @@ export function QuestionScreen({
   );
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient>
+    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
       <div className="relative z-10 flex min-h-screen w-full flex-col">
         {/* Top section — logo only */}
         <div className="px-6 pt-8 md:px-12 md:pt-10">

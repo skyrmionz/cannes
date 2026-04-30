@@ -16,7 +16,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   }, [onComplete]);
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient>
+    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
       <div className="relative z-10 flex flex-col items-center">
         <LogoHeader className="mb-16" />
 
