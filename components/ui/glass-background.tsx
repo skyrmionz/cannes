@@ -74,8 +74,8 @@ function MirrorSheet({
 
     if (matRef.current) {
       matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.4) * 50,
-        thicknessBase + 280 + Math.cos(t * 0.25) * 60,
+        thicknessBase + Math.sin(t * 0.4) * 35,
+        thicknessBase + 200 + Math.cos(t * 0.25) * 40,
       ];
     }
 
@@ -104,16 +104,16 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.04}
-        metalness={0.85}
-        iridescence={1}
-        iridescenceIOR={2.3}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 280]}
+        roughness={0.03}
+        metalness={0.9}
+        iridescence={0.6}
+        iridescenceIOR={1.8}
+        iridescenceThicknessRange={[thicknessBase, thicknessBase + 200]}
         clearcoat={1}
-        clearcoatRoughness={0.02}
+        clearcoatRoughness={0.01}
         envMapIntensity={5}
         side={THREE.DoubleSide}
-        color="#ddd4f8"
+        color="#f8f6ff"
       />
     </mesh>
   );
@@ -122,14 +122,13 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={1.8} color="#e8e0ff" />
-      <directionalLight position={[4, 5, 6]} intensity={2.5} color="#e0d8ff" />
-      <directionalLight position={[-5, 2, 3]} intensity={2} color="#c0d8ff" />
-      <directionalLight position={[0, -3, 5]} intensity={1.5} color="#f0d0f0" />
-      <pointLight position={[-3, 3, 4]} intensity={2.5} color="#a8c8ff" />
-      <pointLight position={[3, -2, 3]} intensity={2} color="#e0a0e8" />
-      <pointLight position={[0, 2, 5]} intensity={1.8} color="#b8d8ff" />
-      <pointLight position={[-2, -2, 4]} intensity={1.5} color="#d0b0f0" />
+      <ambientLight intensity={2.5} color="#ffffff" />
+      <directionalLight position={[4, 5, 6]} intensity={3} color="#ffffff" />
+      <directionalLight position={[-5, 2, 3]} intensity={2} color="#ffffff" />
+      <directionalLight position={[0, -3, 5]} intensity={1.5} color="#ffffff" />
+      <pointLight position={[-3, 3, 4]} intensity={1.5} color="#e0e8ff" />
+      <pointLight position={[3, -2, 3]} intensity={1.2} color="#ffe8f4" />
+      <pointLight position={[0, 0, 5]} intensity={1} color="#e8f0ff" />
 
       <MirrorSheet
         position={[0, 0, -1.2]}
@@ -163,9 +162,9 @@ function Scene() {
           <shaderMaterial
             side={THREE.BackSide}
             uniforms={{
-              colorTop: { value: new THREE.Color("#c8c0ff") },
-              colorMid: { value: new THREE.Color("#e8e0ff") },
-              colorBot: { value: new THREE.Color("#f0d8f0") },
+              colorTop: { value: new THREE.Color("#f0edff") },
+              colorMid: { value: new THREE.Color("#ffffff") },
+              colorBot: { value: new THREE.Color("#fdf0fa") },
             }}
             vertexShader={`
               varying vec3 vWorldPosition;
