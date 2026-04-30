@@ -92,17 +92,32 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.05}
-        metalness={0.7}
+        roughness={0.02}
+        metalness={0}
+        transmission={0.92}
+        thickness={1.2}
+        ior={1.8}
         iridescence={1}
         iridescenceIOR={2.5}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
-        clearcoatRoughness={0.02}
-        envMapIntensity={5}
+        clearcoatRoughness={0.01}
+        envMapIntensity={4}
+        specularIntensity={1}
+        specularColor={new THREE.Color("#d0c0ff")}
+        transparent
         side={THREE.DoubleSide}
-        color="#ede8ff"
+        color="#f0eaff"
       />
+    </mesh>
+  );
+}
+
+function BackdropPlane() {
+  return (
+    <mesh position={[0, 0, -3]}>
+      <planeGeometry args={[20, 16]} />
+      <meshBasicMaterial color="#f0ecff" />
     </mesh>
   );
 }
@@ -110,15 +125,16 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={1.5} />
-      <directionalLight position={[4, 6, 5]} intensity={4} color="#f0ecff" />
-      <directionalLight position={[-5, 3, -3]} intensity={3} color="#e8e4ff" />
-      <directionalLight position={[0, -4, 4]} intensity={2.5} color="#f0f0ff" />
-      <pointLight position={[-2, 3, 4]} intensity={3} color="#e0d8ff" />
-      <pointLight position={[3, -2, 3]} intensity={2.5} color="#ece4ff" />
-      <pointLight position={[0, 0, 6]} intensity={2} color="#f0eeff" />
+      <ambientLight intensity={2} />
+      <directionalLight position={[4, 6, 5]} intensity={3} color="#f0ecff" />
+      <directionalLight position={[-5, 3, -3]} intensity={2.5} color="#e8e4ff" />
+      <directionalLight position={[0, -4, 4]} intensity={2} color="#f0f0ff" />
+      <pointLight position={[-2, 3, 4]} intensity={2.5} color="#d8c8ff" />
+      <pointLight position={[3, -2, 3]} intensity={2} color="#e4d0ff" />
+      <pointLight position={[0, 0, 6]} intensity={1.5} color="#f0eeff" />
 
-      {/* Large back sheet fills the frame */}
+      <BackdropPlane />
+
       <MirrorSheet
         position={[0, 0, -1.5]}
         rotation={[0.05, 0.03, 0]}
@@ -127,7 +143,6 @@ function Scene() {
         speed={0.15}
         thicknessBase={80}
       />
-      {/* Mid layer, angled */}
       <MirrorSheet
         position={[-1, 0.5, -0.3]}
         rotation={[-0.2, 0.25, -0.3]}
@@ -136,7 +151,6 @@ function Scene() {
         speed={0.2}
         thicknessBase={160}
       />
-      {/* Front layer, more crumpled */}
       <MirrorSheet
         position={[0.8, -0.3, 0.5]}
         rotation={[0.25, -0.18, 0.2]}
@@ -156,8 +170,8 @@ function GlassCanvas() {
     <Canvas
       camera={{ position: [0, 0, 3.5], fov: 50 }}
       dpr={[1, 1.5]}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      style={{ background: "transparent" }}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+      style={{ background: "#f0ecff" }}
     >
       <Suspense fallback={null}>
         <Scene />
