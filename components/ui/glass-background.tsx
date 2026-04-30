@@ -6,7 +6,7 @@ import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
-function createDisplacedGeometry(
+function createCrumpledGeometry(
   width: number,
   height: number,
   segs: number,
@@ -18,17 +18,19 @@ function createDisplacedGeometry(
     const x = pos.getX(i);
     const y = pos.getY(i);
     const displacement =
-      Math.sin(x * 1.2 + seed) * 0.5 +
-      Math.sin(y * 0.8 + seed * 1.5) * 0.4 +
-      Math.sin((x + y) * 0.6 + seed * 0.7) * 0.35 +
-      Math.cos(x * 2.1 - y * 1.3 + seed * 2) * 0.25;
+      Math.sin(x * 2.5 + seed) * 0.4 +
+      Math.sin(y * 3.0 + seed * 1.3) * 0.35 +
+      Math.sin((x * 1.8 + y * 2.2) + seed * 0.7) * 0.3 +
+      Math.cos(x * 4.0 - y * 2.5 + seed * 2) * 0.2 +
+      Math.sin(x * 5.5 + y * 4.0 + seed * 3) * 0.12 +
+      Math.cos((x - y) * 3.5 + seed * 1.8) * 0.15;
     pos.setZ(i, displacement);
   }
   geo.computeVertexNormals();
   return geo;
 }
 
-function GlassSheet({
+function MirrorSheet({
   position,
   rotation,
   size,
@@ -47,21 +49,21 @@ function GlassSheet({
   const matRef = useRef<THREE.MeshPhysicalMaterial>(null);
 
   const geometry = useMemo(
-    () => createDisplacedGeometry(size[0], size[1], 24, seed),
+    () => createCrumpledGeometry(size[0], size[1], 48, seed),
     [size, seed]
   );
 
   useFrame((state) => {
     if (!meshRef.current) return;
     const t = state.clock.elapsedTime * speed;
-    meshRef.current.rotation.x = rotation[0] + Math.sin(t * 0.4) * 0.03;
-    meshRef.current.rotation.y = rotation[1] + Math.cos(t * 0.3) * 0.04;
-    meshRef.current.rotation.z = rotation[2] + Math.sin(t * 0.2) * 0.02;
+    meshRef.current.rotation.x = rotation[0] + Math.sin(t * 0.3) * 0.02;
+    meshRef.current.rotation.y = rotation[1] + Math.cos(t * 0.25) * 0.025;
+    meshRef.current.rotation.z = rotation[2] + Math.sin(t * 0.15) * 0.015;
 
     if (matRef.current) {
       matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.5) * 80,
-        thicknessBase + 250 + Math.cos(t * 0.3) * 100,
+        thicknessBase + Math.sin(t * 0.4) * 60,
+        thicknessBase + 300 + Math.cos(t * 0.25) * 80,
       ];
     }
   });
@@ -70,16 +72,16 @@ function GlassSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.15}
-        metalness={0.9}
+        roughness={0.08}
+        metalness={1}
         iridescence={1}
-        iridescenceIOR={2.2}
+        iridescenceIOR={2.4}
         iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
         clearcoat={1}
-        clearcoatRoughness={0.02}
-        envMapIntensity={2.5}
+        clearcoatRoughness={0.01}
+        envMapIntensity={3}
         side={THREE.DoubleSide}
-        color="#e8e0f0"
+        color="#b8c0e0"
       />
     </mesh>
   );
@@ -88,35 +90,39 @@ function GlassSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[5, 5, 5]} intensity={2} />
-      <directionalLight position={[-4, 3, -2]} intensity={1} color="#e0d0ff" />
-      <pointLight position={[-3, 2, 3]} intensity={1.5} color="#ffd0e8" />
-      <pointLight position={[2, -2, 2]} intensity={1} color="#d0e0ff" />
+      <ambientLight intensity={0.2} />
+      <directionalLight position={[4, 6, 5]} intensity={2.5} color="#e8e4ff" />
+      <directionalLight position={[-5, 3, -3]} intensity={1.5} color="#d0d8ff" />
+      <pointLight position={[-2, 3, 4]} intensity={2} color="#c8d0ff" />
+      <pointLight position={[3, -2, 3]} intensity={1.5} color="#e0d4ff" />
+      <pointLight position={[0, 0, 5]} intensity={1} color="#dde0ff" />
 
-      <GlassSheet
-        position={[-0.8, 0.3, 0]}
-        rotation={[-0.24, 0.31, -0.35]}
-        size={[5, 4]}
+      {/* Large back sheet fills the frame */}
+      <MirrorSheet
+        position={[0, 0, -1.5]}
+        rotation={[0.05, 0.03, 0]}
+        size={[12, 10]}
         seed={1}
-        speed={0.3}
-        thicknessBase={100}
+        speed={0.15}
+        thicknessBase={80}
       />
-      <GlassSheet
-        position={[0.6, -0.2, -0.5]}
-        rotation={[0.31, -0.21, 0.28]}
-        size={[4.5, 4.5]}
-        seed={3.7}
-        speed={0.22}
-        thicknessBase={180}
+      {/* Mid layer, angled */}
+      <MirrorSheet
+        position={[-1, 0.5, -0.3]}
+        rotation={[-0.2, 0.25, -0.3]}
+        size={[8, 7]}
+        seed={4.2}
+        speed={0.2}
+        thicknessBase={160}
       />
-      <GlassSheet
-        position={[0, -0.5, -1]}
-        rotation={[-0.14, 0.42, -0.14]}
-        size={[6, 3]}
-        seed={7.2}
-        speed={0.18}
-        thicknessBase={250}
+      {/* Front layer, more crumpled */}
+      <MirrorSheet
+        position={[0.8, -0.3, 0.5]}
+        rotation={[0.25, -0.18, 0.2]}
+        size={[7, 6]}
+        seed={8.5}
+        speed={0.25}
+        thicknessBase={240}
       />
 
       <Environment preset="studio" />
@@ -127,7 +133,7 @@ function Scene() {
 function GlassCanvas() {
   return (
     <Canvas
-      camera={{ position: [0, 0, 4.5], fov: 45 }}
+      camera={{ position: [0, 0, 3.5], fov: 50 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ background: "transparent" }}
@@ -153,7 +159,7 @@ export function GlassBackground({
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-[#faf8ff] via-[#f2f0ff] to-[#fff5fa]",
+        "relative min-h-screen w-full overflow-hidden bg-[#e8e4f0]",
         containerClassName
       )}
     >
