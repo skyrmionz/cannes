@@ -110,20 +110,13 @@ export function QuestionScreen({
                   >
                     <AnimatedBorder
                       active={isSelected}
-                      className={cn(
-                        "rounded-sm",
-                        !isSelected && "border border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
-                      )}
+                      className="rounded-sm"
                     >
-                      <div
-                        className={cn(
-                          "group flex w-36 flex-col items-center gap-4 rounded-sm p-6 transition-all md:w-44 md:p-8"
-                        )}
-                      >
+                      <div className="group flex h-32 w-36 flex-col items-center justify-center gap-4 rounded-sm p-4 md:h-36 md:w-44 md:p-6">
                         {Icon && (
                           <Icon
                             className={cn(
-                              "h-7 w-7 transition-colors",
+                              "h-7 w-7 transition-colors duration-500",
                               isSelected
                                 ? "text-[#C8A96E]"
                                 : "text-neutral-400 group-hover:text-neutral-500"
@@ -133,7 +126,7 @@ export function QuestionScreen({
                         )}
                         <span
                           className={cn(
-                            "text-center font-serif text-sm leading-tight transition-colors md:text-base",
+                            "text-center font-serif text-sm leading-tight transition-colors duration-500 md:text-base",
                             isSelected ? "text-neutral-800" : "text-neutral-500"
                           )}
                         >

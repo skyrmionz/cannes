@@ -26,30 +26,33 @@ export const AuroraBackground = ({
         className="pointer-events-none absolute inset-0 z-20"
         style={{
           boxShadow:
-            "inset 0 0 60px rgba(255,255,255,0.95), inset 0 0 120px rgba(255,255,255,0.6), inset 0 0 200px rgba(255,255,255,0.3)",
+            "inset 0 0 80px rgba(255,255,255,1), inset 0 0 160px rgba(255,255,255,0.7), inset 0 0 240px rgba(255,255,255,0.4)",
         }}
       />
 
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={
-          {
-            "--aurora":
-              "repeating-linear-gradient(100deg,#C8A96E_10%,#D4BC8A_15%,#E8D5B5_20%,#B8956A_25%,#C8A96E_30%)",
-            "--white-gradient":
-              "repeating-linear-gradient(100deg,#fff_0%,#fff_7%,transparent_10%,transparent_12%,#fff_16%)",
-            "--transparent": "transparent",
-          } as React.CSSProperties
-        }
-      >
+      <div className="absolute inset-0 overflow-hidden">
         <div
           className={cn(
-            `after:animate-aurora pointer-events-none absolute -inset-[10px] [background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%] opacity-60 blur-[10px] filter will-change-transform after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-darken after:content-[""]`,
-
+            "animate-aurora pointer-events-none absolute -inset-[10px] opacity-40 blur-[20px] will-change-transform",
             showRadialGradient &&
-              `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`,
+              "[mask-image:radial-gradient(ellipse_at_100%_0%,black_20%,transparent_80%)]",
           )}
-        ></div>
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(100deg,#C8A96E_0%,#D4BC8A_8%,#E8D5B5_16%,#B8956A_24%,#C8A96E_32%)",
+            backgroundSize: "300% 200%",
+          }}
+        />
+        <div
+          className="animate-aurora pointer-events-none absolute -inset-[10px] opacity-30 blur-[30px] will-change-transform"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(135deg,#D4BC8A_0%,#C8A96E_10%,#E8D5B5_20%,#B8956A_30%,#D4BC8A_40%)",
+            backgroundSize: "200% 300%",
+            animationDuration: "45s",
+            animationDirection: "reverse",
+          }}
+        />
       </div>
       {children}
     </div>

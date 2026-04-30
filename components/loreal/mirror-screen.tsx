@@ -45,15 +45,15 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
               <Image
                 src="/logos/loreal.png"
                 alt="L'Oréal"
-                width={200}
-                height={80}
-                className="h-16 w-auto object-contain brightness-0 md:h-20"
+                width={320}
+                height={120}
+                className="h-24 w-auto object-contain brightness-0 md:h-32"
                 priority
               />
             </motion.div>
 
             <motion.p
-              className="mt-6 font-serif text-lg tracking-wide text-neutral-600 md:text-xl"
+              className="mt-3 font-serif text-lg tracking-wide text-neutral-600 md:text-xl"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
@@ -62,7 +62,7 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
             </motion.p>
 
             <motion.p
-              className="mt-10 text-xs uppercase tracking-[0.3em] text-neutral-400"
+              className="mt-8 text-xs uppercase tracking-[0.3em] text-neutral-400"
               animate={{ opacity: [0.3, 0.8, 0.3] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
