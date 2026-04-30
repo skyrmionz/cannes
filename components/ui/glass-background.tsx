@@ -101,7 +101,7 @@ function MirrorSheet({
         clearcoatRoughness={0.01}
         envMapIntensity={6}
         side={THREE.DoubleSide}
-        color="#fbf8ff"
+        color="#d8d0f8"
       />
     </mesh>
   );
@@ -110,13 +110,13 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={2} />
-      <directionalLight position={[4, 6, 5]} intensity={3} color="#f0ecff" />
-      <directionalLight position={[-5, 3, -3]} intensity={2.5} color="#e8e4ff" />
-      <directionalLight position={[0, -4, 4]} intensity={2} color="#f0f0ff" />
-      <pointLight position={[-2, 3, 4]} intensity={2.5} color="#d8c8ff" />
-      <pointLight position={[3, -2, 3]} intensity={2} color="#e4d0ff" />
-      <pointLight position={[0, 0, 6]} intensity={1.5} color="#f0eeff" />
+      <ambientLight intensity={1.5} color="#c8c0ff" />
+      <directionalLight position={[4, 6, 5]} intensity={3} color="#b8b0ff" />
+      <directionalLight position={[-5, 3, -3]} intensity={2.5} color="#c0d0ff" />
+      <directionalLight position={[0, -4, 4]} intensity={2} color="#d0b8f0" />
+      <pointLight position={[-2, 3, 4]} intensity={3} color="#a0c0ff" />
+      <pointLight position={[3, -2, 3]} intensity={2.5} color="#c8a0f0" />
+      <pointLight position={[0, 0, 6]} intensity={1.5} color="#b0d0ff" />
 
       <MirrorSheet
         position={[0, 0, -1.5]}
@@ -143,7 +143,7 @@ function Scene() {
         thicknessBase={240}
       />
 
-      <Environment preset="apartment" />
+      <Environment preset="dawn" />
     </>
   );
 }
@@ -177,7 +177,7 @@ export function GlassBackground({
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full overflow-hidden bg-[#f2f0fa]",
+        "relative min-h-screen w-full overflow-hidden bg-[#e8e0f8]",
         containerClassName
       )}
     >
