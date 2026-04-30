@@ -73,8 +73,8 @@ function MirrorSheet({
 
     if (matRef.current) {
       matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.4) * 40,
-        thicknessBase + 220 + Math.cos(t * 0.25) * 50,
+        thicknessBase + Math.sin(t * 0.4) * 50,
+        thicknessBase + 280 + Math.cos(t * 0.25) * 60,
       ];
     }
 
@@ -103,18 +103,16 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.08}
-        metalness={0.15}
-        iridescence={0.85}
-        iridescenceIOR={1.55}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 220]}
+        roughness={0.05}
+        metalness={0.8}
+        iridescence={1}
+        iridescenceIOR={2.0}
+        iridescenceThicknessRange={[thicknessBase, thicknessBase + 280]}
         clearcoat={1}
-        clearcoatRoughness={0.04}
-        specularIntensity={1}
-        specularColor={new THREE.Color("#ffffff")}
-        envMapIntensity={2.5}
+        clearcoatRoughness={0.02}
+        envMapIntensity={4}
         side={THREE.DoubleSide}
-        color="#f3efff"
+        color="#e8e2ff"
       />
     </mesh>
   );
