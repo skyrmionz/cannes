@@ -25,11 +25,6 @@
     50% { transform: translateX(50%) translateY(10%); }
     100% { transform: translateX(-50%) translateY(-10%); }
   }
-  --animate-holo-drift: holoDrift 14s ease-in-out infinite alternate;
-  @keyframes holoDrift {
-    from { transform: rotate(0deg) scale(1); }
-    to { transform: rotate(8deg) scale(1.12) translate(3%, -2%); }
-  }
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-avant-garde), ui-sans-serif, system-ui, sans-serif;

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
-import { HoloBackground } from "@/components/ui/holo-background";
+import { GlassBackground } from "@/components/ui/glass-background";
 import { LogoHeader } from "@/components/loreal/logo-header";
 import { MirrorScreen } from "@/components/loreal/mirror-screen";
 import { NameEntry } from "@/components/loreal/name-entry";
@@ -175,7 +175,7 @@ function LorealContent() {
   };
 
   return (
-    <HoloBackground
+    <GlassBackground
       containerClassName="!h-auto min-h-screen"
       className="flex min-h-screen w-full flex-col overflow-hidden"
     >
@@ -223,7 +223,7 @@ function LorealContent() {
           </AnimatePresence>
         </div>
       )}
-    </HoloBackground>
+    </GlassBackground>
   );
 }
 
