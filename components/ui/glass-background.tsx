@@ -156,7 +156,7 @@ function Scene() {
         thicknessBase={230}
       />
 
-      <Environment preset="city" />
+      <Environment preset="studio" />
     </>
   );
 }
