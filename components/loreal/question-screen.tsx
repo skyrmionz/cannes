@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Zap,
   Sparkles,
-  Layers,
+  Flower2,
   Gem,
   Droplets,
   Sun,
@@ -30,7 +30,7 @@ export interface LorealOption {
 const iconMap: Record<string, LucideIcon> = {
   zap: Zap,
   sparkles: Sparkles,
-  layers: Layers,
+  flower: Flower2,
   gem: Gem,
   droplets: Droplets,
   sun: Sun,

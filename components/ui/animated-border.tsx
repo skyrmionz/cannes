@@ -26,18 +26,13 @@ export function AnimatedBorder({
         )}
       />
       <div
-        className={cn(
-          "absolute inset-[2px] rounded-[inherit] transition-all duration-500",
-          active ? "bg-transparent" : "bg-transparent"
-        )}
-      />
-      <div
         className="relative h-full w-full rounded-[inherit]"
         style={{
           backdropFilter: "blur(12px) saturate(150%)",
           background: active
-            ? "rgba(255, 255, 255, 0.12)"
+            ? "rgba(20, 15, 40, 0.85)"
             : "rgba(255, 255, 255, 0.08)",
+          border: active ? "none" : "1px solid rgba(255, 255, 255, 0.2)",
         }}
       >
         {children}
