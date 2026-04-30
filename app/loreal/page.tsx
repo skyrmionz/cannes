@@ -21,8 +21,8 @@ const skinRoutineOptions: LorealOption[] = [
 const skinTypeOptions: LorealOption[] = [
   { id: "oily", label: "Oily", icon: "droplets" },
   { id: "dry", label: "Dry", icon: "sun" },
-  { id: "combination", label: "Combination", icon: "circle-dot" },
   { id: "sensitive", label: "Sensitive", icon: "heart" },
+  { id: "normal", label: "Normal", icon: "circle-dot" },
 ];
 
 const skincareProductOptions: LorealOption[] = [

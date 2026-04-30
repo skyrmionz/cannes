@@ -30,16 +30,19 @@ const iridFragmentShader = `
   vec3 thinFilmInterference(float cosTheta, float thickness) {
     float delta = thickness * cosTheta;
 
-    // Wavelengths tuned to produce purples, pinks, and blues
+    // Lavender / soft pink / blue palette
     vec3 color;
-    color.r = 0.5 + 0.5 * cos(6.2832 * (delta / 580.0 + 0.1));
-    color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 520.0 + 0.33));
-    color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 420.0 + 0.05));
+    color.r = 0.5 + 0.5 * cos(6.2832 * (delta / 600.0 + 0.08));
+    color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 540.0 + 0.35));
+    color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 440.0 + 0.02));
 
-    // Boost purples/pinks: push red and blue up, suppress green slightly
-    color.r = color.r * 1.1;
-    color.g = color.g * 0.7;
-    color.b = color.b * 1.15;
+    // Suppress greens hard, keep lavender purples and soft pinks
+    color.r = color.r * 1.05;
+    color.g = color.g * 0.5;
+    color.b = color.b * 1.2;
+
+    // Brighten toward white so colors stay light/pastel
+    color = mix(color, vec3(1.0), 0.35);
 
     return clamp(color, 0.0, 1.0);
   }
@@ -61,26 +64,23 @@ const iridFragmentShader = `
 
     vec3 iridescentColor = thinFilmInterference(NdotV, thickness);
 
-    // Specular highlight
+    // Sharp specular highlights
     vec3 lightDir1 = normalize(vec3(0.4, 0.5, 0.6));
     vec3 lightDir2 = normalize(vec3(-0.5, 0.2, 0.3));
     vec3 halfDir1 = normalize(viewDir + lightDir1);
     vec3 halfDir2 = normalize(viewDir + lightDir2);
-    float spec1 = pow(max(dot(normal, halfDir1), 0.0), 120.0);
-    float spec2 = pow(max(dot(normal, halfDir2), 0.0), 80.0);
-    vec3 specular = vec3(1.0) * (spec1 * 0.7 + spec2 * 0.4);
+    float spec1 = pow(max(dot(normal, halfDir1), 0.0), 200.0);
+    float spec2 = pow(max(dot(normal, halfDir2), 0.0), 140.0);
+    vec3 specular = vec3(1.0) * (spec1 * 0.8 + spec2 * 0.5);
 
-    // Soft diffuse from normals for gentle shadows in folds
-    float diffuse = 0.5 + 0.5 * dot(normal, normalize(vec3(0.3, 0.5, 0.8)));
+    // Clear diffuse — high contrast so folds read sharply
+    float diffuse = 0.65 + 0.35 * dot(normal, normalize(vec3(0.3, 0.5, 0.8)));
 
-    // White base with iridescent color mixed in strongly
+    // White base with iridescent color
     float iriStrength = fresnel * 0.6 + (1.0 - NdotV * NdotV) * 0.4;
-    vec3 base = vec3(0.96, 0.95, 0.98) * diffuse;
-    vec3 color = mix(base, iridescentColor, iriStrength * 0.7);
+    vec3 base = vec3(0.97, 0.96, 0.99) * diffuse;
+    vec3 color = mix(base, iridescentColor, iriStrength * 0.65);
     color += specular;
-
-    // Keep it bright but don't wash out colors
-    color = mix(color, vec3(1.0), 0.08);
 
     gl_FragColor = vec4(color, 1.0);
   }

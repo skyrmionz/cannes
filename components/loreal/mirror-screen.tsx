@@ -27,22 +27,16 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
 
       {/* Center content */}
       <div className="relative z-20 flex flex-col items-center">
-        <div className="relative overflow-hidden rounded-full p-[2px]">
-          {/* Spinning gold ring — oversized so rotation doesn't show corners */}
-          <div
-            className="absolute inset-[-50%] animate-[spin_3s_linear_infinite]"
-            style={{
-              background: "conic-gradient(from 90deg at 50% 50%, #C8A96E 0%, #E8D5B5 25%, #FFFFFF 50%, #E8D5B5 75%, #C8A96E 100%)",
-            }}
-          />
-          {/* White circle masks the center */}
-          <div
-            className="relative rounded-full bg-white"
-            style={{
-              boxShadow:
-                "0 0 40px rgba(200,169,110,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
-            }}
-          >
+        <div
+          className="rounded-full"
+          style={{
+            border: "2px solid #C8A96E",
+            backdropFilter: "blur(12px) saturate(120%)",
+            background: "rgba(255,255,255,0.55)",
+            boxShadow:
+              "0 0 40px rgba(200,169,110,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
+          }}
+        >
             <div className="flex flex-col items-center px-16 py-20 md:px-24 md:py-28">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -76,7 +70,6 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
                 Tap to start
               </motion.p>
             </div>
-          </div>
         </div>
       </div>
     </motion.div>
