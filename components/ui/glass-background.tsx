@@ -6,7 +6,7 @@ import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
-function createCrumpledGeometry(
+function createLiquidGlassGeometry(
   width: number,
   height: number,
   segs: number,
@@ -14,18 +14,28 @@ function createCrumpledGeometry(
 ) {
   const geo = new THREE.PlaneGeometry(width, height, segs, segs);
   const pos = geo.attributes.position;
+
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const y = pos.getY(i);
-    const displacement =
-      Math.sin(x * 2.5 + seed) * 0.4 +
-      Math.sin(y * 3.0 + seed * 1.3) * 0.35 +
-      Math.sin((x * 1.8 + y * 2.2) + seed * 0.7) * 0.3 +
-      Math.cos(x * 4.0 - y * 2.5 + seed * 2) * 0.2 +
-      Math.sin(x * 5.5 + y * 4.0 + seed * 3) * 0.12 +
-      Math.cos((x - y) * 3.5 + seed * 1.8) * 0.15;
-    pos.setZ(i, displacement);
+
+    const broad =
+      Math.sin(x * 0.9 + seed) * 0.35 +
+      Math.cos(y * 0.75 + seed * 1.4) * 0.3 +
+      Math.sin((x + y) * 0.55 + seed * 0.8) * 0.28;
+
+    const ripple =
+      Math.sin(x * 2.4 + y * 1.6 + seed) * 0.08 +
+      Math.cos(x * 1.8 - y * 2.2 + seed * 1.2) * 0.06;
+
+    const micro =
+      Math.sin(x * 5.0 + seed * 2.0) *
+      Math.cos(y * 4.5 + seed) *
+      0.025;
+
+    pos.setZ(i, broad + ripple + micro);
   }
+
   geo.computeVertexNormals();
   return geo;
 }
@@ -50,7 +60,7 @@ function MirrorSheet({
   const basePositions = useRef<Float32Array | null>(null);
 
   const geometry = useMemo(
-    () => createCrumpledGeometry(size[0], size[1], 48, seed),
+    () => createLiquidGlassGeometry(size[0], size[1], 96, seed),
     [size, seed]
   );
 
@@ -63,8 +73,8 @@ function MirrorSheet({
 
     if (matRef.current) {
       matRef.current.iridescenceThicknessRange = [
-        thicknessBase + Math.sin(t * 0.4) * 60,
-        thicknessBase + 300 + Math.cos(t * 0.25) * 80,
+        thicknessBase + Math.sin(t * 0.4) * 40,
+        thicknessBase + 220 + Math.cos(t * 0.25) * 50,
       ];
     }
 
@@ -79,9 +89,10 @@ function MirrorSheet({
       const by = base[i * 3 + 1];
       const bz = base[i * 3 + 2];
       const wave =
-        Math.sin(bx * 1.5 + t * 0.8) * 0.06 +
-        Math.cos(by * 2.0 + t * 0.6) * 0.05 +
-        Math.sin((bx + by) * 1.2 + t * 0.5) * 0.04;
+        Math.sin(bx * 0.9 + t * 0.45) * 0.045 +
+        Math.cos(by * 1.1 + t * 0.38) * 0.04 +
+        Math.sin((bx + by) * 0.7 + t * 0.32) * 0.035 +
+        Math.sin((bx - by) * 2.4 + t * 0.55) * 0.018;
       pos.setZ(i, bz + wave);
     }
     pos.needsUpdate = true;
@@ -92,16 +103,18 @@ function MirrorSheet({
     <mesh ref={meshRef} position={position} geometry={geometry}>
       <meshPhysicalMaterial
         ref={matRef}
-        roughness={0.03}
-        metalness={0.95}
-        iridescence={1}
-        iridescenceIOR={2.4}
-        iridescenceThicknessRange={[thicknessBase, thicknessBase + 300]}
+        roughness={0.08}
+        metalness={0.15}
+        iridescence={0.85}
+        iridescenceIOR={1.55}
+        iridescenceThicknessRange={[thicknessBase, thicknessBase + 220]}
         clearcoat={1}
-        clearcoatRoughness={0.01}
-        envMapIntensity={6}
+        clearcoatRoughness={0.04}
+        specularIntensity={1}
+        specularColor={new THREE.Color("#ffffff")}
+        envMapIntensity={2.5}
         side={THREE.DoubleSide}
-        color="#d8d0f8"
+        color="#f3efff"
       />
     </mesh>
   );
@@ -110,40 +123,39 @@ function MirrorSheet({
 function Scene() {
   return (
     <>
-      <ambientLight intensity={1.5} color="#c8c0ff" />
-      <directionalLight position={[4, 6, 5]} intensity={3} color="#b8b0ff" />
-      <directionalLight position={[-5, 3, -3]} intensity={2.5} color="#c0d0ff" />
-      <directionalLight position={[0, -4, 4]} intensity={2} color="#d0b8f0" />
-      <pointLight position={[-2, 3, 4]} intensity={3} color="#a0c0ff" />
-      <pointLight position={[3, -2, 3]} intensity={2.5} color="#c8a0f0" />
-      <pointLight position={[0, 0, 6]} intensity={1.5} color="#b0d0ff" />
+      <ambientLight intensity={2.2} color="#ffffff" />
+      <directionalLight position={[4, 5, 6]} intensity={2.4} color="#ffffff" />
+      <directionalLight position={[-5, 2, 3]} intensity={1.2} color="#dbeafe" />
+      <pointLight position={[-3, 3, 4]} intensity={1.8} color="#ffffff" />
+      <pointLight position={[3, -2, 3]} intensity={1.1} color="#ffd6f3" />
+      <pointLight position={[0, 0, 5]} intensity={1.4} color="#dff7ff" />
 
       <MirrorSheet
-        position={[0, 0, -1.5]}
-        rotation={[0.05, 0.03, 0]}
-        size={[12, 10]}
+        position={[0, 0, -1.2]}
+        rotation={[0.02, 0.02, -0.08]}
+        size={[13, 8]}
         seed={1}
-        speed={0.15}
-        thicknessBase={80}
+        speed={0.12}
+        thicknessBase={120}
       />
       <MirrorSheet
-        position={[-1, 0.5, -0.3]}
-        rotation={[-0.2, 0.25, -0.3]}
-        size={[8, 7]}
+        position={[-1.8, 0.4, -0.15]}
+        rotation={[-0.12, 0.18, -0.24]}
+        size={[8.5, 5.5]}
         seed={4.2}
-        speed={0.2}
-        thicknessBase={160}
+        speed={0.16}
+        thicknessBase={180}
       />
       <MirrorSheet
-        position={[0.8, -0.3, 0.5]}
-        rotation={[0.25, -0.18, 0.2]}
-        size={[7, 6]}
+        position={[1.7, -0.35, 0.25]}
+        rotation={[0.14, -0.16, 0.18]}
+        size={[8, 5]}
         seed={8.5}
-        speed={0.25}
-        thicknessBase={240}
+        speed={0.18}
+        thicknessBase={230}
       />
 
-      <Environment preset="dawn" />
+      <Environment preset="studio" />
     </>
   );
 }
@@ -177,10 +189,21 @@ export function GlassBackground({
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full overflow-hidden bg-[#e8e0f8]",
+        "relative min-h-screen w-full overflow-hidden",
         containerClassName
       )}
     >
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background: `
+            radial-gradient(circle at 20% 25%, rgba(255,255,255,0.95), transparent 32%),
+            radial-gradient(circle at 78% 30%, rgba(191,219,254,0.55), transparent 38%),
+            radial-gradient(circle at 48% 75%, rgba(252,231,243,0.65), transparent 42%),
+            linear-gradient(135deg, #f8f7ff 0%, #eef6ff 45%, #fff7fb 100%)
+          `,
+        }}
+      />
       <div className="pointer-events-none fixed inset-0">
         <GlassCanvas />
       </div>
