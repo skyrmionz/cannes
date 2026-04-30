@@ -10,7 +10,7 @@ interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
 export const AuroraBackground = ({
   className,
   children,
-  showRadialGradient = true,
+  showRadialGradient: _showRadialGradient = true,
   ...props
 }: AuroraBackgroundProps) => {
   return (
@@ -22,17 +22,32 @@ export const AuroraBackground = ({
       {...props}
     >
       <div className="absolute inset-0 overflow-hidden">
+        {/* Orb 1 — purple/cyan/pink, top-left bias */}
         <div
-          className={cn(
-            "after:animate-aurora pointer-events-none absolute -inset-[10px] opacity-50 blur-[10px] invert filter will-change-transform",
-            "[background-image:repeating-linear-gradient(100deg,#fff_0%,#fff_7%,transparent_10%,transparent_12%,#fff_16%),repeating-linear-gradient(100deg,#a8b8d8_10%,#c4b5d4_15%,#b8cce8_20%,#9b8ec2_25%,#a8b8d8_30%)]",
-            "[background-size:300%,_200%] [background-position:50%_50%,50%_50%]",
-            "after:absolute after:inset-0 after:mix-blend-difference after:content-['']",
-            "after:[background-image:repeating-linear-gradient(100deg,#fff_0%,#fff_7%,transparent_10%,transparent_12%,#fff_16%),repeating-linear-gradient(100deg,#a8b8d8_10%,#c4b5d4_15%,#b8cce8_20%,#9b8ec2_25%,#a8b8d8_30%)]",
-            "after:[background-size:200%,_100%] after:[background-attachment:fixed]",
-            showRadialGradient &&
-              "[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,transparent_70%)]",
-          )}
+          className="animate-glossy-drift-1 pointer-events-none absolute left-[-15%] top-[-15%] h-[70vw] w-[70vw] rounded-full will-change-transform"
+          style={{
+            background:
+              "conic-gradient(from 0deg, rgba(180,130,220,0.4), rgba(100,180,255,0.3), rgba(0,212,200,0.3), rgba(255,160,200,0.35), rgba(180,130,220,0.4))",
+            filter: "blur(80px)",
+          }}
+        />
+        {/* Orb 2 — orange/purple/blue, bottom-right bias */}
+        <div
+          className="animate-glossy-drift-2 pointer-events-none absolute bottom-[-10%] right-[-10%] h-[60vw] w-[60vw] rounded-full will-change-transform"
+          style={{
+            background:
+              "conic-gradient(from 120deg, rgba(255,180,150,0.3), rgba(200,140,255,0.35), rgba(120,200,255,0.3), rgba(255,180,150,0.3))",
+            filter: "blur(80px)",
+          }}
+        />
+        {/* Orb 3 — cyan/pink/mint, center bias */}
+        <div
+          className="animate-glossy-drift-3 pointer-events-none absolute left-[20%] top-[30%] h-[50vw] w-[50vw] rounded-full will-change-transform"
+          style={{
+            background:
+              "conic-gradient(from 240deg, rgba(140,200,255,0.35), rgba(255,160,220,0.3), rgba(180,255,220,0.25), rgba(140,200,255,0.35))",
+            filter: "blur(80px)",
+          }}
         />
       </div>
       {children}

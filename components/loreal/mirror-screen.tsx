@@ -17,13 +17,13 @@ export function MirrorScreen({ onStart }: MirrorScreenProps) {
       transition={{ duration: 0.7, ease: "easeInOut" }}
     >
       <AuroraBackground className="!h-full !bg-white" showRadialGradient={false}>
-        {/* White neon border */}
+        {/* Frosted glass border */}
         <div
           className="pointer-events-none absolute inset-0 z-10"
           style={{
-            border: "3px solid rgba(255, 255, 255, 0.9)",
+            border: "1px solid rgba(255, 255, 255, 0.4)",
             boxShadow:
-              "inset 0 0 30px rgba(255,255,255,0.8), inset 0 0 60px rgba(255,255,255,0.4), 0 0 30px rgba(255,255,255,0.6), 0 0 60px rgba(255,255,255,0.2)",
+              "inset 0 0 40px rgba(255,255,255,0.15), inset 0 0 80px rgba(180,160,255,0.06), 0 0 40px rgba(180,160,255,0.08)",
           }}
         />
 

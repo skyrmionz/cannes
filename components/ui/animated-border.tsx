@@ -12,28 +12,28 @@ interface AnimatedBorderProps {
 export function AnimatedBorder({
   children,
   className,
-  borderClassName,
+  borderClassName: _borderClassName,
   active = true,
 }: AnimatedBorderProps) {
   return (
-    <div className={cn("relative overflow-hidden rounded-[inherit] p-[2px]", className)}>
-      <div
-        className={cn(
-          "absolute inset-[-1000%] animate-[spin_3s_linear_infinite] transition-opacity duration-500",
-          "bg-[conic-gradient(from_90deg_at_50%_50%,#C8A96E_0%,#E8D5B5_25%,#FFFFFF_50%,#E8D5B5_75%,#C8A96E_100%)]",
-          active ? "opacity-100" : "opacity-0",
-          borderClassName
-        )}
-      />
-      <div
-        className={cn(
-          "absolute inset-[2px] rounded-[inherit] transition-colors duration-500",
-          active ? "bg-transparent" : "bg-neutral-200/60"
-        )}
-      />
-      <div className="relative h-full w-full rounded-[inherit] bg-white">
-        {children}
-      </div>
+    <div
+      className={cn("rounded-[inherit] transition-all duration-500", className)}
+      style={{
+        backdropFilter: active
+          ? "blur(16px) saturate(180%)"
+          : "blur(12px) saturate(150%)",
+        background: active
+          ? "rgba(255, 255, 255, 0.7)"
+          : "rgba(255, 255, 255, 0.55)",
+        border: active
+          ? "1.5px solid rgba(200, 169, 110, 0.5)"
+          : "1px solid rgba(255, 255, 255, 0.6)",
+        boxShadow: active
+          ? "inset 0 1px 0 rgba(255,255,255,0.8), 0 0 20px rgba(200,169,110,0.15), 0 4px 20px rgba(0,0,0,0.06)"
+          : "inset 0 1px 0 rgba(255,255,255,0.7), 0 4px 20px rgba(0,0,0,0.06)",
+      }}
+    >
+      {children}
     </div>
   );
 }
