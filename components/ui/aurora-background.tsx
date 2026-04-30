@@ -16,49 +16,31 @@ export const AuroraBackground = ({
   return (
     <div
       className={cn(
-        "transition-bg relative flex h-[100vh] flex-col items-center justify-center bg-[#faf8f4]",
+        "transition-bg relative flex h-[100vh] flex-col items-center justify-center bg-white",
         className,
       )}
       {...props}
     >
-      {/* White vignette */}
       <div
-        className="pointer-events-none absolute inset-0 z-20"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 40%, rgba(250,248,244,0.8) 100%)",
-        }}
-      />
-
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Primary aurora blob */}
+        className="absolute inset-0 overflow-hidden"
+        style={
+          {
+            "--aurora":
+              "repeating-linear-gradient(100deg,#C8A96E_10%,#D4BC8A_15%,#E8D5B5_20%,#B8956A_25%,#C8A96E_30%)",
+            "--white-gradient":
+              "repeating-linear-gradient(100deg,#fff_0%,#fff_7%,transparent_10%,transparent_12%,#fff_16%)",
+            "--transparent": "transparent",
+          } as React.CSSProperties
+        }
+      >
         <div
           className={cn(
-            "animate-aurora pointer-events-none absolute -inset-[50%] will-change-transform",
+            `after:animate-aurora pointer-events-none absolute -inset-[10px] [background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%] opacity-50 blur-[10px] invert filter will-change-transform after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-difference after:content-[""]`,
+
             showRadialGradient &&
-              "[mask-image:radial-gradient(ellipse_at_70%_20%,black_20%,transparent_70%)]",
+              `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`,
           )}
-          style={{
-            backgroundImage:
-              "conic-gradient(from 0deg at 50% 50%, #C8A96E 0deg, #E8D5B5 60deg, #f5ede0 120deg, #D4BC8A 180deg, #B8956A 240deg, #E8D5B5 300deg, #C8A96E 360deg)",
-            backgroundSize: "150% 150%",
-            opacity: 0.5,
-            filter: "blur(80px)",
-          }}
-        />
-        {/* Secondary aurora blob — offset and counter-rotating */}
-        <div
-          className="animate-aurora pointer-events-none absolute -inset-[50%] will-change-transform"
-          style={{
-            backgroundImage:
-              "conic-gradient(from 180deg at 50% 50%, #D4BC8A 0deg, #f5ede0 90deg, #C8A96E 180deg, #E8D5B5 270deg, #D4BC8A 360deg)",
-            backgroundSize: "120% 120%",
-            opacity: 0.35,
-            filter: "blur(100px)",
-            animationDuration: "45s",
-            animationDirection: "reverse",
-          }}
-        />
+        ></div>
       </div>
       {children}
     </div>
