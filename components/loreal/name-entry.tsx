@@ -28,7 +28,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
     <div className="flex h-full w-full flex-col items-center justify-center">
 
         <motion.h2
-          className="text-center font-serif text-3xl font-light tracking-wide text-neutral-800 md:text-4xl"
+          className="text-center font-serif text-3xl font-bold tracking-wide text-neutral-800 md:text-4xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}

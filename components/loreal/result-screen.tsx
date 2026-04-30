@@ -63,7 +63,7 @@ export function ResultScreen({
         </motion.div>
 
         <motion.h2
-          className="text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
+          className="text-center font-serif text-2xl font-bold tracking-wide text-neutral-800 md:text-3xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -83,43 +83,37 @@ export function ResultScreen({
 
         {/* QR Code + Products side by side */}
         <motion.div
-          className="mt-6 flex w-full flex-col items-center gap-6 md:flex-row md:items-start md:justify-center"
+          className="mt-6 flex w-full max-w-md items-stretch gap-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.5 }}
         >
-          <div className="w-full max-w-xs">
-            <p className="mb-2 text-center text-xs uppercase tracking-[0.2em] text-neutral-400 md:text-left">
-              Your recommended products
-            </p>
-            <div className="flex items-start gap-5">
-              <div className="shrink-0 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
-                <QRCodeSVG
-                  value={qrUrl}
-                  size={120}
-                  bgColor="#FFFFFF"
-                  fgColor="#000000"
-                  level="M"
-                />
-              </div>
+          <div className="flex shrink-0 items-stretch rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+            <QRCodeSVG
+              value={qrUrl}
+              size={140}
+              bgColor="#FFFFFF"
+              fgColor="#000000"
+              level="M"
+              className="h-full w-auto"
+            />
+          </div>
 
-              <div className="flex-1 space-y-1.5">
-                {products.map((product: LorealProduct) => {
-                  const Icon = categoryIcons[product.category] ?? Sparkle;
-                  return (
-                    <div
-                      key={product.id}
-                      className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 py-2"
-                    >
-                      <Icon className="h-4 w-4 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
-                      <span className="font-serif text-xs text-neutral-700">
-                        {product.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="flex flex-1 flex-col justify-between gap-1.5">
+            {products.map((product: LorealProduct) => {
+              const Icon = categoryIcons[product.category] ?? Sparkle;
+              return (
+                <div
+                  key={product.id}
+                  className="flex flex-1 items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-[#C8A96E]" strokeWidth={1.5} />
+                  <span className="font-serif text-sm text-neutral-700">
+                    {product.name}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
 

@@ -78,7 +78,7 @@ export function QuestionScreen({
               transition={{ delay: 0.1, duration: 0.4 }}
             />
             <motion.h2
-              className="mb-6 text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
+              className="mb-6 text-center font-serif text-2xl font-bold tracking-wide text-neutral-800 md:text-3xl"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}

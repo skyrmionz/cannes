@@ -262,12 +262,7 @@ export function GlassBackground({
         containerClassName
       )}
     >
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          background: "linear-gradient(135deg, #f8f7ff 0%, #f0eeff 50%, #f8f7ff 100%)",
-        }}
-      />
+      <div className="pointer-events-none fixed inset-0 bg-white" />
       <div className="pointer-events-none fixed inset-0">
         <GlassCanvas />
       </div>

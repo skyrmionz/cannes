@@ -41,7 +41,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         </motion.div>
 
         <motion.h2
-          className="max-w-md text-center font-serif text-xl font-light tracking-wide text-neutral-800 md:text-2xl"
+          className="max-w-md text-center font-serif text-xl font-bold tracking-wide text-neutral-800 md:text-2xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
