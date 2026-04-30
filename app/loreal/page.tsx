@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
+import { AuroraBackground } from "@/components/ui/aurora-background";
+import { LogoHeader } from "@/components/loreal/logo-header";
 import { MirrorScreen } from "@/components/loreal/mirror-screen";
 import { NameEntry } from "@/components/loreal/name-entry";
 import { QuestionScreen, type LorealOption } from "@/components/loreal/question-screen";
@@ -173,43 +175,54 @@ function LorealContent() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
-      {/* Fade-to-white overlay for Start Over transition */}
-      <AnimatePresence>
-        {resetting && (
-          <motion.div
-            className="fixed inset-0 z-[60] bg-white"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Mirror start screen overlay */}
-      <AnimatePresence>
-        {showStart && <MirrorScreen onStart={handleStart} />}
-      </AnimatePresence>
-
-      {/* Main experience content */}
-      {!showStart && (
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={stepTransition}
-            className="absolute inset-0"
-          >
-            {renderStep()}
-          </motion.div>
+    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
+      <div className="relative z-10 flex min-h-screen w-full flex-col overflow-hidden">
+        {/* Fade-to-white overlay for Start Over transition */}
+        <AnimatePresence>
+          {resetting && (
+            <motion.div
+              className="fixed inset-0 z-[60] bg-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            />
+          )}
         </AnimatePresence>
-      )}
-    </div>
+
+        {/* Mirror start screen overlay */}
+        <AnimatePresence>
+          {showStart && <MirrorScreen onStart={handleStart} />}
+        </AnimatePresence>
+
+        {/* Persistent logo header */}
+        {!showStart && (
+          <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
+            <LogoHeader className="mb-4" />
+          </div>
+        )}
+
+        {/* Step content — only this zooms */}
+        {!showStart && (
+          <div className="relative flex-1">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={stepTransition}
+                className="absolute inset-0"
+              >
+                {renderStep()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    </AuroraBackground>
   );
 }
 

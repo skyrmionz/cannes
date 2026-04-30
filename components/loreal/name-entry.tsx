@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { AuroraBackground } from "@/components/ui/aurora-background";
-import { LogoHeader } from "./logo-header";
 
 interface NameEntryProps {
   name: string;
@@ -27,9 +25,7 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
   };
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
-      <div className="relative z-10 flex flex-col items-center">
-        <LogoHeader className="mb-16" />
+    <div className="flex h-full w-full flex-col items-center justify-center">
 
         <motion.h2
           className="text-center font-serif text-3xl font-light tracking-wide text-neutral-800 md:text-4xl"
@@ -73,7 +69,6 @@ export function NameEntry({ name, onNameChange, onNext, onBack }: NameEntryProps
             Next
           </button>
         </motion.div>
-      </div>
-    </AuroraBackground>
+    </div>
   );
 }

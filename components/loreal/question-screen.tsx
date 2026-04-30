@@ -19,9 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AuroraBackground } from "@/components/ui/aurora-background";
 import { AnimatedBorder } from "@/components/ui/animated-border";
-import { LogoHeader } from "./logo-header";
 
 export interface LorealOption {
   id: string;
@@ -70,16 +68,9 @@ export function QuestionScreen({
   );
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
-      <div className="relative z-10 flex min-h-screen w-full flex-col">
-        {/* Top section — logo only */}
-        <div className="px-6 pt-8 md:px-12 md:pt-10">
-          <LogoHeader className="mb-4" />
-        </div>
-
-        {/* Center area — question title tight above cards */}
-        <div className="flex flex-1 flex-col items-center justify-center px-4">
-          <div className="mx-auto max-w-4xl w-full flex flex-col items-center">
+    <div className="flex h-full w-full flex-col">
+      <div className="flex flex-1 flex-col items-center justify-center px-4">
+        <div className="mx-auto max-w-4xl w-full flex flex-col items-center">
             <motion.div
               className="mb-2 h-[2px] w-16 bg-[#C8A96E]"
               initial={{ width: 0 }}
@@ -141,43 +132,42 @@ export function QuestionScreen({
           </div>
         </div>
 
-        {/* Navigation buttons */}
-        <div className="px-4 pb-8 md:px-8 md:pb-12">
-          <motion.div
-            className="mx-auto flex max-w-5xl items-center justify-end gap-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
+      {/* Navigation buttons */}
+      <div className="px-4 pb-8 md:px-8 md:pb-12">
+        <motion.div
+          className="mx-auto flex max-w-5xl items-center justify-end gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
+          <AnimatePresence>
+            {selectedId && (
+              <motion.button
+                onClick={onNext}
+                className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#C8A96E] text-xs font-bold leading-none text-white">
+                  N
+                </span>
+                Next
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
           >
-            <AnimatePresence>
-              {selectedId && (
-                <motion.button
-                  onClick={onNext}
-                  className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#C8A96E] text-xs font-bold leading-none text-white">
-                    N
-                  </span>
-                  Next
-                </motion.button>
-              )}
-            </AnimatePresence>
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-neutral-700"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-300 text-xs font-bold leading-none text-white">
-                B
-              </span>
-              Back
-            </button>
-          </motion.div>
-        </div>
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-300 text-xs font-bold leading-none text-white">
+              B
+            </span>
+            Back
+          </button>
+        </motion.div>
       </div>
-    </AuroraBackground>
+    </div>
   );
 }

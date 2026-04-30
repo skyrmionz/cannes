@@ -4,8 +4,6 @@ import { useMemo } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
 import { Sparkle, Droplet, FlaskConical, ShieldCheck, type LucideIcon } from "lucide-react";
-import { AuroraBackground } from "@/components/ui/aurora-background";
-import { LogoHeader } from "./logo-header";
 import {
   getRecommendations,
   generateResultCode,
@@ -53,16 +51,8 @@ export function ResultScreen({
   }, [name, skinRoutine, skinType, preferredProduct]);
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
-      <div className="relative z-10 flex w-full max-w-lg flex-col items-center px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-        >
-          <LogoHeader className="mb-10" />
-        </motion.div>
-
+    <div className="flex h-full w-full flex-col items-center overflow-y-auto px-4 py-8">
+      <div className="flex w-full max-w-lg flex-col items-center">
         <motion.h2
           className="text-center font-serif text-2xl font-light tracking-wide text-neutral-800 md:text-3xl"
           initial={{ opacity: 0, y: 10 }}
@@ -146,6 +136,6 @@ export function ResultScreen({
           Start Over
         </motion.button>
       </div>
-    </AuroraBackground>
+    </div>
   );
 }

@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 import { motion } from "motion/react";
-import { AuroraBackground } from "@/components/ui/aurora-background";
-import { LogoHeader } from "./logo-header";
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -16,9 +14,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   }, [onComplete]);
 
   return (
-    <AuroraBackground className="!h-auto min-h-screen !bg-white" showRadialGradient={false}>
-      <div className="relative z-10 flex flex-col items-center">
-        <LogoHeader className="mb-16" />
+    <div className="flex h-full w-full flex-col items-center justify-center">
 
         <motion.h2
           className="max-w-md text-center font-serif text-xl font-light tracking-wide text-neutral-800 md:text-2xl"
@@ -37,7 +33,6 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
             transition={{ duration: 3, ease: "easeInOut" }}
           />
         </div>
-      </div>
-    </AuroraBackground>
+    </div>
   );
 }
