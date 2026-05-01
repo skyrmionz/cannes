@@ -11,34 +11,54 @@ import {
   type QuestionOption,
   type PreviewConfig,
 } from "@/components/f1/question-screen";
+import {
+  KnobQuestionScreen,
+  type GrandPrixOption,
+} from "@/components/f1/knob-question-screen";
 import { LoadingScreen } from "@/components/f1/loading-screen";
 import { ResultScreen } from "@/components/f1/result-screen";
 import { SpeedLines } from "@/components/f1/speed-lines";
 
-const drivers: QuestionOption[] = [
+const grandPrixOptions: GrandPrixOption[] = [
   {
-    id: "hamilton",
-    label: "Lewis Hamilton",
-    description: "The Icon",
-    image: "/f1/drivers/hamilton.png",
+    id: "spa",
+    label: "Spa-Francorchamps",
+    country: "Belgium",
+    description:
+      "Sweeping elevation changes through the Ardennes forest — raw, dramatic, unpredictable.",
+    racePhoto: "/f1/circuits/photos/spa.jpg",
   },
   {
-    id: "verstappen",
-    label: "Max Verstappen",
-    description: "The Relentless",
-    image: "/f1/drivers/verstappen.png",
+    id: "suzuka",
+    label: "Suzuka",
+    country: "Japan",
+    description:
+      "A figure-of-eight crossover masterpiece — technical, flowing, relentless.",
+    racePhoto: "/f1/circuits/photos/suzuka.jpg",
   },
   {
-    id: "leclerc",
-    label: "Charles Leclerc",
-    description: "The Romantic",
-    image: "/f1/drivers/leclerc.png",
+    id: "monaco",
+    label: "Monaco",
+    country: "Monaco",
+    description:
+      "Precision and prestige through the streets of Monte Carlo — unforgiving, iconic.",
+    racePhoto: "/f1/circuits/photos/monaco.jpg",
   },
   {
-    id: "norris",
-    label: "Lando Norris",
-    description: "The Entertainer",
-    image: "/f1/drivers/norris.png",
+    id: "silverstone",
+    label: "Silverstone",
+    country: "United Kingdom",
+    description:
+      "High-speed corners and rich heritage — the birthplace of Formula 1.",
+    racePhoto: "/f1/circuits/photos/british.jpg",
+  },
+  {
+    id: "monza",
+    label: "Monza",
+    country: "Italy",
+    description:
+      "The Temple of Speed — flat-out, intense, electric atmosphere.",
+    racePhoto: "/f1/circuits/photos/italian.png",
   },
 ];
 
@@ -107,7 +127,7 @@ function F1Content() {
   const [direction, setDirection] = useState(1);
   const [driverName, setDriverName] = useState("");
   const [drivingStyle, setDrivingStyle] = useState<string | null>(null);
-  const [driver, setDriver] = useState<string | null>(null);
+  const [grandPrix, setGrandPrix] = useState<string | null>(null);
   const [circuit, setCircuit] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
@@ -131,16 +151,6 @@ function F1Content() {
     []
   );
 
-  const driverPreview: PreviewConfig = {
-    type: "driver",
-    carImages: {
-      hamilton: "/f1/drivers/hamilton-car.png",
-      verstappen: "/f1/drivers/verstappen-car.png",
-      leclerc: "/f1/drivers/leclerc-car.png",
-      norris: "/f1/drivers/norris-car.png",
-    },
-  };
-
   const stylePreview: PreviewConfig = {
     type: "style",
   };
@@ -162,7 +172,7 @@ function F1Content() {
       setDirection(1);
       setDriverName("");
       setDrivingStyle(null);
-      setDriver(null);
+      setGrandPrix(null);
       setCircuit(null);
       setShowStart(true);
       setResetting(false);
@@ -184,14 +194,14 @@ function F1Content() {
         );
       case 3:
         return (
-          <QuestionScreen
-            title="Which driver resonates with you?"
-            options={drivers}
-            selectedId={driver}
-            onSelect={(id) => handleQuestionSelect(setDriver, id)}
+          <KnobQuestionScreen
+            title="What is your favourite Grand Prix?"
+            subtitle="Your answer controls the drum track — the heartbeat of your song."
+            options={grandPrixOptions}
+            selectedId={grandPrix}
+            onSelect={setGrandPrix}
             onNext={goForward}
             onBack={goBack}
-            preview={driverPreview}
           />
         );
       case 4:
