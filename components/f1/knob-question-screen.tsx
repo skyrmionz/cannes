@@ -119,7 +119,7 @@ export function KnobQuestionScreen({
               <p className="mt-0.5 text-xs text-[#b0b0b0]">
                 {selectedOption.country}
               </p>
-              <p className="mt-2 max-w-sm text-center text-xs text-neutral-400">
+              <p className="mt-2 whitespace-nowrap text-center text-xs text-neutral-400">
                 {selectedOption.description}
               </p>
             </motion.div>
