@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
-import { LogoHeader } from "./logo-header";
+import { LogoHeader, SlackbotAvatar } from "./logo-header";
 
 export interface QuestionOption {
   id: string;
@@ -64,7 +64,11 @@ export function QuestionScreen({
 
       {/* Top section: logo + title with red accent line */}
       <div className="relative z-10 px-6 pt-8 md:px-12 md:pt-10">
-        <LogoHeader className="mb-8 md:mb-10" />
+        <div className="flex items-center gap-4 mb-8 md:mb-10">
+          <LogoHeader />
+          <div className="h-6 w-px bg-white/40" />
+          <SlackbotAvatar className="h-10 w-10" />
+        </div>
         <div className="mx-auto max-w-4xl">
           <motion.div
             className="mb-2 h-[2px] w-16 bg-[#E10600]"

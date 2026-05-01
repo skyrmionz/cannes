@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { LogoHeader } from "./logo-header";
+import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface IntroScreenProps {
@@ -10,16 +10,27 @@ interface IntroScreenProps {
 
 export function IntroScreen({ onNext }: IntroScreenProps) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
+    <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
 
-      <div className="relative z-10 flex flex-col items-center">
+      {/* Logos pinned to the top */}
+      <motion.div
+        className="relative z-10 pt-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <LogoHeader className="justify-center" />
+      </motion.div>
+
+      {/* Centered content */}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <LogoHeader className="mb-16" />
+          <SlackbotAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
         </motion.div>
 
         <motion.p
@@ -28,7 +39,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          I&apos;m Slackbot, your personal producer at Salesforce Beach.
+          I&apos;m Slackbot, your personal producer.
         </motion.p>
 
         <motion.h1
@@ -37,24 +48,15 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Ready to make your own podium track?
+          Ready to make your podium track?
         </motion.h1>
-
-        <motion.p
-          className="mt-3 text-sm text-[#b0b0b0]"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-          (No music experience needed!)
-        </motion.p>
 
         <motion.button
           onClick={onNext}
           className="mt-10 rounded-sm bg-[#E10600] px-10 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.75, duration: 0.5 }}
+          transition={{ delay: 0.65, duration: 0.5 }}
         >
           Start Your Engine
         </motion.button>

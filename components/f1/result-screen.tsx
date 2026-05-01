@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { LogoHeader } from "./logo-header";
+import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface ResultScreenProps {
@@ -20,7 +20,8 @@ export function ResultScreen({ driverName, onStartOver }: ResultScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.5 }}
         >
-          <LogoHeader className="mb-16" />
+          <LogoHeader className="mb-6" />
+          <SlackbotAvatar className="mb-10 h-16 w-16" />
         </motion.div>
 
         <motion.h2

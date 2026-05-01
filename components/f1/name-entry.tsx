@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { LogoHeader } from "./logo-header";
+import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface NameEntryProps {
@@ -36,7 +36,8 @@ export function NameEntry({
       <DotBg />
 
       <div className="relative z-10 flex flex-col items-center">
-        <LogoHeader className="mb-16" />
+        <LogoHeader className="mb-6" />
+        <SlackbotAvatar className="mb-10 h-16 w-16" />
 
         <motion.h2
           className="text-center text-2xl font-semibold uppercase tracking-[0.2em] text-white md:text-3xl"
