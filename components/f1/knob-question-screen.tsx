@@ -130,7 +130,7 @@ export function KnobQuestionScreen({
                           src={selectedOption.logo}
                           alt={`${selectedOption.label} logo`}
                           fill
-                          className="object-contain brightness-0 invert"
+                          className="object-contain"
                         />
                       </div>
                     </div>
