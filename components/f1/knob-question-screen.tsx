@@ -7,18 +7,20 @@ import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { RotaryKnob } from "./rotary-knob";
 
-export interface GrandPrixOption {
+export interface KnobOption {
   id: string;
   label: string;
-  country: string;
+  subtitle?: string;
   description: string;
-  racePhoto: string;
+  image: string;
+  logo?: string;
+  drivers?: string;
 }
 
 interface KnobQuestionScreenProps {
   title: string;
   subtitle: string;
-  options: GrandPrixOption[];
+  options: KnobOption[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onNext: () => void;
@@ -110,11 +112,46 @@ export function KnobQuestionScreen({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              {selectedOption.description ? (
+              {selectedOption.logo ? (
+                /* Team preview: car background + logo + drivers + description */
+                <div className="relative flex flex-col items-center">
+                  <div className="relative h-44 w-80 md:h-56 md:w-[28rem]">
+                    <Image
+                      src={selectedOption.image}
+                      alt={selectedOption.label}
+                      fill
+                      className="object-contain opacity-30"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="relative h-16 w-16 md:h-20 md:w-20">
+                        <Image
+                          src={selectedOption.logo}
+                          alt={`${selectedOption.label} logo`}
+                          fill
+                          className="object-contain brightness-0 invert"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {selectedOption.drivers && (
+                    <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                      {selectedOption.drivers}
+                    </p>
+                  )}
+                  {selectedOption.description && (
+                    <p className="mt-1.5 max-w-md text-center text-xs text-neutral-400">
+                      {selectedOption.description}
+                    </p>
+                  )}
+                </div>
+              ) : selectedOption.description ? (
                 <>
                   <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
                     <Image
-                      src={selectedOption.racePhoto}
+                      src={selectedOption.image}
                       alt={selectedOption.label}
                       fill
                       className="object-cover"
@@ -124,9 +161,11 @@ export function KnobQuestionScreen({
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
                   </p>
-                  <p className="mt-0.5 text-xs text-[#b0b0b0]">
-                    {selectedOption.country}
-                  </p>
+                  {selectedOption.subtitle && (
+                    <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                      {selectedOption.subtitle}
+                    </p>
+                  )}
                   <p className="mt-2 whitespace-nowrap text-center text-xs text-neutral-400">
                     {selectedOption.description}
                   </p>
@@ -135,7 +174,7 @@ export function KnobQuestionScreen({
                 <>
                   <div className="relative h-32 w-32 md:h-40 md:w-40">
                     <Image
-                      src={selectedOption.racePhoto}
+                      src={selectedOption.image}
                       alt={selectedOption.label}
                       fill
                       className="object-contain"

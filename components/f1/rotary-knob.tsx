@@ -13,7 +13,7 @@ function getPositionAngle(count: number) {
 interface KnobOption {
   id: string;
   label: string;
-  country: string;
+  subtitle?: string;
 }
 
 interface RotaryKnobProps {
@@ -263,27 +263,29 @@ export function RotaryKnob({
         </Canvas>
       </div>
 
-      {/* Position labels in semicircular arc */}
-      <div className="relative mx-auto mt-2 flex items-start justify-between px-2">
-        {options.map((option, i) => {
-          const isSelected = i === selectedIndex;
-          return (
-            <div
-              key={option.id}
-              className={cn(
-                "flex-1 text-center transition-all duration-200",
-                isSelected
-                  ? "scale-110 text-white"
-                  : "text-neutral-500"
-              )}
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-wider md:text-xs">
-                {option.label}
-              </div>
-              <div className="text-[9px] md:text-[10px]">{option.country}</div>
+      {/* Position labels */}
+      <div className="relative mx-auto mt-2 flex items-center justify-center gap-6 px-2">
+        {/* Previous option hint */}
+        <div className="w-24 text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
+          {selectedIndex > 0 ? options[selectedIndex - 1].label : ""}
+        </div>
+        {/* Selected option */}
+        <div className="min-w-[8rem] text-center md:min-w-[10rem]">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-white md:text-xs">
+            {options[selectedIndex]?.label}
+          </div>
+          {options[selectedIndex]?.subtitle && (
+            <div className="text-[9px] text-neutral-400 md:text-[10px]">
+              {options[selectedIndex].subtitle}
             </div>
-          );
-        })}
+          )}
+        </div>
+        {/* Next option hint */}
+        <div className="w-24 text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
+          {selectedIndex < options.length - 1
+            ? options[selectedIndex + 1].label
+            : ""}
+        </div>
       </div>
     </div>
   );
