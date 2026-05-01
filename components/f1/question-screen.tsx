@@ -62,13 +62,13 @@ export function QuestionScreen({
       />
       <div className="pointer-events-none absolute inset-0 bg-[#0a0a0a] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
 
-      {/* Top section: logo + title with red accent line */}
-      <div className="relative z-10 px-6 pt-8 md:px-12 md:pt-10">
-        <div className="flex items-center gap-4 mb-8 md:mb-10">
-          <LogoHeader />
-          <div className="h-6 w-px bg-white/40" />
-          <SlackbotAvatar className="h-10 w-10" />
-        </div>
+      {/* Logos pinned to top center */}
+      <div className="relative z-10 pt-8">
+        <LogoHeader className="justify-center" />
+      </div>
+
+      {/* Title with Slackbot asking the question */}
+      <div className="relative z-10 px-6 pt-6 md:px-12 md:pt-8">
         <div className="mx-auto max-w-4xl">
           <motion.div
             className="mb-2 h-[2px] w-16 bg-[#E10600]"
@@ -76,14 +76,17 @@ export function QuestionScreen({
             animate={{ width: 64 }}
             transition={{ delay: 0.1, duration: 0.4 }}
           />
-          <motion.h2
-            className="text-2xl font-semibold uppercase tracking-[0.15em] text-white md:text-3xl"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15, duration: 0.4 }}
-          >
-            {title}
-          </motion.h2>
+          <div className="flex items-center gap-4">
+            <SlackbotAvatar className="h-12 w-12 flex-shrink-0 md:h-14 md:w-14" />
+            <motion.h2
+              className="text-2xl font-semibold uppercase tracking-[0.15em] text-white md:text-3xl"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+            >
+              {title}
+            </motion.h2>
+          </div>
         </div>
       </div>
 
