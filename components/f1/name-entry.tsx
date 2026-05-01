@@ -32,12 +32,16 @@ export function NameEntry({
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
+    <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
 
-      <div className="relative z-10 flex flex-col items-center">
-        <LogoHeader className="mb-6" />
-        <SlackbotAvatar className="mb-10 h-16 w-16" />
+      {/* Logos pinned to top */}
+      <div className="relative z-10 pt-8">
+        <LogoHeader className="justify-center" />
+      </div>
+
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+        <SlackbotAvatar className="mb-8 h-28 w-28 md:h-36 md:w-36" />
 
         <motion.h2
           className="text-center text-2xl font-semibold uppercase tracking-[0.2em] text-white md:text-3xl"
@@ -55,6 +59,10 @@ export function NameEntry({
           onChange={(e) => onNameChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Your name"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          name="driver-name"
           className="mt-10 w-full max-w-sm rounded-sm border border-neutral-700 bg-[#1a1a1a] px-6 py-4 text-center text-lg text-white placeholder-neutral-500 outline-none transition-all focus:border-[#E10600] focus:ring-2 focus:ring-[#E10600]/30"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
