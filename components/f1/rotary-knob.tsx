@@ -193,15 +193,15 @@ export function RotaryKnob({
   const positionAngle = getPositionAngle(positionCount);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const rotationRef = useRef(selectedIndex * positionAngle);
-  const targetRotation = useRef(selectedIndex * positionAngle);
+  const rotationRef = useRef(-(selectedIndex * positionAngle));
+  const targetRotation = useRef(-(selectedIndex * positionAngle));
   const velocity = useRef(0);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartRotation = useRef(0);
 
   useEffect(() => {
-    targetRotation.current = selectedIndex * positionAngle;
+    targetRotation.current = -(selectedIndex * positionAngle);
   }, [selectedIndex, positionAngle]);
 
   const handlePointerDown = useCallback(
@@ -218,17 +218,17 @@ export function RotaryKnob({
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging.current) return;
     const deltaX = e.clientX - dragStartX.current;
-    rotationRef.current = dragStartRotation.current - deltaX * 0.008;
+    rotationRef.current = dragStartRotation.current + deltaX * 0.008;
   }, []);
 
   const handlePointerUp = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
 
-    const snappedSteps = Math.round(rotationRef.current / positionAngle);
+    const snappedSteps = Math.round(-rotationRef.current / positionAngle);
     const normalizedIndex =
       ((snappedSteps % positionCount) + positionCount) % positionCount;
-    targetRotation.current = snappedSteps * positionAngle;
+    targetRotation.current = -(snappedSteps * positionAngle);
     onIndexChange(normalizedIndex);
 
     if (typeof navigator !== "undefined" && navigator.vibrate) {
