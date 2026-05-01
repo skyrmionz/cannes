@@ -93,7 +93,7 @@ export function KnobQuestionScreen({
       </div>
 
       {/* Preview area */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-4">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pt-6 md:pt-8">
         <AnimatePresence mode="wait">
           {selectedOption ? (
             <motion.div

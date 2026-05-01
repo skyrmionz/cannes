@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
@@ -47,93 +48,130 @@ function KnobMesh({
 
   return (
     <>
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[3, 5, 4]} intensity={1.2} />
-      <directionalLight position={[-2, 3, -1]} intensity={0.4} color="#ff3333" />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[3, 5, 4]} intensity={1.5} />
+      <directionalLight position={[-3, 3, -2]} intensity={0.6} color="#ff4444" />
       <spotLight
         position={[0, 6, 2]}
         angle={0.4}
         penumbra={0.5}
-        intensity={1.5}
+        intensity={2}
       />
+      <pointLight position={[0, -2, 3]} intensity={0.4} color="#ffffff" />
+      <Environment preset="night" />
 
       <group ref={groupRef}>
-        {/* Knob body */}
+        {/* Knob body — brushed metal */}
         <mesh>
           <cylinderGeometry args={[1.5, 1.7, 0.55, 64]} />
           <meshStandardMaterial
-            color="#1a1a1a"
-            metalness={0.85}
-            roughness={0.15}
+            color="#2a2a2a"
+            metalness={0.92}
+            roughness={0.12}
+            envMapIntensity={1.2}
           />
         </mesh>
 
-        {/* Top surface detail ring */}
-        <mesh position={[0, 0.28, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.1, 0.02, 16, 64]} />
+        {/* Top cap — slightly brighter to catch reflections */}
+        <mesh position={[0, 0.275, 0]}>
+          <cylinderGeometry args={[1.49, 1.49, 0.02, 64]} />
           <meshStandardMaterial
             color="#333"
-            metalness={0.9}
-            roughness={0.2}
+            metalness={0.95}
+            roughness={0.08}
+            envMapIntensity={1.5}
+          />
+        </mesh>
+
+        {/* Inner concentric ring on top */}
+        <mesh position={[0, 0.29, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.7, 0.015, 16, 64]} />
+          <meshStandardMaterial
+            color="#444"
+            metalness={0.95}
+            roughness={0.1}
+          />
+        </mesh>
+
+        {/* Mid ring on top */}
+        <mesh position={[0, 0.29, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.1, 0.02, 16, 64]} />
+          <meshStandardMaterial
+            color="#444"
+            metalness={0.95}
+            roughness={0.1}
           />
         </mesh>
 
         {/* Red accent ring on top edge */}
-        <mesh position={[0, 0.28, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.45, 0.025, 16, 64]} />
+        <mesh position={[0, 0.29, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.45, 0.03, 16, 64]} />
           <meshStandardMaterial
             color="#E10600"
             metalness={0.9}
-            roughness={0.2}
+            roughness={0.15}
             emissive="#E10600"
-            emissiveIntensity={0.3}
+            emissiveIntensity={0.4}
+          />
+        </mesh>
+
+        {/* Bottom edge ring for definition */}
+        <mesh position={[0, -0.275, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.65, 0.025, 16, 64]} />
+          <meshStandardMaterial
+            color="#444"
+            metalness={0.9}
+            roughness={0.15}
           />
         </mesh>
 
         {/* Pointer indicator at 12 o'clock */}
-        <mesh position={[0, 0.29, 1.25]} rotation={[Math.PI / 2, 0, 0]}>
-          <coneGeometry args={[0.07, 0.2, 3]} />
+        <mesh position={[0, 0.3, 1.2]}>
+          <boxGeometry args={[0.06, 0.02, 0.25]} />
           <meshStandardMaterial
             color="#E10600"
             emissive="#E10600"
-            emissiveIntensity={0.5}
+            emissiveIntensity={0.6}
           />
         </mesh>
 
-        {/* Grip ridges on the side */}
-        {Array.from({ length: 24 }).map((_, i) => {
-          const a = (i / 24) * Math.PI * 2;
+        {/* Knurled grip ridges — more visible, alternating bright/dark */}
+        {Array.from({ length: 36 }).map((_, i) => {
+          const a = (i / 36) * Math.PI * 2;
+          const isBright = i % 2 === 0;
           return (
             <mesh
               key={`grip-${i}`}
               position={[Math.sin(a) * 1.62, 0, Math.cos(a) * 1.62]}
               rotation={[0, -a, 0]}
             >
-              <boxGeometry args={[0.04, 0.35, 0.02]} />
+              <boxGeometry args={[0.05, 0.4, 0.025]} />
               <meshStandardMaterial
-                color="#222"
+                color={isBright ? "#3a3a3a" : "#1a1a1a"}
                 metalness={0.9}
-                roughness={0.3}
+                roughness={isBright ? 0.15 : 0.4}
               />
             </mesh>
           );
         })}
 
-        {/* 5 detent marks */}
+        {/* 5 detent marks — larger and more visible */}
         {Array.from({ length: POSITION_COUNT }).map((_, i) => {
           const a = (i / POSITION_COUNT) * Math.PI * 2;
           const isActive = i === selectedIndex;
           return (
             <mesh
               key={`detent-${i}`}
-              position={[Math.sin(a) * 1.63, 0.2, Math.cos(a) * 1.63]}
+              position={[Math.sin(a) * 1.64, 0.22, Math.cos(a) * 1.64]}
               rotation={[0, -a, 0]}
             >
-              <boxGeometry args={[0.1, 0.08, 0.03]} />
+              <boxGeometry args={[0.14, 0.1, 0.04]} />
               <meshStandardMaterial
-                color={isActive ? "#E10600" : "#444"}
-                emissive={isActive ? "#E10600" : "#000000"}
-                emissiveIntensity={isActive ? 0.5 : 0}
+                color={isActive ? "#E10600" : "#555"}
+                emissive={isActive ? "#E10600" : "#111"}
+                emissiveIntensity={isActive ? 0.6 : 0.05}
+                metalness={0.8}
+                roughness={0.2}
               />
             </mesh>
           );
