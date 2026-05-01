@@ -218,7 +218,7 @@ export function RotaryKnob({
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging.current) return;
     const deltaX = e.clientX - dragStartX.current;
-    rotationRef.current = dragStartRotation.current + deltaX * 0.008;
+    rotationRef.current = dragStartRotation.current - deltaX * 0.008;
   }, []);
 
   const handlePointerUp = useCallback(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { LogoHeader, SlackbotAvatar } from "./logo-header";
@@ -40,6 +40,12 @@ export function KnobQuestionScreen({
   );
 
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
+
+  useEffect(() => {
+    if (!selectedId && options.length > 0) {
+      onSelect(options[0].id);
+    }
+  }, [selectedId, options, onSelect]);
 
   const handleIndexChange = useCallback(
     (index: number) => {
