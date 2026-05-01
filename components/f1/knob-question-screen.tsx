@@ -6,15 +6,17 @@ import { motion, AnimatePresence } from "motion/react";
 import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { RotaryKnob } from "./rotary-knob";
+import { PixelCharacter } from "./pixel-character";
 
 export interface KnobOption {
   id: string;
   label: string;
   subtitle?: string;
   description: string;
-  image: string;
+  image?: string;
   logo?: string;
   drivers?: string;
+  character?: boolean;
 }
 
 interface KnobQuestionScreenProps {
@@ -117,7 +119,7 @@ export function KnobQuestionScreen({
                 <div className="relative flex flex-col items-center">
                   <div className="relative h-44 w-80 md:h-56 md:w-[28rem]">
                     <Image
-                      src={selectedOption.image}
+                      src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
                       className="object-contain opacity-30"
@@ -147,11 +149,25 @@ export function KnobQuestionScreen({
                     </p>
                   )}
                 </div>
+              ) : selectedOption.character ? (
+                <div className="flex flex-col items-center">
+                  <div className="h-40 w-28 md:h-52 md:w-36">
+                    <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {selectedOption.description && (
+                    <p className="mt-1.5 max-w-md text-center text-xs text-neutral-400">
+                      {selectedOption.description}
+                    </p>
+                  )}
+                </div>
               ) : selectedOption.description ? (
                 <>
                   <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
                     <Image
-                      src={selectedOption.image}
+                      src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
                       className="object-cover"
@@ -174,7 +190,7 @@ export function KnobQuestionScreen({
                 <>
                   <div className="relative h-32 w-32 md:h-40 md:w-40">
                     <Image
-                      src={selectedOption.image}
+                      src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
                       className="object-contain"

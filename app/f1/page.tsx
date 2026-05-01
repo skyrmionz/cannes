@@ -95,6 +95,21 @@ const teamOptions: KnobOption[] = [
   { id: "cadillac", label: "Cadillac", description: "The newest entry on the grid — American ambition at full throttle.", image: "/f1/teams/cars/cadillac.png", logo: "/f1/teams/logos/cadillac.png", drivers: "TBA" },
 ];
 
+const personaOptions: KnobOption[] = [
+  { id: "pole-position-networker", label: "The Pole Position Networker", description: "First to every conversation, business cards flying before the lights go out.", character: true },
+  { id: "qualifying-lap", label: "Qualifying Lap", description: "Warming up with small talk, saving the big pitch for when it counts.", character: true },
+  { id: "slow-puncture", label: "The Slow Puncture", description: "Started strong, now quietly deflating at the back of the after-party.", character: true },
+  { id: "safety-car", label: "The Safety Car", description: "Keeps the group together, controls the pace, nobody passes without permission.", character: true },
+  { id: "backmarker", label: "The Backmarker", description: "Arrived late, missed the keynote, still having a great time in the lobby.", character: true },
+  { id: "unbothered", label: "Unbothered", description: "Sunglasses on, lanyard hidden, radiating main-character energy from the corner.", character: true },
+  { id: "retired-champion", label: "The Retired Champion", description: "Been coming to Cannes for years, has nothing left to prove, here for the rosé.", character: true },
+  { id: "pit-lane-regular", label: "The Pit Lane Regular", description: "Always at the bar, knows every bartender, networking happens between rounds.", character: true },
+  { id: "drs-zone", label: "The DRS Zone", description: "Finds the opening, closes the gap, seals the deal before anyone else reacts.", character: true },
+  { id: "undercut", label: "The Undercut", description: "Slips into conversations early, steals the connection before you even noticed.", character: true },
+  { id: "blown-diffuser", label: "The Blown Diffuser", description: "Loud entrance, chaotic energy, leaves everyone wondering what just happened.", character: true },
+  { id: "flying-lap", label: "The Flying Lap", description: "Maximum intensity, zero wasted time, every meeting is a personal best.", character: true },
+];
+
 const stepVariants = {
   enter: (direction: number) => ({
     y: direction > 0 ? 60 : -60,
@@ -124,6 +139,7 @@ function F1Content() {
   const [celebration, setCelebration] = useState<string | null>(null);
   const [grandPrix, setGrandPrix] = useState<string | null>(null);
   const [team, setTeam] = useState<string | null>(null);
+  const [persona, setPersona] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
     setDirection(1);
@@ -148,6 +164,7 @@ function F1Content() {
       setCelebration(null);
       setGrandPrix(null);
       setTeam(null);
+      setPersona(null);
       setShowStart(true);
       setResetting(false);
     }, 600);
@@ -203,8 +220,20 @@ function F1Content() {
           />
         );
       case 6:
-        return <LoadingScreen onComplete={goForward} />;
+        return (
+          <KnobQuestionScreen
+            title="What is your personal Cannes persona?"
+            subtitle="This picks your synth character — the 8-bit soul that defines your anthem."
+            options={personaOptions}
+            selectedId={persona}
+            onSelect={setPersona}
+            onNext={goForward}
+            onBack={goBack}
+          />
+        );
       case 7:
+        return <LoadingScreen onComplete={goForward} />;
+      case 8:
         return (
           <ResultScreen
             driverName={driverName}
