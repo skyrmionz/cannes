@@ -23,31 +23,40 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
         </motion.div>
 
         <motion.p
-          className="text-sm uppercase tracking-[0.3em] text-[#b0b0b0]"
+          className="max-w-md text-center text-sm uppercase tracking-[0.3em] text-[#b0b0b0]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Every driver has a theme song
+          I&apos;m Slackbot, your personal producer at Salesforce Beach.
         </motion.p>
 
         <motion.h1
-          className="mt-4 text-4xl font-semibold text-white md:text-5xl"
+          className="mt-4 text-center text-4xl font-semibold text-white md:text-5xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Ready to make history?
+          Ready to make your own podium track?
         </motion.h1>
+
+        <motion.p
+          className="mt-3 text-sm text-[#b0b0b0]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          (No music experience needed!)
+        </motion.p>
 
         <motion.button
           onClick={onNext}
-          className="mt-12 rounded-sm bg-[#E10600] px-10 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500]"
+          className="mt-10 rounded-sm bg-[#E10600] px-10 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
+          transition={{ delay: 0.75, duration: 0.5 }}
         >
-          Start
+          Start Your Engine
         </motion.button>
       </div>
     </div>
