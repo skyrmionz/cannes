@@ -14,15 +14,20 @@ export interface QuestionOption {
 }
 
 export interface PreviewConfig {
-  type: "driver" | "style" | "circuit";
+  type: "driver" | "style" | "circuit" | "team";
   /** For drivers: map of id -> car image path */
   carImages?: Record<string, string>;
   /** For circuits: map of id -> race photo path */
   racePhotos?: Record<string, string>;
+  /** For teams: map of id -> logo image path */
+  teamLogos?: Record<string, string>;
+  /** For teams: map of id -> driver names */
+  teamDrivers?: Record<string, string>;
 }
 
 interface QuestionScreenProps {
   title: string;
+  subtitle?: string;
   options: QuestionOption[];
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -33,6 +38,7 @@ interface QuestionScreenProps {
 
 export function QuestionScreen({
   title,
+  subtitle,
   options,
   selectedId,
   onSelect,
@@ -86,6 +92,16 @@ export function QuestionScreen({
             >
               {title}
             </motion.h2>
+            {subtitle && (
+              <motion.p
+                className="mt-1 text-xs text-[#b0b0b0] md:text-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
           </div>
         </div>
       </div>
@@ -144,7 +160,6 @@ export function QuestionScreen({
 
               {preview.type === "circuit" && (
                 <div className="flex flex-col items-center">
-                  {/* Circuit race photo */}
                   {preview.racePhotos?.[selectedId!] ? (
                     <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
                       <Image
@@ -156,7 +171,6 @@ export function QuestionScreen({
                       <div className="absolute inset-0 border border-neutral-700" />
                     </div>
                   ) : (
-                    /* Fallback: show the circuit diagram larger */
                     <div className="relative h-40 w-64 md:h-48 md:w-80">
                       <Image
                         src={selectedOption.image || ""}
@@ -168,6 +182,46 @@ export function QuestionScreen({
                   )}
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
+                  </p>
+                </div>
+              )}
+
+              {preview.type === "team" && (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-6 md:gap-10">
+                    {/* Team logo */}
+                    {preview.teamLogos?.[selectedId!] && (
+                      <div className="relative h-16 w-16 md:h-20 md:w-20">
+                        <Image
+                          src={preview.teamLogos[selectedId!]}
+                          alt={`${selectedOption.label} logo`}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+                    {/* Team car */}
+                    {selectedOption.image && (
+                      <div className="relative h-28 w-52 md:h-36 md:w-72">
+                        <Image
+                          src={selectedOption.image}
+                          alt={`${selectedOption.label} car`}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {preview.teamDrivers?.[selectedId!] && (
+                    <p className="mt-1 text-xs text-[#b0b0b0]">
+                      {preview.teamDrivers[selectedId!]}
+                    </p>
+                  )}
+                  <p className="mt-2 max-w-md text-center text-xs text-neutral-400">
+                    {selectedOption.description}
                   </p>
                 </div>
               )}
