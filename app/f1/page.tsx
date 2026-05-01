@@ -62,15 +62,28 @@ const grandPrixOptions: GrandPrixOption[] = [
   },
 ];
 
-const drivingStyles: QuestionOption[] = [
-  { id: "oversteer", label: "Oversteer", description: "Sharp and precise" },
-  { id: "understeer", label: "Understeer", description: "Stable and smooth" },
+const celebrations: GrandPrixOption[] = [
   {
-    id: "aggressive",
-    label: "Aggressive",
-    description: "High-speed and intense",
+    id: "jump",
+    label: "Jump and Cheer",
+    country: "Pure adrenaline",
+    description: "",
+    racePhoto: "/f1/emoji/raising-hands.png",
   },
-  { id: "smooth", label: "Smooth", description: "Minimal and efficient" },
+  {
+    id: "nod",
+    label: "Nod and Smile",
+    country: "Cool and collected",
+    description: "",
+    racePhoto: "/f1/emoji/smirk.png",
+  },
+  {
+    id: "meltdown",
+    label: "Total Meltdown",
+    country: "Raw emotion",
+    description: "",
+    racePhoto: "/f1/emoji/exploding-head.png",
+  },
 ];
 
 const circuits: QuestionOption[] = [
@@ -126,7 +139,7 @@ function F1Content() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [driverName, setDriverName] = useState("");
-  const [drivingStyle, setDrivingStyle] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<string | null>(null);
   const [grandPrix, setGrandPrix] = useState<string | null>(null);
   const [circuit, setCircuit] = useState<string | null>(null);
 
@@ -151,10 +164,6 @@ function F1Content() {
     []
   );
 
-  const stylePreview: PreviewConfig = {
-    type: "style",
-  };
-
   const circuitPreview: PreviewConfig = {
     type: "circuit",
     racePhotos: {
@@ -171,7 +180,7 @@ function F1Content() {
       setStep(1);
       setDirection(1);
       setDriverName("");
-      setDrivingStyle(null);
+      setCelebration(null);
       setGrandPrix(null);
       setCircuit(null);
       setShowStart(true);
@@ -206,14 +215,14 @@ function F1Content() {
         );
       case 4:
         return (
-          <QuestionScreen
-            title="What's your driving style?"
-            options={drivingStyles}
-            selectedId={drivingStyle}
-            onSelect={(id) => handleQuestionSelect(setDrivingStyle, id)}
+          <KnobQuestionScreen
+            title="Your driver just took the chequered flag. What do you do?"
+            subtitle="This shapes the bass line — how much raw emotion drives your track."
+            options={celebrations}
+            selectedId={celebration}
+            onSelect={setCelebration}
             onNext={goForward}
             onBack={goBack}
-            preview={stylePreview}
           />
         );
       case 5:

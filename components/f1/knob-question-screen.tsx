@@ -104,24 +104,42 @@ export function KnobQuestionScreen({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
-                <Image
-                  src={selectedOption.racePhoto}
-                  alt={selectedOption.label}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 border border-neutral-700" />
-              </div>
-              <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
-                {selectedOption.label}
-              </p>
-              <p className="mt-0.5 text-xs text-[#b0b0b0]">
-                {selectedOption.country}
-              </p>
-              <p className="mt-2 whitespace-nowrap text-center text-xs text-neutral-400">
-                {selectedOption.description}
-              </p>
+              {selectedOption.description ? (
+                <>
+                  <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
+                    <Image
+                      src={selectedOption.racePhoto}
+                      alt={selectedOption.label}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 border border-neutral-700" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                    {selectedOption.country}
+                  </p>
+                  <p className="mt-2 whitespace-nowrap text-center text-xs text-neutral-400">
+                    {selectedOption.description}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="relative h-32 w-32 md:h-40 md:w-40">
+                    <Image
+                      src={selectedOption.racePhoto}
+                      alt={selectedOption.label}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="mt-4 text-lg font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                </>
+              )}
             </motion.div>
           ) : (
             <motion.p

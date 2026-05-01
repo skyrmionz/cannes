@@ -6,8 +6,9 @@ import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
-const POSITION_COUNT = 5;
-const POSITION_ANGLE = (2 * Math.PI) / POSITION_COUNT;
+function getPositionAngle(count: number) {
+  return (2 * Math.PI) / count;
+}
 
 interface KnobOption {
   id: string;
@@ -24,9 +25,11 @@ interface RotaryKnobProps {
 function KnobMesh({
   selectedIndex,
   rotationRef,
+  positionCount,
 }: {
   selectedIndex: number;
   rotationRef: React.RefObject<number>;
+  positionCount: number;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const ringEmissiveRef = useRef(0.3);
@@ -156,8 +159,8 @@ function KnobMesh({
         })}
 
         {/* 5 detent marks — larger and more visible */}
-        {Array.from({ length: POSITION_COUNT }).map((_, i) => {
-          const a = (i / POSITION_COUNT) * Math.PI * 2;
+        {Array.from({ length: positionCount }).map((_, i) => {
+          const a = (i / positionCount) * Math.PI * 2;
           const isActive = i === selectedIndex;
           return (
             <mesh
@@ -186,17 +189,20 @@ export function RotaryKnob({
   selectedIndex,
   onIndexChange,
 }: RotaryKnobProps) {
+  const positionCount = options.length;
+  const positionAngle = getPositionAngle(positionCount);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const rotationRef = useRef(selectedIndex * POSITION_ANGLE);
-  const targetRotation = useRef(selectedIndex * POSITION_ANGLE);
+  const rotationRef = useRef(selectedIndex * positionAngle);
+  const targetRotation = useRef(selectedIndex * positionAngle);
   const velocity = useRef(0);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartRotation = useRef(0);
 
   useEffect(() => {
-    targetRotation.current = selectedIndex * POSITION_ANGLE;
-  }, [selectedIndex]);
+    targetRotation.current = selectedIndex * positionAngle;
+  }, [selectedIndex, positionAngle]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -219,10 +225,10 @@ export function RotaryKnob({
     if (!isDragging.current) return;
     isDragging.current = false;
 
-    const snappedSteps = Math.round(rotationRef.current / POSITION_ANGLE);
+    const snappedSteps = Math.round(rotationRef.current / positionAngle);
     const normalizedIndex =
-      ((snappedSteps % POSITION_COUNT) + POSITION_COUNT) % POSITION_COUNT;
-    targetRotation.current = snappedSteps * POSITION_ANGLE;
+      ((snappedSteps % positionCount) + positionCount) % positionCount;
+    targetRotation.current = snappedSteps * positionAngle;
     onIndexChange(normalizedIndex);
 
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -253,7 +259,7 @@ export function RotaryKnob({
             velocity={velocity}
             isDragging={isDragging}
           />
-          <KnobMesh selectedIndex={selectedIndex} rotationRef={rotationRef} />
+          <KnobMesh selectedIndex={selectedIndex} rotationRef={rotationRef} positionCount={positionCount} />
         </Canvas>
       </div>
 
