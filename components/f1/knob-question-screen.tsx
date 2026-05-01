@@ -151,7 +151,7 @@ export function KnobQuestionScreen({
                 </div>
               ) : selectedOption.character ? (
                 <div className="flex flex-col items-center">
-                  <div className="h-40 w-28 md:h-52 md:w-36">
+                  <div className="h-56 w-28 md:h-72 md:w-36">
                     <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
                   </div>
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
