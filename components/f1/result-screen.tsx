@@ -6,10 +6,11 @@ import { DotBg } from "./dot-bg";
 
 interface ResultScreenProps {
   driverName: string;
+  mp3Url: string | null;
   onStartOver: () => void;
 }
 
-export function ResultScreen({ driverName, onStartOver }: ResultScreenProps) {
+export function ResultScreen({ driverName, mp3Url, onStartOver }: ResultScreenProps) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
@@ -46,7 +47,6 @@ export function ResultScreen({ driverName, onStartOver }: ResultScreenProps) {
           representing Cannes!
         </motion.h2>
 
-        {/* Audio player placeholder — Suno AI integration later */}
         <motion.div
           className="mt-10 flex w-full max-w-sm flex-col items-center rounded-sm border border-neutral-800 bg-[#1a1a1a] p-6"
           initial={{ opacity: 0, y: 10 }}
@@ -56,18 +56,17 @@ export function ResultScreen({ driverName, onStartOver }: ResultScreenProps) {
           <p className="mb-4 text-sm uppercase tracking-wider text-[#b0b0b0]">
             Your theme song
           </p>
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-700 transition-colors hover:border-[#E10600]">
-            <svg
-              className="ml-0.5 h-5 w-5 text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
-          <div className="mt-4 h-1 w-full rounded-full bg-neutral-800">
-            <div className="h-full w-0 rounded-full bg-[#E10600]" />
-          </div>
+          {mp3Url ? (
+            <audio
+              src={mp3Url}
+              controls
+              autoPlay
+              preload="auto"
+              className="w-full"
+            />
+          ) : (
+            <p className="text-xs text-neutral-500">Track unavailable</p>
+          )}
         </motion.div>
 
         <motion.button
