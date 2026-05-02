@@ -130,7 +130,13 @@ export function KnobQuestionScreen({
                           src={selectedOption.logo}
                           alt={`${selectedOption.label} logo`}
                           fill
-                          className="object-contain"
+                          className={`object-contain ${
+                            ["mercedes", "aston-martin", "audi", "cadillac"].includes(
+                              selectedOption.id
+                            )
+                              ? "brightness-0 invert"
+                              : ""
+                          }`}
                         />
                       </div>
                     </div>
@@ -151,7 +157,7 @@ export function KnobQuestionScreen({
                 </div>
               ) : selectedOption.character ? (
                 <div className="flex flex-col items-center">
-                  <div className="h-56 w-28 md:h-72 md:w-36">
+                  <div className="h-44 w-[5.5rem] md:h-56 md:w-28">
                     <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
                   </div>
                   <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
