@@ -160,7 +160,7 @@ export function KnobQuestionScreen({
                   <div className="h-44 w-[5.5rem] md:h-56 md:w-28">
                     <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
                   </div>
-                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                  <p className="mt-3 whitespace-nowrap text-sm font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
                   </p>
                   <p className="mt-1.5 whitespace-nowrap text-center text-xs text-neutral-400">

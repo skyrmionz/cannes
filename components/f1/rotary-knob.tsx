@@ -266,22 +266,22 @@ export function RotaryKnob({
       {/* Position labels */}
       <div className="relative mx-auto mt-2 flex items-center justify-center gap-6 px-2">
         {/* Previous option hint */}
-        <div className="w-24 text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
+        <div className="w-24 truncate text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
           {selectedIndex > 0 ? options[selectedIndex - 1].label : ""}
         </div>
         {/* Selected option */}
         <div className="min-w-[8rem] text-center md:min-w-[10rem]">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-white md:text-xs">
+          <div className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-white md:text-xs">
             {options[selectedIndex]?.label}
           </div>
           {options[selectedIndex]?.subtitle && (
-            <div className="text-[9px] text-neutral-400 md:text-[10px]">
+            <div className="truncate text-[9px] text-neutral-400 md:text-[10px]">
               {options[selectedIndex].subtitle}
             </div>
           )}
         </div>
         {/* Next option hint */}
-        <div className="w-24 text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
+        <div className="w-24 truncate text-center text-[10px] uppercase tracking-wider text-neutral-600 transition-opacity duration-200 md:w-28 md:text-[11px]">
           {selectedIndex < options.length - 1
             ? options[selectedIndex + 1].label
             : ""}
