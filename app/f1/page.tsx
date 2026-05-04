@@ -159,6 +159,8 @@ function F1Content() {
         return (
           <ResultScreen
             driverName={driverName}
+            team={team}
+            persona={persona}
             mp3Url={mp3Url}
             onStartOver={handleStartOver}
           />

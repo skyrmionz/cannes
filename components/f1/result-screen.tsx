@@ -1,83 +1,126 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
+import { CinematicScene } from "./result-cinematic/scene";
 
 interface ResultScreenProps {
   driverName: string;
+  team: string | null;
+  persona: string | null;
   mp3Url: string | null;
   onStartOver: () => void;
 }
 
-export function ResultScreen({ driverName, mp3Url, onStartOver }: ResultScreenProps) {
+export function ResultScreen({
+  driverName,
+  team,
+  persona,
+  mp3Url,
+  onStartOver,
+}: ResultScreenProps) {
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handlePlayFallback = useCallback(() => {
+    if (!mp3Url) return;
+    if (!fallbackAudioRef.current) {
+      fallbackAudioRef.current = new Audio(mp3Url);
+    }
+    fallbackAudioRef.current.play().then(() => {
+      setAutoplayBlocked(false);
+    });
+  }, [mp3Url]);
+
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <DotBg />
 
-      {/* Logos pinned to the top */}
-      <motion.div
-        className="relative z-10 pt-8"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
+      {/* Logos pinned top center */}
+      <div className="relative z-10 pt-4">
         <LogoHeader className="justify-center" />
-      </motion.div>
+      </div>
 
-      {/* Centered content */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+      {/* Slackbot + title, left-aligned like the other screens */}
+      <div className="relative z-10 px-6 pt-3 md:px-12 md:pt-4">
+        <div className="mx-auto max-w-4xl">
+          <motion.div
+            className="mb-2 h-[2px] w-16 bg-[#E10600]"
+            initial={{ width: 0 }}
+            animate={{ width: 64 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          />
+          <div className="flex items-center gap-4">
+            <SlackbotAvatar className="h-10 w-10 flex-shrink-0 md:h-12 md:w-12" />
+            <motion.h1
+              className="text-xl font-semibold uppercase tracking-[0.15em] text-white md:text-2xl"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+            >
+              Congratulations, welcome to the Cannes podium,{" "}
+              <span className="text-[#E10600]">{driverName}</span>!
+            </motion.h1>
+          </div>
+        </div>
+      </div>
+
+      {/* Cinematic 3D stage */}
+      <div className="relative z-10 flex-1">
+        {team && persona ? (
+          <CinematicScene
+            teamId={team}
+            personaId={persona}
+            mp3Url={mp3Url}
+            onAudioBlocked={() => setAutoplayBlocked(true)}
+          />
+        ) : null}
+
+        {/* Autoplay-blocked fallback */}
+        {autoplayBlocked && mp3Url && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center pb-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <button
+              onClick={handlePlayFallback}
+              className="pointer-events-auto flex items-center gap-3 rounded-sm bg-[#E10600] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#b80500]"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              Play your anthem
+            </button>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Start Over pinned bottom-right */}
+      <div className="relative z-10 px-4 pb-4 pt-2 md:px-8 md:pb-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          className="mx-auto flex max-w-5xl items-center justify-end"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
         >
-          <SlackbotAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
+          <button
+            onClick={onStartOver}
+            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold leading-none text-white">
+              R
+            </span>
+            Start Over
+          </button>
         </motion.div>
-
-        <motion.h2
-          className="text-center text-2xl font-semibold uppercase tracking-[0.15em] text-white md:text-3xl"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          Introducing{" "}
-          <span className="text-[#E10600]">{driverName}</span>,
-          <br />
-          representing Cannes!
-        </motion.h2>
-
-        <motion.div
-          className="mt-10 flex w-full max-w-sm flex-col items-center rounded-sm border border-neutral-800 bg-[#1a1a1a] p-6"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-        >
-          <p className="mb-4 text-sm uppercase tracking-wider text-[#b0b0b0]">
-            Your theme song
-          </p>
-          {mp3Url ? (
-            <audio
-              src={mp3Url}
-              controls
-              autoPlay
-              preload="auto"
-              className="w-full"
-            />
-          ) : (
-            <p className="text-xs text-neutral-500">Track unavailable</p>
-          )}
-        </motion.div>
-
-        <motion.button
-          onClick={onStartOver}
-          className="mt-12 rounded-sm border border-neutral-700 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-[#E10600] hover:text-white"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-        >
-          Start Over
-        </motion.button>
       </div>
     </div>
   );

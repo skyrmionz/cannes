@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 
-const PALETTE: Record<string, string> = {
+export const PALETTE: Record<string, string> = {
   "0": "transparent",
   "1": "#E10600", // F1 red
   "2": "#FFFFFF", // white
@@ -21,7 +21,7 @@ const PALETTE: Record<string, string> = {
   f: "#F5E6A8", // blonde hair
 };
 
-const CHARACTERS: Record<string, string[]> = {
+export const CHARACTERS: Record<string, string[]> = {
   "pole-position-networker": [
     "0000000000000000",
     "0000004444000000",
