@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getStatus } from "@/lib/suno";
+import { getStatus } from "@/lib/replicate";
 
 export const runtime = "nodejs";
 

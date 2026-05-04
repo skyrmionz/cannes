@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { buildAgentMessages, type SongInputs } from "@/lib/agent-prompt";
 import { getSunoPrompt } from "@/lib/openrouter";
-import { generate } from "@/lib/suno";
+import { generate } from "@/lib/replicate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
