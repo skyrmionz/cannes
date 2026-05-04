@@ -1,5 +1,6 @@
 const REPLICATE_BASE = "https://api.replicate.com/v1";
-const MUSICGEN_MODEL = "meta/musicgen";
+const MUSICGEN_VERSION =
+  "671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
 
 export interface MusicStatus {
   status: "pending" | "complete" | "failed";
@@ -13,26 +14,23 @@ function token() {
 }
 
 export async function generate(prompt: string): Promise<{ taskId: string }> {
-  const res = await fetch(
-    `${REPLICATE_BASE}/models/${MUSICGEN_MODEL}/predictions`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token()}`,
-        "Content-Type": "application/json",
-        Prefer: "wait=1",
+  const res = await fetch(`${REPLICATE_BASE}/predictions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      version: MUSICGEN_VERSION,
+      input: {
+        prompt,
+        model_version: "stereo-large",
+        duration: 30,
+        output_format: "mp3",
+        normalization_strategy: "peak",
       },
-      body: JSON.stringify({
-        input: {
-          prompt,
-          model_version: "stereo-large",
-          duration: 30,
-          output_format: "mp3",
-          normalization_strategy: "peak",
-        },
-      }),
-    }
-  );
+    }),
+  });
 
   if (!res.ok) {
     const text = await res.text();
@@ -58,7 +56,7 @@ export async function getStatus(taskId: string): Promise<MusicStatus> {
 
   const data = (await res.json()) as {
     status: string;
-    output?: string | string[];
+    output?: string | string[] | null;
   };
 
   if (data.status === "succeeded") {
