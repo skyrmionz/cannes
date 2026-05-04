@@ -17,6 +17,134 @@ interface LoadingScreenProps {
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 180_000;
+const MESSAGE_INTERVAL_MS = 2500;
+const PHASE_A_MS = 25_000;
+
+const LOADING_MESSAGES: string[] = [
+  "Warming up the engines...",
+  "Tuning the DRS to D major...",
+  "Laying down heartbeat drums...",
+  "Negotiating with the FIA on tempo...",
+  "Mixing the crowd noise at Parabolica...",
+  "Polishing the trumpet fanfare...",
+  "Calibrating the bass line through Eau Rouge...",
+  "Checking tire pressure on the hi-hats...",
+  "Rolling the synth onto the grid...",
+  "Sending engineers into the mixing booth...",
+  "Teaching the snare how to podium...",
+  "Bolting on the brass section aero package...",
+  "Routing the kick drum through Casino Square...",
+  "Getting the click track up to racing speed...",
+  "Calling strategy on the bridge...",
+  "Swapping out vocals for victory horns...",
+  "Drifting through the minor key chicane...",
+  "Loading the safety car into the pre-chorus...",
+  "Queueing up the podium anthem...",
+  "Telling the bass player about the undercut...",
+  "Running a practice lap in 4/4...",
+  "Spooling up the turbocharged arpeggios...",
+  "Checking the mirrors for flat notes...",
+  "Blasting through the final sector...",
+  "Stacking harmonies on the tow...",
+  "Deploying the overtake button on beat two...",
+  "Welding the bridge to the chorus...",
+  "Syncing the metronome to Silverstone...",
+  "Fueling the synth pads for the final stint...",
+  "Tightening the wheel nuts on the drum kit...",
+  "Calibrating brass against the wind tunnel...",
+  "Routing the mix through pit lane...",
+  "Balancing the front and rear of the bass...",
+  "Running the hot lap at 140 BPM...",
+  "Wiring up the victory theme...",
+  "Bringing the tempo up through turn one...",
+  "Dialing in the trumpet's downforce...",
+  "Flagging yellow on the bridge...",
+  "Loading spare tracks into the garage...",
+  "Checking the telemetry on the hi-hats...",
+  "Warming the rubber on the kick drum...",
+  "Greasing the trombone slides...",
+  "Reviewing steward decisions on key changes...",
+  "Radioing the driver about the breakdown...",
+  "Cutting slicks into the strings...",
+  "Tightening the lug nuts on the snare...",
+  "Pulling the synth into the pits for a refresh...",
+  "Briefing the brass on race strategy...",
+  "Putting champagne on the mixing desk...",
+  "Charging up the supersaw battery...",
+  "Turning off traction control on the arpeggios...",
+  "Racing the click track to the finish line...",
+  "Feathering the throttle on the bass...",
+  "Setting the fastest lap on the hook...",
+  "Scrubbing off extra reverb on the straight...",
+  "Choosing between medium and hard harmonies...",
+  "Rolling through parc fermé with the master bus...",
+  "Engaging DRS on the drop...",
+  "Adjusting the diff on the drum pattern...",
+  "Mapping engine modes to chord progressions...",
+  "Getting the pit crew to record claps...",
+  "Polishing the trophy, then the cymbals...",
+  "Applying camber to the French horn...",
+  "Calculating ERS deployment per bar...",
+  "Radioing in for a tire change on the bridge...",
+  "Locking the differential on the downbeat...",
+  "Tightening the seatbelt before the drop...",
+  "Sending the trumpet out for qualifying...",
+  "Slipstreaming into the chorus...",
+  "Installing the halo on the synth lead...",
+  "Checking pit-wall for final mix approval...",
+  "Pushing the tempo into the red zone...",
+  "Running through Eau Rouge in triplets...",
+  "Dropping the hammer and the beat...",
+  "Overtaking silence at the apex...",
+  "Bringing the band onto the grid...",
+  "Finalizing the halo mix...",
+  "Loading the celebration cannon with brass...",
+  "Powering the synth with hybrid electric...",
+  "Dialing in the anti-stall on the intro...",
+  "Programming the strategy into the sequencer...",
+  "Rehearsing the victory lap melody...",
+  "Pre-heating the analog saw-wave...",
+  "Checking tire degradation on the kick drum...",
+  "Triggering fireworks on every downbeat...",
+  "Coaxing the bassline through Becketts...",
+  "Setting the kick drum's launch control...",
+  "Routing telemetry to the mastering chain...",
+  "Blocking the undercut with extra reverb...",
+  "Sending the synth for a shakedown...",
+  "Locking in the fastest sector on the chorus...",
+  "Qualifying each note on pole position...",
+  "Pouring champagne on the mixing console...",
+  "Feeding the tuba into the intercooler...",
+  "Setting the racing line through the bass solo...",
+  "Activating the beat-energy-recovery system...",
+  "Sticking the landing on the final chord...",
+  "Bringing the drums in for a tire change...",
+  "Welding a new exhaust onto the bassline...",
+  "Running the synth through scrutineering...",
+  "Flagging the chequered on the last bar...",
+  "Crossing the finish line in stereo...",
+];
+
+function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function easeOutExpo(t: number): number {
+  return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function computeProgress(elapsedMs: number): number {
+  if (elapsedMs <= PHASE_A_MS) {
+    return easeOutExpo(elapsedMs / PHASE_A_MS) * 85;
+  }
+  const tail = elapsedMs - PHASE_A_MS;
+  return 85 + (95 - 85) * (1 - Math.exp(-tail / 90_000));
+}
 
 export function LoadingScreen({
   driverName,
@@ -27,9 +155,13 @@ export function LoadingScreen({
   onComplete,
   onError,
 }: LoadingScreenProps) {
-  const [message, setMessage] = useState("Creating your theme song now...");
+  const messagesRef = useRef<string[]>(shuffle(LOADING_MESSAGES));
+  const messageIndexRef = useRef(0);
+  const [message, setMessage] = useState(messagesRef.current[0]);
   const [errored, setErrored] = useState(false);
+  const [progress, setProgress] = useState(0);
   const startedRef = useRef(false);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -37,7 +169,25 @@ export function LoadingScreen({
 
     let cancelled = false;
     const controller = new AbortController();
-    const startedAt = Date.now();
+    const startedAt = performance.now();
+
+    // Rotate the loading copy every MESSAGE_INTERVAL_MS
+    const messageTimer = setInterval(() => {
+      if (cancelled || completedRef.current) return;
+      messageIndexRef.current =
+        (messageIndexRef.current + 1) % messagesRef.current.length;
+      setMessage(messagesRef.current[messageIndexRef.current]);
+    }, MESSAGE_INTERVAL_MS);
+
+    // Drive the progress bar with rAF using the two-phase curve
+    let rafId = 0;
+    const tick = () => {
+      if (cancelled || completedRef.current) return;
+      const elapsed = performance.now() - startedAt;
+      setProgress(computeProgress(elapsed));
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
 
     async function run() {
       try {
@@ -53,10 +203,8 @@ export function LoadingScreen({
         }
         const { jobId } = (await genRes.json()) as { jobId: string };
 
-        setMessage("Spinning up the studio...");
-
         while (!cancelled) {
-          if (Date.now() - startedAt > MAX_WAIT_MS) {
+          if (performance.now() - startedAt > MAX_WAIT_MS) {
             throw new Error("Song generation timed out");
           }
           await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -75,19 +223,22 @@ export function LoadingScreen({
           };
 
           if (status.status === "complete" && status.mp3Url) {
-            onComplete(status.mp3Url);
+            completedRef.current = true;
+            setProgress(100);
+            setMessage("Crossing the finish line...");
+            setTimeout(() => onComplete(status.mp3Url!), 400);
             return;
           }
           if (status.status === "failed") {
             throw new Error("Song generation failed");
           }
-          setMessage("Mixing your track...");
         }
       } catch (err) {
         if (cancelled || (err instanceof Error && err.name === "AbortError")) {
           return;
         }
         console.error(err);
+        completedRef.current = true;
         setErrored(true);
         setMessage("We couldn't build your track. Going back to retry.");
         setTimeout(onError, 2000);
@@ -99,6 +250,8 @@ export function LoadingScreen({
     return () => {
       cancelled = true;
       controller.abort();
+      clearInterval(messageTimer);
+      cancelAnimationFrame(rafId);
     };
   }, [driverName, grandPrix, celebration, team, persona, onComplete, onError]);
 
@@ -128,21 +281,19 @@ export function LoadingScreen({
 
         <motion.h2
           key={message}
-          className="text-center text-xl font-semibold uppercase tracking-[0.2em] text-white"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          className="min-h-[2rem] px-4 text-center text-xl font-semibold uppercase tracking-[0.2em] text-white"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
         >
           {message}
         </motion.h2>
 
         {!errored && (
           <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-neutral-800">
-            <motion.div
-              className="h-full rounded-full bg-[#E10600]"
-              initial={{ width: "0%" }}
-              animate={{ width: "90%" }}
-              transition={{ duration: 60, ease: "easeOut" }}
+            <div
+              className="h-full rounded-full bg-[#E10600] transition-[width] duration-200 ease-out"
+              style={{ width: `${progress}%` }}
             />
           </div>
         )}
