@@ -102,7 +102,10 @@ export function KnobQuestionScreen({
         </div>
       </div>
 
-      {/* Preload every option's image + logo so turning the knob shows them instantly */}
+      {/* Preload every option's image + logo so turning the knob shows them instantly.
+          unoptimized=true ensures the preloader and display hit the exact same URL
+          (the raw file in /public); Next's optimizer would otherwise return a
+          different URL per width, defeating the warm-up. */}
       <div aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0">
         {options.map((o) => (
           <span key={o.id}>
@@ -112,6 +115,7 @@ export function KnobQuestionScreen({
                 alt=""
                 width={1}
                 height={1}
+                unoptimized
                 priority
               />
             )}
@@ -121,6 +125,7 @@ export function KnobQuestionScreen({
                 alt=""
                 width={1}
                 height={1}
+                unoptimized
                 priority
               />
             )}
@@ -148,6 +153,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      unoptimized
                       priority
                       className="object-contain opacity-30"
                     />
@@ -157,6 +163,7 @@ export function KnobQuestionScreen({
                           src={selectedOption.logo}
                           alt={`${selectedOption.label} logo`}
                           fill
+                          unoptimized
                           priority
                           className={`object-contain ${
                             ["mercedes", "aston-martin", "audi", "cadillac"].includes(
@@ -202,6 +209,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      unoptimized
                       priority
                       className="object-cover"
                     />
@@ -226,6 +234,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      unoptimized
                       priority
                       className="object-contain"
                     />
