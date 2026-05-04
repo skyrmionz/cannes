@@ -61,16 +61,16 @@ export function KnobQuestionScreen({
   );
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <DotBg />
 
       {/* Logos pinned to top center */}
-      <div className="relative z-10 pt-8">
+      <div className="relative z-10 pt-4">
         <LogoHeader className="justify-center" />
       </div>
 
       {/* Title with Slackbot */}
-      <div className="relative z-10 px-6 pt-6 md:px-12 md:pt-8">
+      <div className="relative z-10 px-6 pt-3 md:px-12 md:pt-4">
         <div className="mx-auto max-w-4xl">
           <motion.div
             className="mb-2 h-[2px] w-16 bg-[#E10600]"
@@ -79,10 +79,10 @@ export function KnobQuestionScreen({
             transition={{ delay: 0.1, duration: 0.4 }}
           />
           <div className="flex items-center gap-4">
-            <SlackbotAvatar className="h-12 w-12 flex-shrink-0 md:h-14 md:w-14" />
+            <SlackbotAvatar className="h-10 w-10 flex-shrink-0 md:h-12 md:w-12" />
             <div>
               <motion.h2
-                className="text-2xl font-semibold uppercase tracking-[0.15em] text-white md:text-3xl"
+                className="text-xl font-semibold uppercase tracking-[0.15em] text-white md:text-2xl"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15, duration: 0.4 }}
@@ -103,7 +103,7 @@ export function KnobQuestionScreen({
       </div>
 
       {/* Preview area */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pt-6 md:pt-8">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pt-2 md:pt-4">
         <AnimatePresence mode="wait">
           {selectedOption ? (
             <motion.div
@@ -117,7 +117,7 @@ export function KnobQuestionScreen({
               {selectedOption.logo ? (
                 /* Team preview: car background + logo + drivers + description */
                 <div className="relative flex flex-col items-center">
-                  <div className="relative h-44 w-80 md:h-56 md:w-[28rem]">
+                  <div className="relative h-32 w-64 md:h-40 md:w-80">
                     <Image
                       src={selectedOption.image!}
                       alt={selectedOption.label}
@@ -125,7 +125,7 @@ export function KnobQuestionScreen({
                       className="object-contain opacity-30"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative h-16 w-16 md:h-20 md:w-20">
+                      <div className="relative h-12 w-12 md:h-16 md:w-16">
                         <Image
                           src={selectedOption.logo}
                           alt={`${selectedOption.label} logo`}
@@ -157,19 +157,19 @@ export function KnobQuestionScreen({
                 </div>
               ) : selectedOption.character ? (
                 <div className="flex flex-col items-center">
-                  <div className="h-44 w-[5.5rem] md:h-56 md:w-28">
+                  <div className="h-32 w-16 md:h-40 md:w-20">
                     <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
                   </div>
-                  <p className="mt-3 whitespace-nowrap text-sm font-semibold uppercase tracking-wider text-white">
+                  <p className="mt-2 whitespace-nowrap text-sm font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
                   </p>
-                  <p className="mt-1.5 whitespace-nowrap text-center text-xs text-neutral-400">
+                  <p className="mt-1 whitespace-nowrap text-center text-xs text-neutral-400">
                     {selectedOption.description}
                   </p>
                 </div>
               ) : selectedOption.description ? (
                 <>
-                  <div className="relative h-40 w-72 overflow-hidden rounded-sm md:h-52 md:w-96">
+                  <div className="relative h-28 w-56 overflow-hidden rounded-sm md:h-36 md:w-72">
                     <Image
                       src={selectedOption.image!}
                       alt={selectedOption.label}
@@ -178,7 +178,7 @@ export function KnobQuestionScreen({
                     />
                     <div className="absolute inset-0 border border-neutral-700" />
                   </div>
-                  <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-white">
+                  <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
                   </p>
                   {selectedOption.subtitle && (
@@ -186,13 +186,13 @@ export function KnobQuestionScreen({
                       {selectedOption.subtitle}
                     </p>
                   )}
-                  <p className="mt-2 whitespace-nowrap text-center text-xs text-neutral-400">
+                  <p className="mt-1 whitespace-nowrap text-center text-xs text-neutral-400">
                     {selectedOption.description}
                   </p>
                 </>
               ) : (
                 <>
-                  <div className="relative h-32 w-32 md:h-40 md:w-40">
+                  <div className="relative h-24 w-24 md:h-32 md:w-32">
                     <Image
                       src={selectedOption.image!}
                       alt={selectedOption.label}
@@ -200,7 +200,7 @@ export function KnobQuestionScreen({
                       className="object-contain"
                     />
                   </div>
-                  <p className="mt-4 text-lg font-semibold uppercase tracking-wider text-white">
+                  <p className="mt-3 text-lg font-semibold uppercase tracking-wider text-white">
                     {selectedOption.label}
                   </p>
                 </>
@@ -236,7 +236,7 @@ export function KnobQuestionScreen({
       </div>
 
       {/* Navigation buttons */}
-      <div className="relative z-10 px-4 pb-6 pt-4 md:px-8 md:pb-10">
+      <div className="relative z-10 px-4 pb-4 pt-2 md:px-8 md:pb-6">
         <motion.div
           className="mx-auto flex max-w-5xl items-center justify-end gap-3"
           initial={{ opacity: 0 }}

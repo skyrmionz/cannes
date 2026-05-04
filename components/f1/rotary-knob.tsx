@@ -242,7 +242,7 @@ export function RotaryKnob({
       <div
         ref={containerRef}
         className="cursor-grab active:cursor-grabbing"
-        style={{ height: 200, touchAction: "none" }}
+        style={{ height: 150, touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
