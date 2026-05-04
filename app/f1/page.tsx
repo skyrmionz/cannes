@@ -169,7 +169,7 @@ function F1Content() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a]">
+    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
       {/* Fade-to-black overlay for Start Over transition */}
       <AnimatePresence>
         {resetting && (
