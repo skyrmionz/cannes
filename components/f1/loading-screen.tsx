@@ -17,7 +17,7 @@ interface LoadingScreenProps {
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_WAIT_MS = 180_000;
-const MESSAGE_INTERVAL_MS = 2500;
+const MESSAGE_INTERVAL_MS = 8000;
 const PHASE_A_MS = 25_000;
 
 const LOADING_MESSAGES: string[] = [
@@ -159,7 +159,7 @@ export function LoadingScreen({
   const messageIndexRef = useRef(0);
   const [message, setMessage] = useState(messagesRef.current[0]);
   const [errored, setErrored] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const barRef = useRef<HTMLDivElement | null>(null);
   const startedRef = useRef(false);
   const completedRef = useRef(false);
 
@@ -179,12 +179,16 @@ export function LoadingScreen({
       setMessage(messagesRef.current[messageIndexRef.current]);
     }, MESSAGE_INTERVAL_MS);
 
-    // Drive the progress bar with rAF using the two-phase curve
+    // Drive the progress bar width with rAF — write to the DOM directly so
+    // we don't round-trip through React reconciliation 60x/second.
     let rafId = 0;
     const tick = () => {
       if (cancelled || completedRef.current) return;
       const elapsed = performance.now() - startedAt;
-      setProgress(computeProgress(elapsed));
+      const pct = computeProgress(elapsed);
+      if (barRef.current) {
+        barRef.current.style.width = `${pct}%`;
+      }
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);
@@ -224,9 +228,12 @@ export function LoadingScreen({
 
           if (status.status === "complete" && status.mp3Url) {
             completedRef.current = true;
-            setProgress(100);
+            if (barRef.current) {
+              barRef.current.style.transition = "width 300ms ease-out";
+              barRef.current.style.width = "100%";
+            }
             setMessage("Crossing the finish line...");
-            setTimeout(() => onComplete(status.mp3Url!), 400);
+            setTimeout(() => onComplete(status.mp3Url!), 500);
             return;
           }
           if (status.status === "failed") {
@@ -292,8 +299,9 @@ export function LoadingScreen({
         {!errored && (
           <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-neutral-800">
             <div
-              className="h-full rounded-full bg-[#E10600] transition-[width] duration-200 ease-out"
-              style={{ width: `${progress}%` }}
+              ref={barRef}
+              className="h-full rounded-full bg-[#E10600]"
+              style={{ width: "0%" }}
             />
           </div>
         )}

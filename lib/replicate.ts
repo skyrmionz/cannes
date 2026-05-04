@@ -1,6 +1,5 @@
 const REPLICATE_BASE = "https://api.replicate.com/v1";
-const MUSICGEN_VERSION =
-  "671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb";
+const MINIMAX_MODEL = "minimax/music-2.6";
 
 export interface MusicStatus {
   status: "pending" | "complete" | "failed";
@@ -14,23 +13,23 @@ function token() {
 }
 
 export async function generate(prompt: string): Promise<{ taskId: string }> {
-  const res = await fetch(`${REPLICATE_BASE}/predictions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      version: MUSICGEN_VERSION,
-      input: {
-        prompt,
-        model_version: "stereo-large",
-        duration: 30,
-        output_format: "mp3",
-        normalization_strategy: "peak",
+  const res = await fetch(
+    `${REPLICATE_BASE}/models/${MINIMAX_MODEL}/predictions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token()}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        input: {
+          prompt,
+          is_instrumental: true,
+          audio_format: "mp3",
+        },
+      }),
+    }
+  );
 
   if (!res.ok) {
     const text = await res.text();
