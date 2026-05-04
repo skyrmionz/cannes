@@ -17,7 +17,7 @@ interface LoadingScreenProps {
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_WAIT_MS = 60_000;
-const MESSAGE_INTERVAL_MS = 8000;
+const MESSAGE_INTERVAL_MS = 4000;
 const PHASE_A_MS = 12_000;
 
 const LOADING_MESSAGES: string[] = [
