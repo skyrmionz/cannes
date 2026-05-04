@@ -102,6 +102,32 @@ export function KnobQuestionScreen({
         </div>
       </div>
 
+      {/* Preload every option's image + logo so turning the knob shows them instantly */}
+      <div aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0">
+        {options.map((o) => (
+          <span key={o.id}>
+            {o.image && (
+              <Image
+                src={o.image}
+                alt=""
+                width={1}
+                height={1}
+                priority
+              />
+            )}
+            {o.logo && (
+              <Image
+                src={o.logo}
+                alt=""
+                width={1}
+                height={1}
+                priority
+              />
+            )}
+          </span>
+        ))}
+      </div>
+
       {/* Preview area */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-4 pt-2 md:pt-4">
         <AnimatePresence mode="wait">
@@ -122,6 +148,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      priority
                       className="object-contain opacity-30"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -130,6 +157,7 @@ export function KnobQuestionScreen({
                           src={selectedOption.logo}
                           alt={`${selectedOption.label} logo`}
                           fill
+                          priority
                           className={`object-contain ${
                             ["mercedes", "aston-martin", "audi", "cadillac"].includes(
                               selectedOption.id
@@ -174,6 +202,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      priority
                       className="object-cover"
                     />
                     <div className="absolute inset-0 border border-neutral-700" />
@@ -197,6 +226,7 @@ export function KnobQuestionScreen({
                       src={selectedOption.image!}
                       alt={selectedOption.label}
                       fill
+                      priority
                       className="object-contain"
                     />
                   </div>
