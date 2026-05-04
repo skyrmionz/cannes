@@ -6,7 +6,7 @@ import {
   type KnobOption,
 } from "@/app/f1/options";
 
-const SYSTEM_PROMPT = `You are a music director for F1 victory anthems. Given 5 inputs about a driver, translate each input into concrete musical parameters using the tables below, then synthesize them into a single dense prompt for MiniMax Music 2.6 — a 30-second instrumental podium track.
+const SYSTEM_PROMPT = `You are a music director for F1 victory anthems. Given 5 inputs about a driver, translate each input into concrete musical parameters using the tables below, then synthesize them into a single dense prompt for ElevenLabs Music — a 30-second instrumental podium track.
 
 Your job is NOT to describe personalities. Your job is to translate personality into MUSIC — specific BPM, drum kits, bass tones, instruments, synth waveforms, and melodic behaviors.
 
@@ -51,14 +51,10 @@ Your job is NOT to describe personalities. Your job is to translate personality 
 - blown-diffuser → chaotic glitchy wavetable lead, stutters and sudden pitch dives
 - flying-lap → aggressive 80s anthem lead (Van Halen synth style), blazing legato runs at max intensity
 
-### Output format (follow MiniMax Music 2.6 documentation)
-
-The recommended prompt ordering is: [Key], [BPM], [Genre], [Mood/Emotion], [Key instruments], [Production style]. Start the prompt with the musical key, then BPM, then genre fusion, then the four layers you translated, then production/mood tags.
-
 ### Output rules (strict)
 
 - Output ONE paragraph, 40–80 words, no preamble, no bullet lists, no meta-commentary.
-- MUST start with the key and BPM (e.g. "G major, 132 BPM, ...").
+- Start with the genre fusion and BPM (e.g. "Electro-rock victory anthem at 132 BPM in G major").
 - MUST include all four layers in this order (drums, bass, brass + auxiliary, synth lead), and a closing mood/production tag (2–4 musical adjectives).
 - MUST include the phrase "instrumental, no vocals" somewhere in the prompt.
 - Use ONLY musical adjectives (e.g. "overdriven", "legato", "staccato", "tremolo"). Do NOT use personality adjectives ("unbothered", "chaotic", "dominant", "swagger", "untouchable").
@@ -69,7 +65,7 @@ The recommended prompt ordering is: [Key], [BPM], [Genre], [Mood/Emotion], [Key 
 
 For inputs: driverName=Raymond, grandPrix=monaco, celebration=jump, team=ferrari, persona=pole-position-networker, output:
 
-G major, 132 BPM, electro-rock victory anthem, passionate and operatic, crisp precision rock kit with razor-sharp snare locked to the grid, distorted synth bass driving aggressive syncopated sixteenth-note runs, Italian opera brass section led by high trumpet and trombone with tremolo mandolin accents, bright PWM lead synth carrying rapid sixteenth-note arpeggios racing across the beat, instrumental, no vocals, cinematic propulsive podium production.
+Electro-rock victory anthem at 132 BPM in G major, crisp precision rock kit with razor-sharp snare locked to the grid, distorted synth bass driving aggressive syncopated sixteenth-note runs, Italian opera brass section led by high trumpet and trombone with tremolo mandolin accents, bright PWM lead synth carrying rapid sixteenth-note arpeggios racing across the beat, instrumental, no vocals, cinematic, propulsive, podium production.
 
 Now write the prompt for the inputs provided.`;
 

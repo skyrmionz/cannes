@@ -1,5 +1,5 @@
 const REPLICATE_BASE = "https://api.replicate.com/v1";
-const MINIMAX_MODEL = "minimax/music-2.6";
+const ELEVENLABS_MUSIC_MODEL = "elevenlabs/music";
 
 export interface MusicStatus {
   status: "pending" | "complete" | "failed";
@@ -14,7 +14,7 @@ function token() {
 
 export async function generate(prompt: string): Promise<{ taskId: string }> {
   const res = await fetch(
-    `${REPLICATE_BASE}/models/${MINIMAX_MODEL}/predictions`,
+    `${REPLICATE_BASE}/models/${ELEVENLABS_MUSIC_MODEL}/predictions`,
     {
       method: "POST",
       headers: {
@@ -24,8 +24,9 @@ export async function generate(prompt: string): Promise<{ taskId: string }> {
       body: JSON.stringify({
         input: {
           prompt,
-          is_instrumental: true,
-          audio_format: "mp3",
+          music_length_ms: 30_000,
+          force_instrumental: true,
+          output_format: "mp3_standard",
         },
       }),
     }

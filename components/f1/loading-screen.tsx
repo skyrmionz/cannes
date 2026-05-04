@@ -15,10 +15,10 @@ interface LoadingScreenProps {
   onError: () => void;
 }
 
-const POLL_INTERVAL_MS = 3000;
-const MAX_WAIT_MS = 180_000;
+const POLL_INTERVAL_MS = 2000;
+const MAX_WAIT_MS = 60_000;
 const MESSAGE_INTERVAL_MS = 8000;
-const PHASE_A_MS = 25_000;
+const PHASE_A_MS = 12_000;
 
 const LOADING_MESSAGES: string[] = [
   "Warming up the engines...",
@@ -143,7 +143,7 @@ function computeProgress(elapsedMs: number): number {
     return easeOutExpo(elapsedMs / PHASE_A_MS) * 85;
   }
   const tail = elapsedMs - PHASE_A_MS;
-  return 85 + (95 - 85) * (1 - Math.exp(-tail / 90_000));
+  return 85 + (95 - 85) * (1 - Math.exp(-tail / 20_000));
 }
 
 export function LoadingScreen({
