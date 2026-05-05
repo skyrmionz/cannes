@@ -108,9 +108,10 @@ export function ResultScreen({
       </div>
 
       {/* Cinematic 3D stage — flex column: scene on top, QR underneath */}
-      <div className="relative z-10 flex flex-1 flex-col items-center">
-        {/* 3D scene fills most of the hero region */}
-        <div className="relative w-full flex-1">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+        {/* 3D scene sized to its natural aspect so the podium fills the frame
+            instead of getting centered in a too-tall canvas. */}
+        <div className="relative w-full flex-1 min-h-0">
           {team && persona ? (
             <CinematicScene
               teamId={team}

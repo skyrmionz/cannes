@@ -24,7 +24,7 @@ export function CinematicScene({
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 1.5, 8.5], fov: 42 }}
+      camera={{ position: [0, 2.4, 9], fov: 45 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
     >
@@ -92,10 +92,13 @@ function CameraShake() {
     // Brake-induced jitter (t 2 → 3)
     if (t >= 2 && t < 3) {
       const k = Math.max(0, 1 - (t - 2));
-      cam.position.y = 1.5 + Math.sin(t * 80) * 0.02 * k;
+      cam.position.y = 2.4 + Math.sin(t * 80) * 0.02 * k;
     } else {
-      cam.position.y = 1.5;
+      cam.position.y = 2.4;
     }
+    // Keep the camera trained on the podium/character centerline so the
+    // sprite head never clips off the top and the podium sits lower in frame.
+    cam.lookAt(0, 1.4, 0);
   });
   return null;
 }
