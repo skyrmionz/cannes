@@ -12,9 +12,9 @@ interface PersonaOnPodiumProps {
 }
 
 const PIXEL_SIZE = 12; // 2x the 6px used in the SVG
-const SPRITE_WIDTH = 1.2;
-const SPRITE_HEIGHT = 2.4;
-const FIRST_BOX_TOP = 2.0; // matches FIRST_HEIGHT in podium.tsx
+const SPRITE_WIDTH = 1.0;
+const SPRITE_HEIGHT = 2.0;
+const FIRST_BOX_TOP = 1.6; // matches FIRST_HEIGHT in podium.tsx
 
 function buildSpriteTexture(personaId: string): THREE.CanvasTexture | null {
   if (typeof document === "undefined") return null;

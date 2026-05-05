@@ -1,43 +1,26 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import {
-  clamp01,
-  easeInCubic,
-  easeOutCubic,
-  lerp,
-} from "./timeline";
+import { F1CarModel } from "./f1-car-model";
+import { liveryFor } from "./team-colors";
+import { clamp01, easeInCubic, easeOutCubic, lerp } from "./timeline";
 
 interface CarDriveByProps {
   teamId: string;
 }
 
-const CAR_Y = 0.4;
-const ENTER_X = -10;
+const CAR_Y = 0.0;
+const ENTER_X = -12;
 const CENTER_X = 0;
-const EXIT_X = 10;
+const EXIT_X = 12;
 
 export function CarDriveBy({ teamId }: CarDriveByProps) {
-  const textureUrl = `/f1/teams/cars/${teamId}.png`;
-  const texture = useTexture(textureUrl);
-
-  useMemo(() => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 4;
-  }, [texture]);
-
-  // Aspect ratio — derive plane size from texture so the PNG isn't squashed.
-  const img = texture.image as { width?: number; height?: number } | undefined;
-  const aspect = (img?.width ?? 2) / (img?.height ?? 1);
-  const height = 2;
-  const width = aspect * height;
+  const livery = liveryFor(teamId);
 
   const groupRef = useRef<THREE.Group>(null);
-  const carRef = useRef<THREE.Mesh>(null);
-  const streakRef = useRef<THREE.Mesh>(null);
+  const carRef = useRef<THREE.Group>(null);
   const smokeRef = useRef<THREE.Mesh>(null);
   const heatRef = useRef<THREE.Mesh>(null);
 
@@ -62,36 +45,17 @@ export function CarDriveBy({ teamId }: CarDriveByProps) {
     let rotZ = 0;
     if (t >= 2 && t < 3) {
       const k = clamp01((t - 2) / 1);
-      rotZ = -0.04 * Math.sin(k * Math.PI);
+      rotZ = -0.05 * Math.sin(k * Math.PI);
     }
 
     // Micro-shake during rev
     let yOffset = 0;
     if (t >= 3 && t < 4) {
-      yOffset = Math.sin(t * 50) * 0.015;
-    }
-
-    // Scale-x stretch at peak exit velocity (motion-blur cheat)
-    let scaleX = 1;
-    if (t >= 4 && t < 6) {
-      const k = clamp01((t - 4) / 2);
-      const speed = 3 * k * k; // derivative of easeInCubic roughly
-      scaleX = 1 + Math.min(speed * 0.04, 0.08);
+      yOffset = Math.sin(t * 50) * 0.02;
     }
 
     groupRef.current.position.set(x, CAR_Y + yOffset, 0);
     groupRef.current.rotation.z = rotZ;
-    groupRef.current.scale.x = scaleX;
-
-    // Streak behind car — opacity proportional to speed in exit phase
-    if (streakRef.current) {
-      const mat = streakRef.current.material as THREE.MeshBasicMaterial;
-      if (t < 4) mat.opacity = 0;
-      else if (t < 6) {
-        const k = clamp01((t - 4) / 2);
-        mat.opacity = Math.min(k * 0.9, 0.6);
-      } else mat.opacity = 0;
-    }
 
     // Smoke puff on brake (t 2.2 → 3.0)
     if (smokeRef.current) {
@@ -99,8 +63,8 @@ export function CarDriveBy({ teamId }: CarDriveByProps) {
       if (t < 2.2 || t > 3.0) mat.opacity = 0;
       else {
         const k = clamp01((t - 2.2) / 0.8);
-        mat.opacity = (1 - k) * 0.6;
-        smokeRef.current.scale.setScalar(1 + k * 1.5);
+        mat.opacity = (1 - k) * 0.7;
+        smokeRef.current.scale.setScalar(1 + k * 2);
       }
     }
 
@@ -109,41 +73,20 @@ export function CarDriveBy({ teamId }: CarDriveByProps) {
       const mat = heatRef.current.material as THREE.MeshBasicMaterial;
       if (t < 3 || t > 4) mat.opacity = 0;
       else {
-        mat.opacity = 0.3 + Math.abs(Math.sin(t * 18)) * 0.25;
+        mat.opacity = 0.4 + Math.abs(Math.sin(t * 18)) * 0.3;
       }
     }
   });
 
   return (
     <group ref={groupRef} position={[ENTER_X, CAR_Y, 0]}>
-      {/* Speed-line streak behind the car */}
-      <mesh ref={streakRef} position={[-width * 0.4, 0, -0.1]}>
-        <planeGeometry args={[width * 1.6, height * 0.5]} />
-        <meshBasicMaterial
-          color="#ffffff"
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Car itself */}
-      <mesh ref={carRef}>
-        <planeGeometry args={[width, height]} />
-        <meshBasicMaterial
-          map={texture}
-          transparent
-          alphaTest={0.1}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </mesh>
+      <F1CarModel ref={carRef} livery={livery} />
 
       {/* Rear-wheel smoke puff (brake) */}
-      <mesh ref={smokeRef} position={[-width * 0.35, -0.3, 0.05]}>
-        <circleGeometry args={[0.25, 16]} />
+      <mesh ref={smokeRef} position={[-1.1, 0.3, 0]}>
+        <sphereGeometry args={[0.35, 12, 8]} />
         <meshBasicMaterial
-          color="#cccccc"
+          color="#d8d8d8"
           transparent
           opacity={0}
           depthWrite={false}
@@ -151,8 +94,8 @@ export function CarDriveBy({ teamId }: CarDriveByProps) {
       </mesh>
 
       {/* Exhaust heat shimmer (rev) */}
-      <mesh ref={heatRef} position={[-width * 0.42, -0.2, -0.05]}>
-        <circleGeometry args={[0.18, 16]} />
+      <mesh ref={heatRef} position={[-1.8, 0.5, 0]}>
+        <sphereGeometry args={[0.22, 12, 8]} />
         <meshBasicMaterial
           color="#ff6b35"
           transparent

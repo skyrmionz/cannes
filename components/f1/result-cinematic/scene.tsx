@@ -25,12 +25,10 @@ export function CinematicScene({
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 1.5, 9], fov: 38 }}
+      camera={{ position: [0, 1.8, 11], fov: 40 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
     >
-      <color attach="background" args={["#0a0a0a"]} />
-
       <ambientLight intensity={0.35} />
       <directionalLight
         position={[5, 8, 6]}
@@ -50,14 +48,14 @@ export function CinematicScene({
       <PersonaOnPodium personaId={personaId} />
       <Confetti />
 
-      {/* Floor catches shadows */}
+      {/* Floor catches shadows (small, near-transparent, never fully covers DotBg) */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.01, 0]}
         receiveShadow
       >
-        <planeGeometry args={[40, 40]} />
-        <shadowMaterial opacity={0.4} />
+        <planeGeometry args={[14, 6]} />
+        <shadowMaterial opacity={0.25} />
       </mesh>
 
       <CameraShake />
@@ -96,9 +94,9 @@ function CameraShake() {
     // Brake-induced jitter (t 2 → 3)
     if (t >= 2 && t < 3) {
       const k = Math.max(0, 1 - (t - 2));
-      cam.position.y = 1.5 + Math.sin(t * 80) * 0.02 * k;
+      cam.position.y = 1.8 + Math.sin(t * 80) * 0.02 * k;
     } else {
-      cam.position.y = 1.5;
+      cam.position.y = 1.8;
     }
   });
   return null;
