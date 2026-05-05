@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-const PARTICLE_COUNT = 400;
-const FLOOR_Y = -2;
-const EMISSION_START = 7.0;
+const PARTICLE_COUNT = 500;
 // Palette of golds so the fall shimmers instead of looking flat.
 const COLORS = ["#FFD700", "#FFC400", "#FFE57F", "#E6B800", "#FFB300"];
 
@@ -16,7 +14,7 @@ interface ConfettiPiece {
   rot: THREE.Euler;
   rotVel: THREE.Vector3;
   color: THREE.Color;
-  respawnAt: number; // seconds — when the piece should next spawn
+  respawnAt: number;
   alive: boolean;
 }
 
@@ -24,21 +22,10 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function spawnInitial(p: ConfettiPiece, t: number) {
-  p.pos.set(rand(-8, 8), rand(8, 14), rand(-2, 2));
-  p.vel.set(rand(-0.5, 0.5), rand(-1.5, -2.8), rand(-0.2, 0.2));
-  p.rot.set(
-    rand(0, Math.PI * 2),
-    rand(0, Math.PI * 2),
-    rand(0, Math.PI * 2)
-  );
-  p.rotVel.set(rand(-5, 5), rand(-5, 5), rand(-5, 5));
-  p.alive = true;
-  p.respawnAt = t + rand(4, 8);
-}
-
 export function Confetti() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const { viewport } = useThree();
+
   const particles = useMemo<ConfettiPiece[]>(() => {
     return Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
       pos: new THREE.Vector3(0, 200, 0),
@@ -46,8 +33,8 @@ export function Confetti() {
       rot: new THREE.Euler(0, 0, 0),
       rotVel: new THREE.Vector3(0, 0, 0),
       color: new THREE.Color(COLORS[i % COLORS.length]),
-      // Stagger initial spawn across the first ~3s so the first burst rolls in
-      respawnAt: EMISSION_START + Math.random() * 3,
+      // Staggered initial spawn across the first ~3s so the shower rolls in.
+      respawnAt: Math.random() * 3,
       alive: false,
     }));
   }, []);
@@ -57,18 +44,39 @@ export function Confetti() {
   const tempScale = useMemo(() => new THREE.Vector3(1, 1, 1), []);
   const zeroScale = useMemo(() => new THREE.Vector3(0, 0, 0), []);
 
+  function spawn(p: ConfettiPiece, t: number) {
+    // Spawn along the top of the viewport (and a bit above), spanning its full
+    // width so the shower covers the entire screen.
+    const halfW = viewport.width / 2;
+    const halfH = viewport.height / 2;
+    p.pos.set(
+      rand(-halfW - 1, halfW + 1),
+      halfH + rand(0.5, 3),
+      rand(-2, 2)
+    );
+    p.vel.set(rand(-0.6, 0.6), rand(-1.8, -3.2), rand(-0.3, 0.3));
+    p.rot.set(
+      rand(0, Math.PI * 2),
+      rand(0, Math.PI * 2),
+      rand(0, Math.PI * 2)
+    );
+    p.rotVel.set(rand(-5, 5), rand(-5, 5), rand(-5, 5));
+    p.alive = true;
+    p.respawnAt = t + rand(4, 8);
+  }
+
   useFrame((state, dt) => {
     if (!meshRef.current) return;
     const t = state.clock.getElapsedTime();
     const mesh = meshRef.current;
+    const floorY = -viewport.height / 2 - 2;
 
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
 
-      // Not yet time to spawn → render at zero scale
       if (!p.alive) {
         if (t >= p.respawnAt) {
-          spawnInitial(p, t);
+          spawn(p, t);
         } else {
           tempQuat.setFromEuler(p.rot);
           tempMatrix.compose(p.pos, tempQuat, zeroScale);
@@ -78,7 +86,6 @@ export function Confetti() {
         }
       }
 
-      // Physics
       p.vel.y -= 3.0 * dt;
       p.vel.x *= 0.99;
       p.vel.z *= 0.99;
@@ -87,10 +94,10 @@ export function Confetti() {
       p.rot.y += p.rotVel.y * dt;
       p.rot.z += p.rotVel.z * dt;
 
-      // Recycle pieces once they hit the floor — keeps the shower going forever
-      if (p.pos.y <= FLOOR_Y) {
+      // Recycle the moment the piece leaves the bottom of the viewport.
+      if (p.pos.y <= floorY) {
         p.alive = false;
-        p.respawnAt = t + rand(0.1, 1.2); // quick recycle
+        p.respawnAt = t + rand(0.1, 1.2);
       }
 
       tempQuat.setFromEuler(p.rot);
@@ -108,7 +115,7 @@ export function Confetti() {
       args={[undefined, undefined, PARTICLE_COUNT]}
       frustumCulled={false}
     >
-      <planeGeometry args={[0.12, 0.22]} />
+      <planeGeometry args={[0.14, 0.26]} />
       <meshStandardMaterial
         side={THREE.DoubleSide}
         toneMapped={false}

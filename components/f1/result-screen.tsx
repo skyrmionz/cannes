@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { CinematicScene } from "./result-cinematic/scene";
+import { ConfettiOverlay } from "./result-cinematic/confetti-overlay";
 
 interface ResultScreenProps {
   driverName: string;
@@ -41,8 +42,6 @@ export function ResultScreen({
     });
   }, [mp3Url]);
 
-  // Once we have everything, POST to /api/share to persist the MP3 and get a
-  // short code. Runs once per session.
   useEffect(() => {
     if (sharedView) return;
     if (!team || !persona || !mp3Url) return;
@@ -76,6 +75,9 @@ export function ResultScreen({
     <div className="relative flex h-screen flex-col overflow-hidden">
       <DotBg />
 
+      {/* Full-viewport gold confetti shower */}
+      <ConfettiOverlay />
+
       {/* Logos pinned top center */}
       <div className="relative z-10 pt-4">
         <LogoHeader className="justify-center" />
@@ -105,78 +107,83 @@ export function ResultScreen({
         </div>
       </div>
 
-      {/* Cinematic 3D stage */}
-      <div className="relative z-10 flex-1">
-        {team && persona ? (
-          <CinematicScene
-            teamId={team}
-            personaId={persona}
-            mp3Url={mp3Url}
-            onAudioBlocked={() => setAutoplayBlocked(true)}
-          />
-        ) : null}
+      {/* Cinematic 3D stage — flex column: scene on top, QR underneath */}
+      <div className="relative z-10 flex flex-1 flex-col items-center">
+        {/* 3D scene fills most of the hero region */}
+        <div className="relative w-full flex-1">
+          {team && persona ? (
+            <CinematicScene
+              teamId={team}
+              personaId={persona}
+              mp3Url={mp3Url}
+              onAudioBlocked={() => setAutoplayBlocked(true)}
+            />
+          ) : null}
 
-        {/* Autoplay-blocked fallback */}
-        {autoplayBlocked && mp3Url && (
-          <motion.div
-            className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center pb-24"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <button
-              onClick={handlePlayFallback}
-              className="pointer-events-auto flex items-center gap-3 rounded-sm bg-[#E10600] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#b80500]"
+          {/* Autoplay-blocked fallback — sits on top of the canvas */}
+          {autoplayBlocked && mp3Url && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center pb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <svg
-                className="h-4 w-4"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                onClick={handlePlayFallback}
+                className="pointer-events-auto flex items-center gap-3 rounded-sm bg-[#E10600] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#b80500]"
               >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              Play your anthem
-            </button>
-          </motion.div>
-        )}
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Play your anthem
+              </button>
+            </motion.div>
+          )}
+        </div>
 
-        {/* QR share card — bottom-right corner of the stage */}
-        {!sharedView && shareUrl && (
-          <motion.div
-            className="pointer-events-auto absolute bottom-6 right-6 z-20 flex flex-col items-center gap-2 rounded-sm border border-neutral-700 bg-[#0f0f0f]/90 p-3 backdrop-blur"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="rounded-sm bg-white p-2">
-              <QRCodeSVG
-                value={shareUrl}
-                size={110}
-                bgColor="#FFFFFF"
-                fgColor="#000000"
-                level="M"
-              />
-            </div>
-            <p className="max-w-[7rem] text-center text-[10px] uppercase tracking-wider text-neutral-400">
-              Scan to take your podium home
-            </p>
-            <p className="text-[9px] text-neutral-600">Expires in 1 hour</p>
-          </motion.div>
-        )}
-        {!sharedView && !shareUrl && !shareErrored && mp3Url && (
-          <div className="absolute bottom-6 right-6 z-20 flex flex-col items-center gap-2 rounded-sm border border-neutral-800 bg-[#0f0f0f]/80 p-3 backdrop-blur">
-            <div className="h-[110px] w-[110px] animate-pulse rounded-sm bg-neutral-800" />
-            <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-              Preparing your share link...
-            </p>
+        {/* QR card under the podium */}
+        {!sharedView && (
+          <div className="relative z-30 flex flex-col items-center pb-2">
+            {shareUrl ? (
+              <motion.div
+                className="flex flex-col items-center gap-2"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="rounded-sm bg-white p-2">
+                  <QRCodeSVG
+                    value={shareUrl}
+                    size={96}
+                    bgColor="#FFFFFF"
+                    fgColor="#000000"
+                    level="M"
+                  />
+                </div>
+                <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-300">
+                  Scan to save your podium song
+                </p>
+              </motion.div>
+            ) : shareErrored || !mp3Url ? null : (
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-[96px] w-[96px] animate-pulse rounded-sm bg-neutral-800" />
+                <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-500">
+                  Preparing your share link...
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Start Over pinned bottom-left (leave room for the QR on the right) */}
-      <div className="relative z-10 px-4 pb-4 pt-2 md:px-8 md:pb-6">
+      {/* Navigation pinned bottom-right, same style as knob screens */}
+      <div className="relative z-40 px-4 pb-4 pt-2 md:px-8 md:pb-6">
         <motion.div
-          className="mx-auto flex max-w-5xl items-center justify-start"
+          className="mx-auto flex max-w-5xl items-center justify-end gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.4 }}
@@ -185,7 +192,7 @@ export function ResultScreen({
             onClick={onStartOver}
             className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold leading-none text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold leading-none text-white">
               R
             </span>
             {sharedView ? "Start your engine" : "Start Over"}

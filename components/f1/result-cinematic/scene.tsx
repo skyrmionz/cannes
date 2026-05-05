@@ -7,7 +7,6 @@ import * as THREE from "three";
 import { CarDriveBy } from "./car-drive-by";
 import { Podium } from "./podium";
 import { PersonaOnPodium } from "./persona-on-podium";
-import { Confetti } from "./confetti";
 
 interface CinematicSceneProps {
   teamId: string;
@@ -25,7 +24,7 @@ export function CinematicScene({
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 1.8, 11], fov: 40 }}
+      camera={{ position: [0, 1.5, 8.5], fov: 42 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
     >
@@ -46,7 +45,6 @@ export function CinematicScene({
 
       <Podium />
       <PersonaOnPodium personaId={personaId} />
-      <Confetti />
 
       {/* Floor catches shadows (small, near-transparent, never fully covers DotBg) */}
       <mesh
@@ -94,9 +92,9 @@ function CameraShake() {
     // Brake-induced jitter (t 2 → 3)
     if (t >= 2 && t < 3) {
       const k = Math.max(0, 1 - (t - 2));
-      cam.position.y = 1.8 + Math.sin(t * 80) * 0.02 * k;
+      cam.position.y = 1.5 + Math.sin(t * 80) * 0.02 * k;
     } else {
-      cam.position.y = 1.8;
+      cam.position.y = 1.5;
     }
   });
   return null;
