@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
 import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { CinematicScene } from "./result-cinematic/scene";
-import { encodeF1ShareData } from "@/lib/f1-share";
 
 interface ResultScreenProps {
   driverName: string;
@@ -14,7 +13,7 @@ interface ResultScreenProps {
   persona: string | null;
   mp3Url: string | null;
   onStartOver: () => void;
-  /** When true, this is the shared /f1/result/[code] view (no QR, no Start Over label change). */
+  /** When true, this is the shared /f1/result/[code] view. Hides the QR card. */
   sharedView?: boolean;
 }
 
@@ -27,7 +26,10 @@ export function ResultScreen({
   sharedView = false,
 }: ResultScreenProps) {
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareErrored, setShareErrored] = useState(false);
   const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sharedRef = useRef(false);
 
   const handlePlayFallback = useCallback(() => {
     if (!mp3Url) return;
@@ -39,19 +41,35 @@ export function ResultScreen({
     });
   }, [mp3Url]);
 
-  // Build the shareable URL only when we have everything we need AND we're not
-  // already on the shared view.
-  const shareUrl = useMemo(() => {
-    if (sharedView) return null;
-    if (!team || !persona || !mp3Url) return null;
-    if (typeof window === "undefined") return null;
-    const encoded = encodeF1ShareData({
-      driverName,
-      team,
-      persona,
-      mp3Url,
-    });
-    return `${window.location.origin}/f1/result/${encoded}`;
+  // Once we have everything, POST to /api/share to persist the MP3 and get a
+  // short code. Runs once per session.
+  useEffect(() => {
+    if (sharedView) return;
+    if (!team || !persona || !mp3Url) return;
+    if (sharedRef.current) return;
+    sharedRef.current = true;
+
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const res = await fetch("/api/share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ driverName, team, persona, mp3Url }),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          setShareErrored(true);
+          return;
+        }
+        const { code } = (await res.json()) as { code: string };
+        if (typeof window === "undefined") return;
+        setShareUrl(`${window.location.origin}/f1/result/${code}`);
+      } catch {
+        setShareErrored(true);
+      }
+    })();
+    return () => controller.abort();
   }, [driverName, team, persona, mp3Url, sharedView]);
 
   return (
@@ -123,12 +141,12 @@ export function ResultScreen({
         )}
 
         {/* QR share card — bottom-right corner of the stage */}
-        {shareUrl && (
+        {!sharedView && shareUrl && (
           <motion.div
             className="pointer-events-auto absolute bottom-6 right-6 z-20 flex flex-col items-center gap-2 rounded-sm border border-neutral-700 bg-[#0f0f0f]/90 p-3 backdrop-blur"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.5 }}
+            transition={{ duration: 0.5 }}
           >
             <div className="rounded-sm bg-white p-2">
               <QRCodeSVG
@@ -144,6 +162,14 @@ export function ResultScreen({
             </p>
             <p className="text-[9px] text-neutral-600">Expires in 1 hour</p>
           </motion.div>
+        )}
+        {!sharedView && !shareUrl && !shareErrored && mp3Url && (
+          <div className="absolute bottom-6 right-6 z-20 flex flex-col items-center gap-2 rounded-sm border border-neutral-800 bg-[#0f0f0f]/80 p-3 backdrop-blur">
+            <div className="h-[110px] w-[110px] animate-pulse rounded-sm bg-neutral-800" />
+            <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+              Preparing your share link...
+            </p>
+          </div>
         )}
       </div>
 

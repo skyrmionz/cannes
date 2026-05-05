@@ -1,12 +1,25 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { DotBg } from "@/components/f1/dot-bg";
 import { LogoHeader } from "@/components/f1/logo-header";
 import { ResultScreen } from "@/components/f1/result-screen";
-import { decodeF1ShareData, isShareExpired } from "@/lib/f1-share";
+
+interface ShareResponse {
+  driverName: string;
+  team: string;
+  persona: string;
+  songUrl: string;
+  expiresAt: string;
+}
+
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "ok"; data: ShareResponse }
+  | { kind: "not_found" }
+  | { kind: "error"; message: string };
 
 export default function SharedResultPage({
   params,
@@ -14,26 +27,65 @@ export default function SharedResultPage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = use(params);
-  const decoded = useMemo(() => decodeF1ShareData(code), [code]);
+  const [state, setState] = useState<LoadState>({ kind: "loading" });
 
-  if (!decoded) {
-    return <ErrorShell title="This share link is invalid." />;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/share/${code}`);
+        if (cancelled) return;
+        if (res.status === 404) {
+          setState({ kind: "not_found" });
+          return;
+        }
+        if (!res.ok) {
+          setState({ kind: "error", message: `HTTP ${res.status}` });
+          return;
+        }
+        const data = (await res.json()) as ShareResponse;
+        setState({ kind: "ok", data });
+      } catch (err) {
+        if (cancelled) return;
+        setState({
+          kind: "error",
+          message: err instanceof Error ? err.message : "unknown error",
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [code]);
+
+  if (state.kind === "loading") {
+    return <Shell title="Loading your podium..." />;
   }
-  if (isShareExpired(decoded.timestamp)) {
+  if (state.kind === "not_found") {
     return (
-      <ErrorShell
+      <Shell
         title="This link has expired."
         subtitle="Shared podium moments only live for one hour. Head back to the main experience to make a new one."
+        showBack
+      />
+    );
+  }
+  if (state.kind === "error") {
+    return (
+      <Shell
+        title="Something went wrong."
+        subtitle={state.message}
+        showBack
       />
     );
   }
 
   return (
     <ResultScreen
-      driverName={decoded.driverName}
-      team={decoded.team}
-      persona={decoded.persona}
-      mp3Url={decoded.mp3Url}
+      driverName={state.data.driverName}
+      team={state.data.team}
+      persona={state.data.persona}
+      mp3Url={state.data.songUrl}
       onStartOver={() => {
         window.location.href = "/f1";
       }}
@@ -42,12 +94,14 @@ export default function SharedResultPage({
   );
 }
 
-function ErrorShell({
+function Shell({
   title,
   subtitle,
+  showBack,
 }: {
   title: string;
   subtitle?: string;
+  showBack?: boolean;
 }) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0a0a0a] px-4">
@@ -74,12 +128,14 @@ function ErrorShell({
             {subtitle}
           </motion.p>
         )}
-        <Link
-          href="/f1"
-          className="mt-10 rounded-sm border border-neutral-700 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-[#E10600] hover:text-white"
-        >
-          Start your engine
-        </Link>
+        {showBack && (
+          <Link
+            href="/f1"
+            className="mt-10 rounded-sm border border-neutral-700 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-neutral-300 transition-colors hover:border-[#E10600] hover:text-white"
+          >
+            Start your engine
+          </Link>
+        )}
       </div>
     </div>
   );
