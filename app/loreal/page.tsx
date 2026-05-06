@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
 import { GlassBackground } from "@/components/ui/glass-background";
 import { LogoHeader } from "@/components/loreal/logo-header";
-import { MirrorScreen } from "@/components/loreal/mirror-screen";
+import { IntroScreen } from "@/components/loreal/intro-screen";
 import { NameEntry } from "@/components/loreal/name-entry";
 import { QuestionScreen, type LorealOption } from "@/components/loreal/question-screen";
 import { LoadingScreen } from "@/components/loreal/loading-screen";
@@ -59,7 +59,6 @@ const stepTransition = {
 };
 
 function LorealContent() {
-  const [showStart, setShowStart] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -79,14 +78,6 @@ function LorealContent() {
     setStep((s) => Math.max(s - 1, 1));
   }, []);
 
-  const handleStart = useCallback(() => {
-    setShowStart(false);
-  }, []);
-
-  const handleBackToStart = useCallback(() => {
-    setShowStart(true);
-  }, []);
-
   const handleStartOver = useCallback(() => {
     setResetting(true);
     setTimeout(() => {
@@ -97,7 +88,6 @@ function LorealContent() {
       setSkinType(null);
       setPreferredProduct(null);
       setSkincareTime(null);
-      setShowStart(true);
       setResetting(false);
     }, 600);
   }, []);
@@ -105,15 +95,17 @@ function LorealContent() {
   const renderStep = () => {
     switch (step) {
       case 1:
+        return <IntroScreen onNext={goForward} />;
+      case 2:
         return (
           <NameEntry
             name={name}
             onNameChange={setName}
             onNext={goForward}
-            onBack={handleBackToStart}
+            onBack={goBack}
           />
         );
-      case 2:
+      case 3:
         return (
           <QuestionScreen
             title="What's your ideal skin routine?"
@@ -124,7 +116,7 @@ function LorealContent() {
             onBack={goBack}
           />
         );
-      case 3:
+      case 4:
         return (
           <QuestionScreen
             title="What would you say your skin type is?"
@@ -135,7 +127,7 @@ function LorealContent() {
             onBack={goBack}
           />
         );
-      case 4:
+      case 5:
         return (
           <QuestionScreen
             title="What are your favorite types of skincare to use?"
@@ -146,7 +138,7 @@ function LorealContent() {
             onBack={goBack}
           />
         );
-      case 5:
+      case 6:
         return (
           <QuestionScreen
             title="What time in the day do you wear skincare?"
@@ -157,9 +149,9 @@ function LorealContent() {
             onBack={goBack}
           />
         );
-      case 6:
-        return <LoadingScreen onComplete={goForward} />;
       case 7:
+        return <LoadingScreen onComplete={goForward} />;
+      case 8:
         return (
           <ResultScreen
             name={name}
@@ -192,37 +184,30 @@ function LorealContent() {
         )}
       </AnimatePresence>
 
-      {/* Mirror start screen overlay */}
-      <AnimatePresence>
-        {showStart && <MirrorScreen onStart={handleStart} />}
-      </AnimatePresence>
-
-      {/* Logo header — hidden on loading and result steps */}
-      {!showStart && step < 6 && (
+      {/* Logo header — hidden on intro (renders its own), loading, and result */}
+      {step !== 1 && step < 7 && (
         <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
           <LogoHeader className="mb-4" />
         </div>
       )}
 
       {/* Step content — only this zooms */}
-      {!showStart && (
-        <div className="relative flex-1">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={step}
-              custom={direction}
-              variants={stepVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={stepTransition}
-              className="absolute inset-0"
-            >
-              {renderStep()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      )}
+      <div className="relative flex-1">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={stepVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={stepTransition}
+            className="absolute inset-0"
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </GlassBackground>
   );
 }
