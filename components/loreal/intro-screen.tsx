@@ -32,16 +32,16 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           <Image
             src="/loreal/astro.png"
             alt="Astro"
-            width={288}
-            height={288}
+            width={400}
+            height={400}
             priority
             unoptimized
-            className="mx-auto h-28 w-28 object-contain md:h-36 md:w-36"
+            className="mx-auto h-44 w-44 object-contain md:h-56 md:w-56"
           />
         </motion.div>
 
         <motion.p
-          className="max-w-md text-center text-sm uppercase tracking-[0.3em] text-neutral-600"
+          className="whitespace-nowrap text-center text-sm uppercase tracking-[0.3em] text-neutral-600"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -55,7 +55,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Let&apos;s help you find your perfect L&apos;Oréal kit!
+          Let&apos;s find your perfect L&apos;Oréal kit!
         </motion.h1>
 
         <motion.button
