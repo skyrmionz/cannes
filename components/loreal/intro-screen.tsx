@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "motion/react";
 import { LogoHeader } from "./logo-header";
-import { SlackbotAvatar } from "../f1/logo-header";
 
 interface IntroScreenProps {
   onNext: () => void;
@@ -24,11 +24,20 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
       {/* Centered content */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
         <motion.div
+          className="mb-8"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <SlackbotAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
+          <Image
+            src="/loreal/astro.png"
+            alt="Astro"
+            width={288}
+            height={288}
+            priority
+            unoptimized
+            className="mx-auto h-28 w-28 object-contain md:h-36 md:w-36"
+          />
         </motion.div>
 
         <motion.p
@@ -37,7 +46,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          I&apos;m Slackbot, your personal producer.
+          I&apos;m Astro, your personal suncare expert!
         </motion.p>
 
         <motion.h1
@@ -46,7 +55,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Let&apos;s begin your consultation.
+          Let&apos;s help you find your perfect L&apos;Oréal kit!
         </motion.h1>
 
         <motion.button
@@ -57,7 +66,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.5 }}
         >
-          Start Consultation
+          Let&apos;s Glow
         </motion.button>
       </div>
     </div>
