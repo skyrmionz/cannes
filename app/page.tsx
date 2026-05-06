@@ -6,7 +6,6 @@ import { TransitionProvider } from "@/components/page-transition";
 
 const experiences = [
   { name: "F1", href: "/f1", logo: "/logos/f1.png" },
-  { name: "Equinox", href: "/equinox", logo: "/logos/equinox.png" },
   { name: "L'Oréal", href: "/loreal", logo: "/logos/loreal.png" },
 ];
 
