@@ -27,8 +27,7 @@ const iridFragmentShader = `
   varying vec3 vViewPosition;
   varying vec2 vUv;
 
-  // Stronger thin-film interference — the chromatic fringing the reference
-  // image shows along the curved ridges (lilac → cyan → magenta → amber).
+  // Soft pastel thin-film: blues, lilacs, lavenders, periwinkle. No neon.
   vec3 thinFilmInterference(float cosTheta, float thickness) {
     float delta = thickness * cosTheta;
 
@@ -37,16 +36,15 @@ const iridFragmentShader = `
     color.g = 0.5 + 0.5 * cos(6.2832 * (delta / 540.0 + 0.40));
     color.b = 0.5 + 0.5 * cos(6.2832 * (delta / 450.0 + 0.00));
 
-    // Push toward the lilac / electric-blue / magenta palette of the reference,
-    // with a touch of amber where the cycle rolls warm.
-    color.r *= 1.05;  // keeps pinks alive
+    // Gentle blue/purple lean — just enough to tint the surface, not glow.
+    color.r *= 0.78;  // dial down magenta/red — keeps purples but no hot pink
     color.g *= 0.55;  // suppress greens
-    color.b *= 1.35;  // boost blues / violets
+    color.b *= 1.05;  // small lift on blues
 
-    // Less whitening so chromatic streaks stay vivid instead of pastel.
-    color = mix(color, vec3(1.0), 0.18);
+    // Heavy whitening so colors stay soft and pastel instead of saturated.
+    color = mix(color, vec3(0.94, 0.94, 0.99), 0.55);
 
-    return clamp(color, 0.0, 1.2);
+    return clamp(color, 0.0, 1.0);
   }
 
   void main() {
@@ -83,12 +81,12 @@ const iridFragmentShader = `
     // Cool tinted diffuse so recesses read as soft indigo / lilac instead of
     // flat white — matches the deep blues in the reference.
     float diffuseN = 0.5 + 0.5 * dot(normal, normalize(vec3(0.25, 0.55, 0.8)));
-    vec3 coolBase = mix(vec3(0.78, 0.80, 0.96), vec3(1.0, 0.99, 1.0), diffuseN);
+    vec3 coolBase = mix(vec3(0.84, 0.86, 0.98), vec3(0.99, 0.98, 1.0), diffuseN);
 
-    // Iridescence is broadly visible (not only at glancing angles) so the
-    // surface reads chromatic everywhere, with peaks at the ridges.
-    float iriStrength = fresnel * 0.7 + (1.0 - NdotV * NdotV) * 0.55;
-    vec3 color = mix(coolBase, iridescentColor, clamp(iriStrength * 0.85, 0.0, 1.0));
+    // Lower iridescence weight so chromatic tint is a soft veil over the
+    // pale base instead of dominating the surface.
+    float iriStrength = fresnel * 0.55 + (1.0 - NdotV * NdotV) * 0.35;
+    vec3 color = mix(coolBase, iridescentColor, clamp(iriStrength * 0.55, 0.0, 1.0));
     color += specular;
 
     gl_FragColor = vec4(color, 1.0);
