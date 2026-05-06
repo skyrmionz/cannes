@@ -184,8 +184,9 @@ function LorealContent() {
         )}
       </AnimatePresence>
 
-      {/* Logo header — hidden on intro (renders its own), loading, and result */}
-      {step !== 1 && step < 7 && (
+      {/* Logo header — persistent across all step transitions; hidden only on
+          loading + result (which render their own layout). */}
+      {step < 7 && (
         <div className="relative z-30 px-6 pt-8 md:px-12 md:pt-10">
           <LogoHeader className="mb-4" />
         </div>

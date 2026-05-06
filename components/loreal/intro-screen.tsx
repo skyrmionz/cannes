@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { LogoHeader } from "./logo-header";
 
 interface IntroScreenProps {
   onNext: () => void;
@@ -11,17 +10,7 @@ interface IntroScreenProps {
 export function IntroScreen({ onNext }: IntroScreenProps) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
-      {/* Logos pinned to the top */}
-      <motion.div
-        className="relative z-10 pt-8"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <LogoHeader className="justify-center" />
-      </motion.div>
-
-      {/* Centered content */}
+      {/* Centered content (page wrapper renders the LogoHeader on top) */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
         <motion.div
           className="mb-8"
