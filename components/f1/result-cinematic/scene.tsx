@@ -11,14 +11,16 @@ import { PersonaOnPodium } from "./persona-on-podium";
 interface CinematicSceneProps {
   teamId: string;
   personaId: string;
-  mp3Url: string | null;
+  songUrl: string | null;
+  commentaryUrl: string | null;
   onAudioBlocked: () => void;
 }
 
 export function CinematicScene({
   teamId,
   personaId,
-  mp3Url,
+  songUrl,
+  commentaryUrl,
   onAudioBlocked,
 }: CinematicSceneProps) {
   return (
@@ -46,7 +48,6 @@ export function CinematicScene({
       <Podium />
       <PersonaOnPodium personaId={personaId} />
 
-      {/* Floor catches shadows (small, near-transparent, never fully covers DotBg) */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.01, 0]}
@@ -58,7 +59,11 @@ export function CinematicScene({
 
       <CameraShake />
 
-      <AudioController mp3Url={mp3Url} onAudioBlocked={onAudioBlocked} />
+      <AudioController
+        songUrl={songUrl}
+        commentaryUrl={commentaryUrl}
+        onAudioBlocked={onAudioBlocked}
+      />
     </Canvas>
   );
 }
@@ -89,48 +94,69 @@ function CameraShake() {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     const cam = state.camera;
-    // Brake-induced jitter (t 2 → 3)
     if (t >= 2 && t < 3) {
       const k = Math.max(0, 1 - (t - 2));
       cam.position.y = 2.4 + Math.sin(t * 80) * 0.02 * k;
     } else {
       cam.position.y = 2.4;
     }
-    // Keep the camera trained on the podium/character centerline so the
-    // sprite head never clips off the top and the podium sits lower in frame.
     cam.lookAt(0, 1.4, 0);
   });
   return null;
 }
 
 interface AudioControllerProps {
-  mp3Url: string | null;
+  songUrl: string | null;
+  commentaryUrl: string | null;
   onAudioBlocked: () => void;
 }
 
-function AudioController({ mp3Url, onAudioBlocked }: AudioControllerProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioControllerProps) {
+  const songRef = useRef<HTMLAudioElement | null>(null);
+  const commentaryRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
+  const commentaryFiredRef = useRef(false);
 
   useEffect(() => {
-    if (!mp3Url) return;
-    const audio = new Audio(mp3Url);
+    if (!songUrl) return;
+    const audio = new Audio(songUrl);
     audio.preload = "auto";
-    audioRef.current = audio;
+    audio.loop = true;
+    songRef.current = audio;
     return () => {
       audio.pause();
-      audioRef.current = null;
+      songRef.current = null;
     };
-  }, [mp3Url]);
+  }, [songUrl]);
+
+  useEffect(() => {
+    if (!commentaryUrl) return;
+    const audio = new Audio(commentaryUrl);
+    audio.preload = "auto";
+    commentaryRef.current = audio;
+    return () => {
+      audio.pause();
+      commentaryRef.current = null;
+    };
+  }, [commentaryUrl]);
 
   useFrame(async (state) => {
     const t = state.clock.getElapsedTime();
-    if (t < 7.5 || startedRef.current || !audioRef.current) return;
-    startedRef.current = true;
-    try {
-      await audioRef.current.play();
-    } catch {
-      onAudioBlocked();
+
+    // Start song at 7.5s
+    if (t >= 7.5 && !startedRef.current && songRef.current) {
+      startedRef.current = true;
+      try {
+        await songRef.current.play();
+      } catch {
+        onAudioBlocked();
+      }
+    }
+
+    // Fire commentary at 12s into the scene (i.e. ~4.5s after song starts)
+    if (t >= 12 && !commentaryFiredRef.current && commentaryRef.current) {
+      commentaryFiredRef.current = true;
+      commentaryRef.current.play().catch(() => {/* commentary is optional */});
     }
   });
 

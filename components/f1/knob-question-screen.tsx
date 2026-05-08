@@ -14,9 +14,11 @@ export interface KnobOption {
   subtitle?: string;
   description: string;
   image?: string;
+  emoji?: string;
   logo?: string;
   drivers?: string;
   character?: boolean;
+  melodyGroup?: string;
 }
 
 interface KnobQuestionScreenProps {
@@ -187,6 +189,20 @@ export function KnobQuestionScreen({
                   {selectedOption.description && (
                     <p className="mt-1.5 max-w-md text-center text-xs text-neutral-400">
                       {selectedOption.description}
+                    </p>
+                  )}
+                </div>
+              ) : selectedOption.emoji ? (
+                <div className="flex flex-col items-center">
+                  <div className="flex h-32 w-32 items-center justify-center text-7xl md:h-40 md:w-40 md:text-8xl">
+                    {selectedOption.emoji}
+                  </div>
+                  <p className="mt-2 whitespace-nowrap text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {selectedOption.subtitle && (
+                    <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                      {selectedOption.subtitle}
                     </p>
                   )}
                 </div>

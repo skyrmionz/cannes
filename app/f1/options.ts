@@ -4,9 +4,11 @@ export interface KnobOption {
   subtitle?: string;
   description: string;
   image?: string;
+  emoji?: string;
   logo?: string;
   drivers?: string;
   character?: boolean;
+  melodyGroup?: string;
 }
 
 export const grandPrixOptions: KnobOption[] = [
@@ -74,33 +76,51 @@ export const celebrations: KnobOption[] = [
     description: "",
     image: "/f1/emoji/exploding-head.png",
   },
+  {
+    id: "frozen",
+    label: "Frozen in Disbelief",
+    subtitle: "Silent awe",
+    description: "",
+    emoji: "🥶",
+  },
+  {
+    id: "tears",
+    label: "Cry Happy Tears",
+    subtitle: "Pure joy",
+    description: "",
+    emoji: "😭",
+  },
 ];
 
+// Full team list for display — each carries a melodyGroup that maps to
+// one of the 5 Melody stems (and the pre-rendered song filename).
 export const teamOptions: KnobOption[] = [
-  { id: "racing-bulls", label: "Racing Bulls", description: "The proving ground for Red Bull's next generation — raw talent, rapid development.", image: "/f1/teams/cars/racing-bulls.png", logo: "/f1/teams/logos/racing-bulls.png", drivers: "Yuki Tsunoda & Isack Hadjar" },
-  { id: "red-bull", label: "Red Bull Racing", description: "Four-time constructors' champions — relentless innovation, dominant pace.", image: "/f1/teams/cars/red-bull.png", logo: "/f1/teams/logos/red-bull.png", drivers: "Max Verstappen & Liam Lawson" },
-  { id: "mclaren", label: "McLaren", description: "One of F1's most storied teams — a winning tradition reborn.", image: "/f1/teams/cars/mclaren.png", logo: "/f1/teams/logos/mclaren.png", drivers: "Lando Norris & Oscar Piastri" },
-  { id: "ferrari", label: "Ferrari", description: "The most iconic name in motorsport — passion, drama, legacy.", image: "/f1/teams/cars/ferrari.png", logo: "/f1/teams/logos/ferrari.png", drivers: "Charles Leclerc & Lewis Hamilton" },
-  { id: "mercedes", label: "Mercedes", description: "Eight consecutive constructors' titles — engineering excellence defined.", image: "/f1/teams/cars/mercedes.png", logo: "/f1/teams/logos/mercedes.png", drivers: "George Russell & Kimi Antonelli" },
-  { id: "aston-martin", label: "Aston Martin", description: "British racing green ambition — building a dynasty from the ground up.", image: "/f1/teams/cars/aston-martin.png", logo: "/f1/teams/logos/aston-martin.png", drivers: "Fernando Alonso & Lance Stroll" },
-  { id: "williams", label: "Williams", description: "Nine constructors' championships — a legendary name fighting back.", image: "/f1/teams/cars/williams.png", logo: "/f1/teams/logos/williams.png", drivers: "Carlos Sainz & Alex Albon" },
-  { id: "alpine", label: "Alpine", description: "French flair meets racing pedigree — the spirit of Renault reborn.", image: "/f1/teams/cars/alpine.png", logo: "/f1/teams/logos/alpine.png", drivers: "Pierre Gasly & Jack Doohan" },
-  { id: "audi", label: "Audi", description: "A new era begins — German engineering enters Formula 1.", image: "/f1/teams/cars/audi.png", logo: "/f1/teams/logos/audi.png", drivers: "Nico Hülkenberg & Gabriel Bortoleto" },
-  { id: "haas", label: "Haas", description: "America's F1 team — grit, determination, and a growing presence.", image: "/f1/teams/cars/haas.png", logo: "/f1/teams/logos/haas.png", drivers: "Esteban Ocon & Oliver Bearman" },
-  { id: "cadillac", label: "Cadillac", description: "The newest entry on the grid — American ambition at full throttle.", image: "/f1/teams/cars/cadillac.png", logo: "/f1/teams/logos/cadillac.png", drivers: "TBA" },
+  { id: "red-bull",     melodyGroup: "red-bull",  label: "Red Bull Racing",  description: "Four-time constructors' champions — relentless innovation, dominant pace.",            image: "/f1/teams/cars/red-bull.png",      logo: "/f1/teams/logos/red-bull.png",      drivers: "Max Verstappen & Liam Lawson" },
+  { id: "racing-bulls", melodyGroup: "red-bull",  label: "Racing Bulls",     description: "The proving ground for Red Bull's next generation — raw talent, rapid development.", image: "/f1/teams/cars/racing-bulls.png",  logo: "/f1/teams/logos/racing-bulls.png",  drivers: "Yuki Tsunoda & Isack Hadjar" },
+  { id: "ferrari",      melodyGroup: "ferrari",   label: "Ferrari",          description: "The most iconic name in motorsport — passion, drama, legacy.",                        image: "/f1/teams/cars/ferrari.png",       logo: "/f1/teams/logos/ferrari.png",       drivers: "Charles Leclerc & Lewis Hamilton" },
+  { id: "mclaren",      melodyGroup: "mclaren",   label: "McLaren",          description: "One of F1's most storied teams — a winning tradition reborn.",                        image: "/f1/teams/cars/mclaren.png",       logo: "/f1/teams/logos/mclaren.png",       drivers: "Lando Norris & Oscar Piastri" },
+  { id: "williams",     melodyGroup: "mclaren",   label: "Williams",         description: "Nine constructors' championships — a legendary name fighting back.",                  image: "/f1/teams/cars/williams.png",      logo: "/f1/teams/logos/williams.png",      drivers: "Carlos Sainz & Alex Albon" },
+  { id: "mercedes",     melodyGroup: "mercedes",  label: "Mercedes",         description: "Eight consecutive constructors' titles — engineering excellence defined.",            image: "/f1/teams/cars/mercedes.png",      logo: "/f1/teams/logos/mercedes.png",      drivers: "George Russell & Kimi Antonelli" },
+  { id: "audi",         melodyGroup: "mercedes",  label: "Audi",             description: "A new era begins — German engineering enters Formula 1.",                            image: "/f1/teams/cars/audi.png",          logo: "/f1/teams/logos/audi.png",          drivers: "Nico Hülkenberg & Gabriel Bortoleto" },
+  { id: "aston-martin", melodyGroup: "haas",      label: "Aston Martin",     description: "British racing green ambition — building a dynasty from the ground up.",             image: "/f1/teams/cars/aston-martin.png",  logo: "/f1/teams/logos/aston-martin.png",  drivers: "Fernando Alonso & Lance Stroll" },
+  { id: "alpine",       melodyGroup: "haas",      label: "Alpine",           description: "French flair meets racing pedigree — the spirit of Renault reborn.",                 image: "/f1/teams/cars/alpine.png",        logo: "/f1/teams/logos/alpine.png",        drivers: "Pierre Gasly & Jack Doohan" },
+  { id: "haas",         melodyGroup: "haas",      label: "Haas",             description: "America's F1 team — grit, determination, and a growing presence.",                  image: "/f1/teams/cars/haas.png",          logo: "/f1/teams/logos/haas.png",          drivers: "Esteban Ocon & Oliver Bearman" },
+  { id: "cadillac",     melodyGroup: "haas",      label: "Cadillac",         description: "The newest entry on the grid — American ambition at full throttle.",                 image: "/f1/teams/cars/cadillac.png",      logo: "/f1/teams/logos/cadillac.png",      drivers: "TBA" },
 ];
 
+// Used only for randomly assigning the podium pixel character — not shown as a question.
 export const personaOptions: KnobOption[] = [
   { id: "pole-position-networker", label: "The Pole Position Networker", description: "First to every conversation, business cards flying before the lights go out.", character: true },
-  { id: "qualifying-lap", label: "Qualifying Lap", description: "Warming up with small talk, saving the big pitch for when it counts.", character: true },
-  { id: "slow-puncture", label: "The Slow Puncture", description: "Started strong, now quietly deflating at the back of the after-party.", character: true },
-  { id: "safety-car", label: "The Safety Car", description: "Keeps the group together, controls the pace, nobody passes without permission.", character: true },
-  { id: "backmarker", label: "The Backmarker", description: "Arrived late, missed the keynote, still having a great time in the lobby.", character: true },
-  { id: "unbothered", label: "Unbothered", description: "Sunglasses on, lanyard hidden, radiating main-character energy from the corner.", character: true },
-  { id: "retired-champion", label: "The Retired Champion", description: "Been coming to Cannes for years, has nothing left to prove, here for the rosé.", character: true },
-  { id: "pit-lane-regular", label: "The Pit Lane Regular", description: "Always at the bar, knows every bartender, networking happens between rounds.", character: true },
-  { id: "drs-zone", label: "The DRS Zone", description: "Finds the opening, closes the gap, seals the deal before anyone else reacts.", character: true },
-  { id: "undercut", label: "The Undercut", description: "Slips into conversations early, steals the connection before you even noticed.", character: true },
-  { id: "blown-diffuser", label: "The Blown Diffuser", description: "Loud entrance, chaotic energy, leaves everyone wondering what just happened.", character: true },
-  { id: "flying-lap", label: "The Flying Lap", description: "Maximum intensity, zero wasted time, every meeting is a personal best.", character: true },
+  { id: "qualifying-lap",          label: "Qualifying Lap",              description: "Warming up with small talk, saving the big pitch for when it counts.", character: true },
+  { id: "slow-puncture",           label: "The Slow Puncture",           description: "Started strong, now quietly deflating at the back of the after-party.", character: true },
+  { id: "safety-car",              label: "The Safety Car",              description: "Keeps the group together, controls the pace, nobody passes without permission.", character: true },
+  { id: "backmarker",              label: "The Backmarker",              description: "Arrived late, missed the keynote, still having a great time in the lobby.", character: true },
+  { id: "unbothered",              label: "Unbothered",                  description: "Sunglasses on, lanyard hidden, radiating main-character energy from the corner.", character: true },
+  { id: "retired-champion",        label: "The Retired Champion",        description: "Been coming to Cannes for years, has nothing left to prove, here for the rosé.", character: true },
+  { id: "pit-lane-regular",        label: "The Pit Lane Regular",        description: "Always at the bar, knows every bartender, networking happens between rounds.", character: true },
+  { id: "drs-zone",                label: "The DRS Zone",                description: "Finds the opening, closes the gap, seals the deal before anyone else reacts.", character: true },
+  { id: "undercut",                label: "The Undercut",                description: "Slips into conversations early, steals the connection before you even noticed.", character: true },
+  { id: "blown-diffuser",          label: "The Blown Diffuser",          description: "Loud entrance, chaotic energy, leaves everyone wondering what just happened.", character: true },
+  { id: "flying-lap",              label: "The Flying Lap",              description: "Maximum intensity, zero wasted time, every meeting is a personal best.", character: true },
 ];
+

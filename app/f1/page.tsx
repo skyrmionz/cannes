@@ -37,17 +37,22 @@ const stepTransition = {
   ease: [0.32, 0.72, 0, 1] as const,
 };
 
+function randomPersona(): string {
+  return personaOptions[Math.floor(Math.random() * personaOptions.length)].id;
+}
+
 function F1Content() {
   const [showStart, setShowStart] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [driverName, setDriverName] = useState("");
-  const [celebration, setCelebration] = useState<string | null>(null);
   const [grandPrix, setGrandPrix] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<string | null>(null);
   const [team, setTeam] = useState<string | null>(null);
+  // Persona is never asked — assigned randomly when loading starts.
   const [persona, setPersona] = useState<string | null>(null);
-  const [mp3Url, setMp3Url] = useState<string | null>(null);
+  const [songUrl, setSongUrl] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
     setDirection(1);
@@ -69,15 +74,21 @@ function F1Content() {
       setStep(1);
       setDirection(1);
       setDriverName("");
-      setCelebration(null);
       setGrandPrix(null);
+      setCelebration(null);
       setTeam(null);
       setPersona(null);
-      setMp3Url(null);
+      setSongUrl(null);
       setShowStart(true);
       setResetting(false);
     }, 600);
   }, []);
+
+  const handleLoadingStart = useCallback(() => {
+    // Assign persona randomly at the moment we enter the loading screen.
+    setPersona(randomPersona());
+    goForward();
+  }, [goForward]);
 
   const renderStep = () => {
     switch (step) {
@@ -120,48 +131,37 @@ function F1Content() {
         return (
           <KnobQuestionScreen
             title="What is your favourite team?"
-            subtitle="Your team picks the trumpet line — the melodic identity that makes this track yours."
+            subtitle="Your team picks the melody line — the musical identity that makes this track yours."
             options={teamOptions}
             selectedId={team}
             onSelect={setTeam}
-            onNext={goForward}
+            onNext={handleLoadingStart}
             onBack={goBack}
           />
         );
       case 6:
-        return (
-          <KnobQuestionScreen
-            title="What is your personal Cannes persona?"
-            subtitle="This picks your synth character — the 8-bit soul that defines your anthem."
-            options={personaOptions}
-            selectedId={persona}
-            onSelect={setPersona}
-            onNext={goForward}
-            onBack={goBack}
-          />
-        );
-      case 7:
         return (
           <LoadingScreen
             driverName={driverName}
             grandPrix={grandPrix}
             celebration={celebration}
             team={team}
-            persona={persona}
             onComplete={(url) => {
-              setMp3Url(url);
+              setSongUrl(url);
               goForward();
             }}
             onError={goBack}
           />
         );
-      case 8:
+      case 7:
         return (
           <ResultScreen
             driverName={driverName}
+            grandPrix={grandPrix}
+            celebration={celebration}
             team={team}
             persona={persona}
-            mp3Url={mp3Url}
+            songUrl={songUrl}
             onStartOver={handleStartOver}
           />
         );
@@ -172,7 +172,6 @@ function F1Content() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
-      {/* Fade-to-black overlay for Start Over transition */}
       <AnimatePresence>
         {resetting && (
           <motion.div
@@ -185,12 +184,10 @@ function F1Content() {
         )}
       </AnimatePresence>
 
-      {/* Start screen overlay */}
       <AnimatePresence>
         {showStart && <StartScreen onStart={handleStart} />}
       </AnimatePresence>
 
-      {/* Main experience content */}
       {!showStart && (
         <>
           <SpeedLines />

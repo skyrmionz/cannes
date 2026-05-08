@@ -1,34 +1,42 @@
 import { NextRequest } from "next/server";
-import { buildAgentMessages, type SongInputs } from "@/lib/agent-prompt";
-import { getSunoPrompt } from "@/lib/openrouter";
-import { generate } from "@/lib/replicate";
+import { teamOptions } from "@/app/f1/options";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+
+// Maps circuit IDs → Drums stem number (matches MUSICIAN_BRIEF_V2 ordering)
+const CIRCUIT_STEM: Record<string, string> = {
+  monaco:      "monaco",
+  silverstone: "silverstone",
+  spa:         "spa",
+  suzuka:      "suzuka",
+  monza:       "monza",
+};
+
+// Maps celebration IDs → filename segment
+const CELEBRATION_STEM: Record<string, string> = {
+  jump:     "jump",
+  nod:      "nod",
+  meltdown: "meltdown",
+  frozen:   "frozen",
+  tears:    "tears",
+};
+
+// Maps the 5 melody groups → filename segment
+const MELODY_GROUP_STEM: Record<string, string> = {
+  "red-bull": "red-bull",
+  ferrari:    "ferrari",
+  mclaren:    "mclaren",
+  mercedes:   "mercedes",
+  haas:       "haas",
+};
+
+function teamToMelodyGroup(teamId: string): string {
+  const team = teamOptions.find((t) => t.id === teamId);
+  return team?.melodyGroup ?? teamId;
+}
 
 function isString(v: unknown): v is string {
   return typeof v === "string" && v.length > 0;
-}
-
-function parseInputs(body: unknown): SongInputs | null {
-  if (!body || typeof body !== "object") return null;
-  const b = body as Record<string, unknown>;
-  if (
-    !isString(b.driverName) ||
-    !isString(b.grandPrix) ||
-    !isString(b.celebration) ||
-    !isString(b.team) ||
-    !isString(b.persona)
-  ) {
-    return null;
-  }
-  return {
-    driverName: b.driverName,
-    grandPrix: b.grandPrix,
-    celebration: b.celebration,
-    team: b.team,
-    persona: b.persona,
-  };
 }
 
 export async function POST(request: NextRequest) {
@@ -39,22 +47,25 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const inputs = parseInputs(body);
-  if (!inputs) {
+  if (!body || typeof body !== "object") {
+    return Response.json({ error: "Missing body" }, { status: 400 });
+  }
+
+  const b = body as Record<string, unknown>;
+
+  if (!isString(b.grandPrix) || !isString(b.celebration) || !isString(b.team)) {
     return Response.json(
-      { error: "Missing required fields: driverName, grandPrix, celebration, team, persona" },
+      { error: "Missing required fields: grandPrix, celebration, team" },
       { status: 400 }
     );
   }
 
-  try {
-    const messages = buildAgentMessages(inputs);
-    const sunoPrompt = await getSunoPrompt(messages);
-    const { taskId } = await generate(sunoPrompt);
-    return Response.json({ jobId: taskId, sunoPrompt });
-  } catch (err) {
-    console.error("generate-song failed:", err);
-    const msg = err instanceof Error ? err.message : "unknown error";
-    return Response.json({ error: msg }, { status: 500 });
-  }
+  const circuit     = CIRCUIT_STEM[b.grandPrix]     ?? b.grandPrix;
+  const celebration = CELEBRATION_STEM[b.celebration] ?? b.celebration;
+  const melodyGroup = MELODY_GROUP_STEM[teamToMelodyGroup(b.team)] ?? "red-bull";
+
+  // Filename matches the placeholder-song generator convention.
+  const filename = `${circuit}-${celebration}-${melodyGroup}.wav`;
+
+  return Response.json({ songUrl: `/songs/${filename}` });
 }
