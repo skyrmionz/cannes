@@ -1,0 +1,315 @@
+"use client";
+
+import { useMemo, useCallback, useEffect } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "motion/react";
+import { LogoHeader, SlackbotAvatar } from "./logo-header";
+import { DotBg } from "./dot-bg";
+import { RotaryKnob } from "./rotary-knob";
+import { PixelCharacter } from "./pixel-character";
+
+export interface KnobOption {
+  id: string;
+  label: string;
+  subtitle?: string;
+  description: string;
+  image?: string;
+  logo?: string;
+  drivers?: string;
+  character?: boolean;
+}
+
+interface KnobQuestionScreenProps {
+  title: string;
+  subtitle: string;
+  options: KnobOption[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+export function KnobQuestionScreen({
+  title,
+  subtitle,
+  options,
+  selectedId,
+  onSelect,
+  onNext,
+  onBack,
+}: KnobQuestionScreenProps) {
+  const selectedIndex = useMemo(
+    () => options.findIndex((o) => o.id === selectedId),
+    [options, selectedId]
+  );
+
+  const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
+
+  useEffect(() => {
+    if (!selectedId && options.length > 0) {
+      onSelect(options[0].id);
+    }
+  }, [selectedId, options, onSelect]);
+
+  const handleIndexChange = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < options.length) {
+        onSelect(options[index].id);
+      }
+    },
+    [options, onSelect]
+  );
+
+  return (
+    <div className="relative flex h-screen flex-col overflow-hidden">
+      <DotBg />
+
+      {/* Logos pinned to top center */}
+      <div className="relative z-10 pt-4">
+        <LogoHeader className="justify-center" />
+      </div>
+
+      {/* Title with Slackbot */}
+      <div className="relative z-10 px-6 pt-3 md:px-12 md:pt-4">
+        <div className="mx-auto max-w-4xl">
+          <motion.div
+            className="mb-2 h-[2px] w-16 bg-[#E10600]"
+            initial={{ width: 0 }}
+            animate={{ width: 64 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          />
+          <div className="flex items-center gap-4">
+            <SlackbotAvatar className="h-10 w-10 flex-shrink-0 md:h-12 md:w-12" />
+            <div>
+              <motion.h2
+                className="text-xl font-semibold uppercase tracking-[0.15em] text-white md:text-2xl"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, duration: 0.4 }}
+              >
+                {title}
+              </motion.h2>
+              <motion.p
+                className="mt-1 text-xs text-[#b0b0b0] md:text-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                {subtitle}
+              </motion.p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Preload every option's image + logo so turning the knob shows them instantly.
+          unoptimized=true ensures the preloader and display hit the exact same URL
+          (the raw file in /public); Next's optimizer would otherwise return a
+          different URL per width, defeating the warm-up. */}
+      <div aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0">
+        {options.map((o) => (
+          <span key={o.id}>
+            {o.image && (
+              <Image
+                src={o.image}
+                alt=""
+                width={1}
+                height={1}
+                unoptimized
+                priority
+              />
+            )}
+            {o.logo && (
+              <Image
+                src={o.logo}
+                alt=""
+                width={1}
+                height={1}
+                unoptimized
+                priority
+              />
+            )}
+          </span>
+        ))}
+      </div>
+
+      {/* Preview area */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pt-2 md:pt-4">
+        <AnimatePresence mode="wait">
+          {selectedOption ? (
+            <motion.div
+              key={selectedOption.id}
+              className="flex flex-col items-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              {selectedOption.logo ? (
+                /* Team preview: car background + logo + drivers + description */
+                <div className="relative flex flex-col items-center">
+                  <div className="relative h-32 w-64 md:h-40 md:w-80">
+                    <Image
+                      src={selectedOption.image!}
+                      alt={selectedOption.label}
+                      fill
+                      unoptimized
+                      priority
+                      className="object-contain opacity-30"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="relative h-12 w-12 md:h-16 md:w-16">
+                        <Image
+                          src={selectedOption.logo}
+                          alt={`${selectedOption.label} logo`}
+                          fill
+                          unoptimized
+                          priority
+                          className={`object-contain ${
+                            ["mercedes", "aston-martin", "audi", "cadillac"].includes(
+                              selectedOption.id
+                            )
+                              ? "brightness-0 invert"
+                              : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {selectedOption.drivers && (
+                    <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                      {selectedOption.drivers}
+                    </p>
+                  )}
+                  {selectedOption.description && (
+                    <p className="mt-1.5 max-w-md text-center text-xs text-neutral-400">
+                      {selectedOption.description}
+                    </p>
+                  )}
+                </div>
+              ) : selectedOption.character ? (
+                <div className="flex flex-col items-center">
+                  <div className="h-32 w-16 md:h-40 md:w-20">
+                    <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
+                  </div>
+                  <p className="mt-2 whitespace-nowrap text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  <p className="mt-1 whitespace-nowrap text-center text-xs text-neutral-400">
+                    {selectedOption.description}
+                  </p>
+                </div>
+              ) : selectedOption.description ? (
+                <>
+                  <div className="relative h-28 w-56 overflow-hidden rounded-sm md:h-36 md:w-72">
+                    <Image
+                      src={selectedOption.image!}
+                      alt={selectedOption.label}
+                      fill
+                      unoptimized
+                      priority
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 border border-neutral-700" />
+                  </div>
+                  <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                  {selectedOption.subtitle && (
+                    <p className="mt-0.5 text-xs text-[#b0b0b0]">
+                      {selectedOption.subtitle}
+                    </p>
+                  )}
+                  <p className="mt-1 whitespace-nowrap text-center text-xs text-neutral-400">
+                    {selectedOption.description}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="relative h-24 w-24 md:h-32 md:w-32">
+                    <Image
+                      src={selectedOption.image!}
+                      alt={selectedOption.label}
+                      fill
+                      unoptimized
+                      priority
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="mt-3 text-lg font-semibold uppercase tracking-wider text-white">
+                    {selectedOption.label}
+                  </p>
+                </>
+              )}
+            </motion.div>
+          ) : (
+            <motion.p
+              key="placeholder"
+              className="text-sm uppercase tracking-wider text-neutral-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              Turn the knob below
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Rotary knob */}
+      <div className="relative z-10 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <RotaryKnob
+            options={options}
+            selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
+            onIndexChange={handleIndexChange}
+          />
+        </motion.div>
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="relative z-10 px-4 pb-4 pt-2 md:px-8 md:pb-6">
+        <motion.div
+          className="mx-auto flex max-w-5xl items-center justify-end gap-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
+          <AnimatePresence>
+            {selectedId && (
+              <motion.button
+                onClick={onNext}
+                className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold leading-none text-white">
+                  N
+                </span>
+                Next
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold leading-none text-white">
+              B
+            </span>
+            Back
+          </button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
