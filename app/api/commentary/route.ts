@@ -1,14 +1,31 @@
 import { NextRequest } from "next/server";
+import { GoogleGenAI } from "@google/genai";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 function randomVoice(): string {
   const male   = process.env.ELEVENLABS_VOICE_MALE   ?? "KWgrCrnZUL9fUdhsHwbS";
   const female = process.env.ELEVENLABS_VOICE_FEMALE ?? "bsGbk3T29FEq9lQ1FeYd";
   return Math.random() < 0.5 ? male : female;
+}
+
+// Write the GCP service account JSON to a temp file so the SDK can find it,
+// exactly as the original server.js does.
+function setupGoogleAuth(): boolean {
+  const jsonStr = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (!jsonStr) return false;
+  try {
+    const tmpPath = path.join(os.tmpdir(), "gcp-sa.json");
+    fs.writeFileSync(tmpPath, jsonStr, { mode: 0o600 });
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function buildScript(
@@ -17,12 +34,13 @@ async function buildScript(
   celebration: string,
   team: string
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  if (!setupGoogleAuth()) {
     return fallbackScript(name, grandPrix, team);
   }
 
-  const model = process.env.OPENROUTER_MODEL ?? "anthropic/claude-sonnet-4.6";
+  const project  = process.env.VERTEX_PROJECT;
+  const location = process.env.VERTEX_LOCATION ?? "us-central1";
+  if (!project) return fallbackScript(name, grandPrix, team);
 
   const prompt = [
     `Write a punchy F1 race-commentary voiceover, maximum 50 words, spoken aloud in about 7 seconds.`,
@@ -31,30 +49,16 @@ async function buildScript(
     `Output ONLY the spoken words. No stage directions. No punctuation beyond commas and exclamation marks. Single line.`,
   ].join(" ");
 
-  const res = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://cannes-experience.herokuapp.com",
-      "X-Title": "Cannes F1 Commentary",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.9,
-      max_tokens: 120,
-    }),
-  });
-
-  if (!res.ok) {
+  try {
+    const ai = new GoogleGenAI({ vertexai: true, project, location });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt,
+    });
+    return response.text?.trim() ?? fallbackScript(name, grandPrix, team);
+  } catch {
     return fallbackScript(name, grandPrix, team);
   }
-
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  return data.choices?.[0]?.message?.content?.trim() ?? fallbackScript(name, grandPrix, team);
 }
 
 function fallbackScript(name: string, grandPrix: string, team: string): string {
@@ -71,17 +75,15 @@ export async function POST(request: NextRequest) {
   }
 
   const b = (body ?? {}) as Record<string, unknown>;
-  const name        = typeof b.name        === "string" ? b.name.trim().slice(0, 40)  : "Champion";
+  const name        = typeof b.name        === "string" ? b.name.trim().slice(0, 40) : "Champion";
   const grandPrix   = typeof b.grandPrix   === "string" ? b.grandPrix   : "Monaco";
   const celebration = typeof b.celebration === "string" ? b.celebration : "jump";
   const team        = typeof b.team        === "string" ? b.team        : "the team";
 
   const elevenKey = process.env.ELEVENLABS_API_KEY;
   const voiceId   = randomVoice();
+  const script    = await buildScript(name, grandPrix, celebration, team);
 
-  const script = await buildScript(name, grandPrix, celebration, team);
-
-  // If no ElevenLabs key, return the script text so the caller can display it.
   if (!elevenKey) {
     return Response.json({ script });
   }
@@ -109,7 +111,6 @@ export async function POST(request: NextRequest) {
   );
 
   if (!ttsRes.ok) {
-    // TTS failed — return the script so UI can fall back gracefully
     return Response.json({ script });
   }
 
