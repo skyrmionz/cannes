@@ -5,11 +5,10 @@ export const maxDuration = 30;
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// Two voices — randomly assigned per session.
-const VOICES = ["21m00Tcm4TlvDq8ikWAM", "EXAVITQu4vr4xnSDxMaL"];
-
-function randomVoice() {
-  return VOICES[Math.floor(Math.random() * VOICES.length)];
+function randomVoice(): string {
+  const male   = process.env.ELEVENLABS_VOICE_MALE   ?? "KWgrCrnZUL9fUdhsHwbS";
+  const female = process.env.ELEVENLABS_VOICE_FEMALE ?? "bsGbk3T29FEq9lQ1FeYd";
+  return Math.random() < 0.5 ? male : female;
 }
 
 async function buildScript(
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
   const team        = typeof b.team        === "string" ? b.team        : "the team";
 
   const elevenKey = process.env.ELEVENLABS_API_KEY;
-  const voiceId   = process.env.ELEVENLABS_VOICE_ID ?? randomVoice();
+  const voiceId   = randomVoice();
 
   const script = await buildScript(name, grandPrix, celebration, team);
 
