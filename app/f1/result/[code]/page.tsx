@@ -86,8 +86,8 @@ export default function SharedResultPage({
       team={state.data.team}
       persona={state.data.persona}
       songUrl={state.data.songUrl}
-      grandPrix={state.data.grandPrix ?? null}
-      celebration={state.data.celebration ?? null}
+      grandPrix={null}
+      celebration={null}
       onStartOver={() => {
         window.location.href = "/f1";
       }}
