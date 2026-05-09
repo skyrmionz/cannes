@@ -116,6 +116,9 @@ function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioContro
   const commentaryRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
   const commentaryFiredRef = useRef(false);
+  // Stable ref so the useFrame closure never captures a stale callback
+  const onBlockedRef = useRef(onAudioBlocked);
+  useEffect(() => { onBlockedRef.current = onAudioBlocked; }, [onAudioBlocked]);
 
   useEffect(() => {
     if (!songUrl) return;
@@ -123,10 +126,7 @@ function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioContro
     audio.preload = "auto";
     audio.loop = true;
     songRef.current = audio;
-    return () => {
-      audio.pause();
-      songRef.current = null;
-    };
+    return () => { audio.pause(); songRef.current = null; };
   }, [songUrl]);
 
   useEffect(() => {
@@ -134,27 +134,21 @@ function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioContro
     const audio = new Audio(commentaryUrl);
     audio.preload = "auto";
     commentaryRef.current = audio;
-    return () => {
-      audio.pause();
-      commentaryRef.current = null;
-    };
+    return () => { audio.pause(); commentaryRef.current = null; };
   }, [commentaryUrl]);
 
-  useFrame(async (state) => {
+  // useFrame callbacks must be synchronous — call .play() and chain .catch() without await
+  useFrame((state) => {
     const t = state.clock.getElapsedTime();
 
-    // Start song at 7.5s
-    if (t >= 7.5 && !startedRef.current && songRef.current) {
+    // Start song 1s after the scene mounts (gives Canvas time to initialise)
+    if (t >= 1 && !startedRef.current && songRef.current) {
       startedRef.current = true;
-      try {
-        await songRef.current.play();
-      } catch {
-        onAudioBlocked();
-      }
+      songRef.current.play().catch(() => onBlockedRef.current());
     }
 
-    // Fire commentary at 12s into the scene (i.e. ~4.5s after song starts)
-    if (t >= 12 && !commentaryFiredRef.current && commentaryRef.current) {
+    // Fire commentary ~7s after song starts
+    if (t >= 8 && !commentaryFiredRef.current && commentaryRef.current) {
       commentaryFiredRef.current = true;
       commentaryRef.current.play().catch(() => {/* commentary is optional */});
     }
