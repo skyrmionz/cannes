@@ -85,7 +85,9 @@ export default function SharedResultPage({
       driverName={state.data.driverName}
       team={state.data.team}
       persona={state.data.persona}
-      mp3Url={state.data.songUrl}
+      songUrl={state.data.songUrl}
+      grandPrix={state.data.grandPrix ?? null}
+      celebration={state.data.celebration ?? null}
       onStartOver={() => {
         window.location.href = "/f1";
       }}
