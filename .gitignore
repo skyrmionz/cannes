@@ -40,5 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# placeholder / pre-rendered songs — not for git, copied in at deploy time
-/public/songs/
+# placeholder / pre-rendered songs — committed on cannes-v3 for Heroku deploy
+# /public/songs/
