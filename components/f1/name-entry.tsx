@@ -69,8 +69,17 @@ export function NameEntry({
           transition={{ delay: 0.3, duration: 0.4 }}
         />
 
+        <motion.p
+          className="mt-4 text-center text-[11px] text-neutral-500"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.45, duration: 0.4 }}
+        >
+          Your name is used only to personalise your track and commentary. It is not stored.
+        </motion.p>
+
         <motion.div
-          className="mt-10 flex items-center gap-4"
+          className="mt-6 flex items-center gap-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
