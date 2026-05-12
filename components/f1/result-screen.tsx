@@ -74,14 +74,44 @@ export function ResultScreen({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareErrored, setShareErrored] = useState(false);
   const [commentaryUrl, setCommentaryUrl] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
   const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
   const sharedRef = useRef(false);
   const commentaryRef = useRef(false);
+  const sessionIdRef = useRef<string | null>(null);
+  const playedRef = useRef(false);
 
   // Auto-dismiss DNA panel after DNA_PANEL_MS
   useEffect(() => {
     const t = setTimeout(() => setShowDna(false), DNA_PANEL_MS);
     return () => clearTimeout(t);
+  }, []);
+
+  // Log completed session on mount
+  useEffect(() => {
+    if (sharedView) return;
+    fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        completed: true,
+        answers: { name: driverName, circuit: grandPrix, celebration, team, persona },
+      }),
+    })
+      .then((r) => r.json())
+      .then((d: { id: string }) => { sessionIdRef.current = d.id; })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const trackPlay = useCallback(() => {
+    if (playedRef.current || !sessionIdRef.current) return;
+    playedRef.current = true;
+    fetch(`/api/session/${sessionIdRef.current}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ played: true }),
+    }).catch(() => {});
   }, []);
 
   // Resolve labels + music notes from options
@@ -154,7 +184,34 @@ export function ResultScreen({
       fallbackAudioRef.current = new Audio(songUrl);
     }
     fallbackAudioRef.current.play().then(() => setAutoplayBlocked(false));
-  }, [songUrl]);
+    trackPlay();
+  }, [songUrl, trackPlay]);
+
+  const handleDownload = useCallback(async () => {
+    if (!songUrl) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(songUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(driverName || "my").toLowerCase().replace(/\s+/g, "-")}-anthem.wav`;
+      a.click();
+      URL.revokeObjectURL(url);
+      if (sessionIdRef.current) {
+        fetch(`/api/session/${sessionIdRef.current}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ downloaded: true }),
+        }).catch(() => {});
+      }
+    } catch {
+      // Download failed silently
+    } finally {
+      setDownloading(false);
+    }
+  }, [songUrl, driverName]);
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">

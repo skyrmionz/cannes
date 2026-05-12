@@ -38,6 +38,19 @@ export async function ensureSchema(): Promise<void> {
       expires_at     TIMESTAMPTZ NOT NULL
     );
     CREATE INDEX IF NOT EXISTS f1_shares_expires_at_idx ON f1_shares(expires_at);
+
+    CREATE TABLE IF NOT EXISTS cannes_sessions (
+      id           TEXT PRIMARY KEY,
+      activation   TEXT NOT NULL DEFAULT 'f1',
+      event        TEXT NOT NULL DEFAULT 'cannes-2026',
+      answers      JSONB NOT NULL,
+      completed    BOOLEAN NOT NULL DEFAULT FALSE,
+      played       BOOLEAN NOT NULL DEFAULT FALSE,
+      downloaded   BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS cs_activation_idx ON cannes_sessions(activation);
+    CREATE INDEX IF NOT EXISTS cs_created_at_idx ON cannes_sessions(created_at);
   `);
   schemaReady = true;
 }
