@@ -3,19 +3,21 @@
 import { useEffect, useState, useCallback } from "react";
 
 // Every key the controller should send, with a description of what it does in the app.
+// Zones 0–9 = numeric keys; zone 10 = "e" (vendor confirmed 2026-05-12).
 const EXPECTED_KEYS = [
-  { key: "0", label: "Slider zone 0", expect: "Selects option 1 of 5" },
-  { key: "1", label: "Slider zone 1", expect: "Selects option 1 of 5" },
-  { key: "2", label: "Slider zone 2", expect: "Selects option 2 of 5" },
-  { key: "3", label: "Slider zone 3", expect: "Selects option 2 of 5" },
-  { key: "4", label: "Slider zone 4", expect: "Selects option 3 of 5" },
-  { key: "5", label: "Slider zone 5", expect: "Selects option 3 of 5" },
-  { key: "6", label: "Slider zone 6", expect: "Selects option 4 of 5" },
-  { key: "7", label: "Slider zone 7", expect: "Selects option 4 of 5" },
-  { key: "8", label: "Slider zone 8", expect: "Selects option 5 of 5" },
-  { key: "9", label: "Slider zone 9", expect: "Selects option 5 of 5" },
-  { key: "a", label: "Button A",      expect: "Confirms selection / Next screen" },
-  { key: "b", label: "Button B",      expect: "Goes back to previous screen" },
+  { key: "0", label: "Slider zone 0  (team 1)",  expect: "Red Bull Racing" },
+  { key: "1", label: "Slider zone 1  (team 2)",  expect: "Ferrari" },
+  { key: "2", label: "Slider zone 2  (team 3)",  expect: "McLaren" },
+  { key: "3", label: "Slider zone 3  (team 4)",  expect: "Mercedes" },
+  { key: "4", label: "Slider zone 4  (team 5)",  expect: "Aston Martin" },
+  { key: "5", label: "Slider zone 5  (team 6)",  expect: "Racing Bulls" },
+  { key: "6", label: "Slider zone 6  (team 7)",  expect: "Alpine" },
+  { key: "7", label: "Slider zone 7  (team 8)",  expect: "Williams" },
+  { key: "8", label: "Slider zone 8  (team 9)",  expect: "Haas" },
+  { key: "9", label: "Slider zone 9  (team 10)", expect: "Audi" },
+  { key: "e", label: "Slider zone 10 (team 11)", expect: "Cadillac" },
+  { key: "a", label: "Button A",                 expect: "Confirms selection / Next screen" },
+  { key: "b", label: "Button B",                 expect: "Goes back to previous screen" },
 ];
 
 type KeyState = "waiting" | "ok" | "detected";
@@ -175,7 +177,7 @@ export default function ControllerTestPage() {
           <p className="mb-1 font-semibold uppercase tracking-wider text-neutral-400">Instructions</p>
           <p>1. Connect the controller to the test machine via USB.</p>
           <p>2. Open this page in Chrome (full screen recommended).</p>
-          <p>3. Move the slider slowly from bottom to top — all zones 0–9 should turn green.</p>
+          <p>3. Move the slider slowly from bottom to top — zones 0–9 then "e" (top) should all turn green.</p>
           <p>4. Press Button A — it should turn green.</p>
           <p>5. Press Button B — it should turn green.</p>
           <p>6. Screenshot the green "All keys detected" banner and send to Poz.</p>

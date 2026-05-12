@@ -62,16 +62,20 @@ export function KnobQuestionScreen({
     [options, onSelect]
   );
 
-  // Slider zones 0–9 → map evenly across 5 options (2 zones each)
+  // Slider zones: 0–9 = zones 0–9, "e" = zone 10 (11th position, per vendor)
   // A → Next, B → Back
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (/^[0-9]$/.test(e.key)) {
-        const zone = parseInt(e.key);
-        const index = Math.round((zone / 9) * (options.length - 1));
-        handleIndexChange(Math.max(0, Math.min(options.length - 1, index)));
+      const sliderZone =
+        /^[0-9]$/.test(e.key) ? parseInt(e.key) :
+        e.key === "e" || e.key === "E" ? 10 :
+        null;
+
+      if (sliderZone !== null) {
+        // 11 zones (0–10) → direct 1:1 index mapping
+        handleIndexChange(Math.max(0, Math.min(options.length - 1, sliderZone)));
         return;
       }
 
