@@ -142,11 +142,32 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply bg-background text-foreground font-sans;
+    height: 100%;
+    overscroll-behavior: none;
   }
-  html {
-    @apply font-sans;
+}
+
+/* Warn if the kiosk screen is rotated to landscape */
+@media (orientation: landscape) and (max-height: 600px) {
+  body > * {
+    display: none !important;
+  }
+  body::after {
+    content: "Rotate screen to portrait";
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0a0a;
+    color: #fff;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2rem;
   }
 }
 
