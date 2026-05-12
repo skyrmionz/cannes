@@ -70,12 +70,12 @@ export function NameEntry({
         />
 
         <motion.p
-          className="mt-4 text-center text-[11px] text-neutral-500"
+          className="mt-4 max-w-sm text-center text-[11px] leading-relaxed text-neutral-500"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.4 }}
         >
-          Your name is used only to personalise your track and commentary. It is not stored.
+          By continuing you agree to your name being used to personalise your track and commentary. It is processed by a third-party audio service to generate your audio and is not stored by us.
         </motion.p>
 
         <motion.div
