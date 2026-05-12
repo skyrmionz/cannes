@@ -62,6 +62,37 @@ export function KnobQuestionScreen({
     [options, onSelect]
   );
 
+  // Controller keyboard mapping:
+  // Slider zones 0-9 → map to nearest option (0=first, 9=last, interpolated)
+  // Keys 1-5 → direct option select
+  // A → Next, B → Back
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if focus is in a text input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Slider zone keys (0–9) — map across option range
+      if (/^[0-9]$/.test(e.key)) {
+        const zone = parseInt(e.key);
+        const index = Math.round((zone / 9) * (options.length - 1));
+        handleIndexChange(Math.max(0, Math.min(options.length - 1, index)));
+        return;
+      }
+
+      if (e.key === "a" || e.key === "A") {
+        if (selectedId) onNext();
+        return;
+      }
+      if (e.key === "b" || e.key === "B") {
+        onBack();
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [options, selectedId, handleIndexChange, onNext, onBack]);
+
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">
       <DotBg />
