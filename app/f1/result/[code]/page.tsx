@@ -13,6 +13,7 @@ interface ShareResponse {
   persona: string;
   songUrl: string;
   expiresAt: string;
+  hasVideo?: boolean;
 }
 
 type LoadState =
@@ -81,18 +82,35 @@ export default function SharedResultPage({
   }
 
   return (
-    <ResultScreen
-      driverName={state.data.driverName}
-      team={state.data.team}
-      persona={state.data.persona}
-      songUrl={state.data.songUrl}
-      grandPrix={null}
-      celebration={null}
-      onStartOver={() => {
-        window.location.href = "/f1";
-      }}
-      sharedView
-    />
+    <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
+      <ResultScreen
+        driverName={state.data.driverName}
+        team={state.data.team}
+        persona={state.data.persona}
+        songUrl={state.data.songUrl}
+        grandPrix={null}
+        celebration={null}
+        onStartOver={() => { window.location.href = "/f1"; }}
+        sharedView
+      />
+      {/* Video download — shown on the phone after scanning the QR */}
+      {state.data.hasVideo && (
+        <motion.div
+          className="fixed bottom-6 left-0 right-0 z-50 flex justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.4 }}
+        >
+          <a
+            href={`/api/share/${code}/video`}
+            download="my-anthem.mp4"
+            className="flex items-center gap-3 rounded-sm bg-[#E10600] px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg"
+          >
+            ↓ Download your anthem video
+          </a>
+        </motion.div>
+      )}
+    </div>
   );
 }
 

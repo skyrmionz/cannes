@@ -7,6 +7,8 @@ import { LogoHeader, SlackbotAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { CinematicScene } from "./result-cinematic/scene";
 import { ConfettiOverlay } from "./result-cinematic/confetti-overlay";
+import { SongVisualizer, type VisualizerHandle } from "./song-visualizer";
+import { useVideoExport } from "@/hooks/use-video-export";
 import {
   grandPrixOptions,
   celebrations,
@@ -72,14 +74,25 @@ export function ResultScreen({
   const [showDna, setShowDna] = useState(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareCode, setShareCode] = useState<string | null>(null);
   const [shareErrored, setShareErrored] = useState(false);
   const [commentaryUrl, setCommentaryUrl] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [showVisualizer, setShowVisualizer] = useState(false);
   const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
   const sharedRef = useRef(false);
   const commentaryRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const playedRef = useRef(false);
+  const visualizerRef = useRef<VisualizerHandle | null>(null);
+
+  const { status: exportStatus, progress: exportProgress, videoUrl, startExport } = useVideoExport({
+    songUrl,
+    shareCode,
+    visualizerRef,
+    teamId: team ?? "red-bull",
+    driverName,
+  });
 
   // Auto-dismiss DNA panel after DNA_PANEL_MS
   useEffect(() => {
@@ -168,6 +181,7 @@ export function ResultScreen({
         });
         if (!res.ok) { setShareErrored(true); return; }
         const { code } = (await res.json()) as { code: string };
+        setShareCode(code);
         if (typeof window !== "undefined") {
           setShareUrl(`${window.location.origin}/f1/result/${code}`);
         }
@@ -320,6 +334,7 @@ export function ResultScreen({
                   songUrl={songUrl}
                   commentaryUrl={commentaryUrl}
                   onAudioBlocked={() => setAutoplayBlocked(true)}
+                  onAudioStarted={trackPlay}
                 />
               ) : null}
 
@@ -345,28 +360,90 @@ export function ResultScreen({
           )}
         </AnimatePresence>
 
-        {/* QR code — only visible once scene is showing */}
+        {/* QR + visualizer — only visible once scene is showing */}
         {!sharedView && !showDna && (
-          <div className="relative z-30 flex flex-col items-center pb-2">
+          <div className="relative z-30 flex flex-col items-center gap-3 pb-2">
+
+            {/* Visualizer canvas — hidden off-screen for export, shown when toggled */}
+            <div className={showVisualizer ? "block" : "sr-only pointer-events-none absolute opacity-0"}>
+              <SongVisualizer
+                ref={visualizerRef}
+                teamId={team ?? "red-bull"}
+                driverName={driverName}
+                width={540}
+                height={540}
+                className="h-48 w-48 rounded-sm"
+              />
+            </div>
+
+            {/* Video export progress */}
+            {(exportStatus === "encoding" || exportStatus === "uploading") && (
+              <motion.div
+                className="flex w-48 flex-col items-center gap-1.5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="h-[2px] w-full overflow-hidden rounded-full bg-neutral-800">
+                  <motion.div
+                    className="h-full bg-[#E10600]"
+                    animate={{ width: `${exportProgress}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-neutral-500">
+                  {exportStatus === "uploading" ? "Uploading…" : `Rendering ${exportProgress}%`}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Video download button once done */}
+            {exportStatus === "done" && videoUrl && (
+              <motion.a
+                href={videoUrl}
+                download="my-anthem.mp4"
+                className="flex items-center gap-2 rounded-sm bg-[#E10600] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                ↓ Download MP4
+              </motion.a>
+            )}
+
+            {/* Make video button */}
+            {exportStatus === "idle" && shareCode && songUrl && (
+              <button
+                onClick={() => { setShowVisualizer(true); startExport(); }}
+                className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-white"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-neutral-800 text-[9px] font-bold text-white">▶</span>
+                Make video
+              </button>
+            )}
+
+            {exportStatus === "unsupported" && (
+              <p className="text-[10px] text-neutral-600">Video export needs Chrome</p>
+            )}
+
+            {/* QR code */}
             {shareUrl ? (
               <motion.div
-                className="flex flex-col items-center gap-2"
+                className="flex flex-col items-center gap-1.5"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
               >
                 <div className="rounded-sm bg-white p-2">
-                  <QRCodeSVG value={shareUrl} size={96} bgColor="#FFFFFF" fgColor="#000000" level="M" />
+                  <QRCodeSVG value={shareUrl} size={80} bgColor="#FFFFFF" fgColor="#000000" level="M" />
                 </div>
-                <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-300">
-                  Scan to save your podium song
+                <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400">
+                  Scan to save your song
                 </p>
               </motion.div>
             ) : shareErrored || !songUrl ? null : (
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-[96px] w-[96px] animate-pulse rounded-sm bg-neutral-800" />
-                <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-500">
-                  Preparing your share link...
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="h-[80px] w-[80px] animate-pulse rounded-sm bg-neutral-800" />
+                <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-600">
+                  Preparing link…
                 </p>
               </div>
             )}
@@ -376,14 +453,26 @@ export function ResultScreen({
 
       <div className="relative z-40 px-4 pb-4 pt-2 md:px-8 md:pb-6">
         <motion.div
-          className="mx-auto flex max-w-5xl items-center justify-end gap-3"
+          className="mx-auto flex max-w-5xl items-center justify-between gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.4 }}
         >
+          {songUrl && !sharedView && (
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white disabled:opacity-40"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-neutral-700 text-xs font-bold leading-none text-white">
+                ↓
+              </span>
+              {downloading ? "Downloading…" : "Download"}
+            </button>
+          )}
           <button
             onClick={onStartOver}
-            className="flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+            className="ml-auto flex items-center gap-2 text-sm uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold leading-none text-white">
               R

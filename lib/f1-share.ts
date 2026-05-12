@@ -66,6 +66,15 @@ export async function createShare(input: {
   throw new Error("Could not allocate a unique share code");
 }
 
+export async function hasVideo(code: string): Promise<boolean> {
+  const pool = getPool();
+  const res = await pool.query<{ has_video: boolean }>(
+    `SELECT video IS NOT NULL AS has_video FROM f1_shares WHERE code = $1 AND expires_at > NOW()`,
+    [code],
+  );
+  return res.rows[0]?.has_video ?? false;
+}
+
 export async function getShare(code: string): Promise<F1Share | null> {
   await ensureSchema();
   const pool = getPool();

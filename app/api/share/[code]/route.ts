@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getShare } from "@/lib/f1-share";
+import { getShare, hasVideo } from "@/lib/f1-share";
 
 export const runtime = "nodejs";
 
@@ -20,12 +20,14 @@ export async function GET(
         { status: 404 }
       );
     }
+    const videoReady = await hasVideo(share.code);
     return Response.json({
       driverName: share.driverName,
       team: share.team,
       persona: share.persona,
       songUrl: `/api/share/${share.code}/song`,
       expiresAt: share.expiresAt.toISOString(),
+      hasVideo: videoReady,
     });
   } catch (err) {
     console.error("share lookup failed:", err);
