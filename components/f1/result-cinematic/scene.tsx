@@ -14,6 +14,7 @@ interface CinematicSceneProps {
   songUrl: string | null;
   commentaryUrl: string | null;
   onAudioBlocked: () => void;
+  onAudioStarted?: () => void;
 }
 
 export function CinematicScene({
@@ -22,6 +23,7 @@ export function CinematicScene({
   songUrl,
   commentaryUrl,
   onAudioBlocked,
+  onAudioStarted,
 }: CinematicSceneProps) {
   return (
     <Canvas
@@ -63,6 +65,7 @@ export function CinematicScene({
         songUrl={songUrl}
         commentaryUrl={commentaryUrl}
         onAudioBlocked={onAudioBlocked}
+        onAudioStarted={onAudioStarted}
       />
     </Canvas>
   );
@@ -109,16 +112,18 @@ interface AudioControllerProps {
   songUrl: string | null;
   commentaryUrl: string | null;
   onAudioBlocked: () => void;
+  onAudioStarted?: () => void;
 }
 
-function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioControllerProps) {
+function AudioController({ songUrl, commentaryUrl, onAudioBlocked, onAudioStarted }: AudioControllerProps) {
   const songRef = useRef<HTMLAudioElement | null>(null);
   const commentaryRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
   const commentaryFiredRef = useRef(false);
-  // Stable ref so the useFrame closure never captures a stale callback
   const onBlockedRef = useRef(onAudioBlocked);
+  const onStartedRef = useRef(onAudioStarted);
   useEffect(() => { onBlockedRef.current = onAudioBlocked; }, [onAudioBlocked]);
+  useEffect(() => { onStartedRef.current = onAudioStarted; }, [onAudioStarted]);
 
   useEffect(() => {
     if (!songUrl) return;
@@ -144,7 +149,7 @@ function AudioController({ songUrl, commentaryUrl, onAudioBlocked }: AudioContro
     // Start song 1s after the scene mounts (gives Canvas time to initialise)
     if (t >= 1 && !startedRef.current && songRef.current) {
       startedRef.current = true;
-      songRef.current.play().catch(() => onBlockedRef.current());
+      songRef.current.play().then(() => onStartedRef.current?.()).catch(() => onBlockedRef.current());
     }
 
     // Fire commentary ~7s after song starts
