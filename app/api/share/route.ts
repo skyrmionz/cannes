@@ -26,8 +26,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Download the Replicate MP3 into memory, then persist the bytes.
-    const mp3Res = await fetch(b.mp3Url);
+    // Resolve relative song URLs (e.g. /songs/x.wav) to absolute so server-side
+    // fetch works. The request origin is the canonical base.
+    const songUrl = b.mp3Url.startsWith("/")
+      ? `${request.nextUrl.origin}${b.mp3Url}`
+      : b.mp3Url;
+
+    const mp3Res = await fetch(songUrl);
     if (!mp3Res.ok) {
       return Response.json(
         { error: `Upstream fetch failed: ${mp3Res.status}` },
@@ -35,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const mp3 = Buffer.from(await mp3Res.arrayBuffer());
-    const mp3Mime = mp3Res.headers.get("content-type") ?? "audio/mpeg";
+    const mp3Mime = mp3Res.headers.get("content-type") ?? "audio/wav";
 
     const code = await createShare({
       driverName: b.driverName,
