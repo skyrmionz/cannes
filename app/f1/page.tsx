@@ -6,6 +6,7 @@ import { TransitionProvider } from "@/components/page-transition";
 import { StartScreen } from "@/components/f1/start-screen";
 import { IntroScreen } from "@/components/f1/intro-screen";
 import { NameEntry } from "@/components/f1/name-entry";
+import { TransitionScreen } from "@/components/f1/transition-screen";
 import { KnobQuestionScreen } from "@/components/f1/knob-question-screen";
 import { LoadingScreen } from "@/components/f1/loading-screen";
 import { ResultScreen } from "@/components/f1/result-screen";
@@ -41,12 +42,23 @@ function randomPersona(): string {
   return personaOptions[Math.floor(Math.random() * personaOptions.length)].id;
 }
 
+// Steps:
+//   1 = Intro
+//   2 = Name
+//   3 = Transition (does not count toward progress bar question count)
+//   4 = Q1 (circuit)      → stepIndex=0, totalSteps=3
+//   5 = Q2 (celebration)  → stepIndex=1, totalSteps=3
+//   6 = Q3 (team)         → stepIndex=2, totalSteps=3
+//   7 = Loading
+//   8 = Result
+
 function F1Content() {
   const [showStart, setShowStart] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [driverName, setDriverName] = useState("");
+  const [optIn, setOptIn] = useState(false);
   const [grandPrix, setGrandPrix] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<string | null>(null);
   const [team, setTeam] = useState<string | null>(null);
@@ -74,6 +86,7 @@ function F1Content() {
       setStep(1);
       setDirection(1);
       setDriverName("");
+      setOptIn(false);
       setGrandPrix(null);
       setCelebration(null);
       setTeam(null);
@@ -101,9 +114,17 @@ function F1Content() {
             onNameChange={setDriverName}
             onNext={goForward}
             onBack={goBack}
+            onOptInChange={setOptIn}
           />
         );
       case 3:
+        return (
+          <TransitionScreen
+            driverName={driverName}
+            onContinue={goForward}
+          />
+        );
+      case 4:
         return (
           <KnobQuestionScreen
             title="What is your favourite Grand Prix?"
@@ -113,9 +134,11 @@ function F1Content() {
             onSelect={setGrandPrix}
             onNext={goForward}
             onBack={goBack}
+            stepIndex={0}
+            totalSteps={3}
           />
         );
-      case 4:
+      case 5:
         return (
           <KnobQuestionScreen
             title="Your driver just took the chequered flag. What do you do?"
@@ -125,9 +148,11 @@ function F1Content() {
             onSelect={setCelebration}
             onNext={goForward}
             onBack={goBack}
+            stepIndex={1}
+            totalSteps={3}
           />
         );
-      case 5:
+      case 6:
         return (
           <KnobQuestionScreen
             title="What is your favourite team?"
@@ -137,9 +162,11 @@ function F1Content() {
             onSelect={setTeam}
             onNext={handleLoadingStart}
             onBack={goBack}
+            stepIndex={2}
+            totalSteps={3}
           />
         );
-      case 6:
+      case 7:
         return (
           <LoadingScreen
             driverName={driverName}
@@ -153,7 +180,7 @@ function F1Content() {
             onError={goBack}
           />
         );
-      case 7:
+      case 8:
         return (
           <ResultScreen
             driverName={driverName}
@@ -170,12 +197,15 @@ function F1Content() {
     }
   };
 
+  // Suppress unused warning — optIn is captured for future use (analytics/email)
+  void optIn;
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
+    <div className="relative min-h-screen overflow-hidden" style={{ background: "#001050" }}>
       <AnimatePresence>
         {resetting && (
           <motion.div
-            className="fixed inset-0 z-[60] bg-black"
+            className="fixed inset-0 z-[60] bg-[#001050]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

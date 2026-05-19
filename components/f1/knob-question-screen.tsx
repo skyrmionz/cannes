@@ -1,12 +1,9 @@
 "use client";
 
-import { useMemo, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { LogoHeader, SlackbotAvatar } from "./logo-header";
+import { LogoHeader, AstroAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
-import { SliderSelector } from "./slider-selector";
-import { PixelCharacter } from "./pixel-character";
 
 export interface KnobOption {
   id: string;
@@ -29,6 +26,8 @@ interface KnobQuestionScreenProps {
   onSelect: (id: string) => void;
   onNext: () => void;
   onBack: () => void;
+  stepIndex: number;
+  totalSteps: number;
 }
 
 export function KnobQuestionScreen({
@@ -39,93 +38,48 @@ export function KnobQuestionScreen({
   onSelect,
   onNext,
   onBack,
+  stepIndex,
+  totalSteps,
 }: KnobQuestionScreenProps) {
-  const selectedIndex = useMemo(
-    () => options.findIndex((o) => o.id === selectedId),
-    [options, selectedId]
-  );
-
-  const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
-
-  useEffect(() => {
-    if (!selectedId && options.length > 0) {
-      onSelect(options[0].id);
-    }
-  }, [selectedId, options, onSelect]);
-
-  const handleIndexChange = useCallback(
-    (index: number) => {
-      if (index >= 0 && index < options.length) {
-        onSelect(options[index].id);
-      }
-    },
-    [options, onSelect]
-  );
-
-  // Slider zones: 0–9 = zones 0–9, "e" = zone 10 (11th position, per vendor)
-  // A → Next, B → Back
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      const sliderZone =
-        /^[0-9]$/.test(e.key) ? parseInt(e.key) :
-        e.key === "e" || e.key === "E" ? 10 :
-        null;
-
-      if (sliderZone !== null) {
-        // 11 zones (0–10) → direct 1:1 index mapping
-        handleIndexChange(Math.max(0, Math.min(options.length - 1, sliderZone)));
-        return;
-      }
-
-      if (e.key === "a" || e.key === "A") {
-        if (selectedId) onNext();
-        return;
-      }
-      if (e.key === "b" || e.key === "B") {
-        onBack();
-        return;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [options, selectedId, handleIndexChange, onNext, onBack]);
+  const progress = ((stepIndex + 1) / totalSteps) * 100;
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">
       <DotBg />
+
+      {/* Progress bar — flush to top, no border-radius */}
+      <div className="relative z-10 h-1 w-full bg-white/20">
+        <motion.div
+          className="h-full bg-white"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
 
       {/* Logos */}
       <div className="relative z-10 pt-4">
         <LogoHeader className="justify-center" />
       </div>
 
-      {/* Question header */}
-      <div className="relative z-10 px-5 pt-3">
-        <motion.div
-          className="mb-2 h-[2px] w-12 bg-[#E10600]"
-          initial={{ width: 0 }}
-          animate={{ width: 48 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-        />
+      {/* Question header with Astro top-left */}
+      <div className="relative z-10 px-5 pt-4">
         <div className="flex items-start gap-3">
-          <SlackbotAvatar className="mt-0.5 h-8 w-8 flex-shrink-0" />
+          <AstroAvatar className="mt-0.5 h-8 w-8 flex-shrink-0" />
           <div>
             <motion.h2
-              className="text-base font-semibold uppercase leading-snug tracking-[0.12em] text-white"
+              className="text-base font-bold uppercase leading-snug tracking-[0.1em] text-white"
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15, duration: 0.4 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
             >
               {title}
             </motion.h2>
             <motion.p
-              className="mt-0.5 text-[11px] text-[#b0b0b0]"
+              className="mt-0.5 text-[11px] text-white/50"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
             >
               {subtitle}
             </motion.p>
@@ -133,165 +87,129 @@ export function KnobQuestionScreen({
         </div>
       </div>
 
-      {/* Preload every option image so slider is instant */}
-      <div aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0">
-        {options.map((o) => (
-          <span key={o.id}>
-            {o.image && <Image src={o.image} alt="" width={1} height={1} unoptimized priority />}
-            {o.logo  && <Image src={o.logo}  alt="" width={1} height={1} unoptimized priority />}
-          </span>
-        ))}
-      </div>
+      {/* Card list — scrollable */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex flex-col gap-2">
+          {options.map((option, i) => {
+            const isSelected = option.id === selectedId;
 
-      {/* Preview — fills remaining space */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-5 py-4">
-        <AnimatePresence mode="wait">
-          {selectedOption ? (
-            <motion.div
-              key={selectedOption.id}
-              className="flex w-full flex-col items-center"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.22 }}
-            >
-              {selectedOption.logo ? (
-                /* Team: car + logo overlay */
-                <div className="flex flex-col items-center">
-                  <div className="relative h-44 w-full max-w-xs">
+            // Circuit question: try neon outline image first
+            const circuitNeon =
+              option.image?.includes("/circuits/photos/")
+                ? option.image
+                    .replace("/circuits/photos/", "/circuits/")
+                    .replace(/\.(jpg|png)$/, ".png")
+                : null;
+
+            return (
+              <motion.button
+                key={option.id}
+                onClick={() => onSelect(option.id)}
+                className={`relative flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left backdrop-blur-sm transition-colors ${
+                  isSelected
+                    ? "border-white bg-white/20"
+                    : "border-white/20 bg-white/10 hover:border-white/40 hover:bg-white/15"
+                }`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.05, duration: 0.35 }}
+              >
+                {/* Thumbnail */}
+                {option.logo ? (
+                  /* Team card — logo */
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-white/10">
                     <Image
-                      src={selectedOption.image!}
-                      alt={selectedOption.label}
+                      src={option.logo}
+                      alt={option.label}
                       fill
                       unoptimized
-                      priority
-                      className="object-contain opacity-25"
+                      className={`object-contain p-1 ${
+                        ["mercedes", "aston-martin", "audi", "cadillac"].includes(option.id)
+                          ? "brightness-0 invert"
+                          : ""
+                      }`}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative h-20 w-20">
-                        <Image
-                          src={selectedOption.logo}
-                          alt={`${selectedOption.label} logo`}
-                          fill
-                          unoptimized
-                          priority
-                          className={`object-contain ${
-                            ["mercedes", "aston-martin", "audi", "cadillac"].includes(selectedOption.id)
-                              ? "brightness-0 invert"
-                              : ""
-                          }`}
-                        />
-                      </div>
-                    </div>
                   </div>
-                  <p className="mt-1 text-base font-semibold uppercase tracking-wider text-white">
-                    {selectedOption.label}
-                  </p>
-                  {selectedOption.drivers && (
-                    <p className="mt-0.5 text-xs text-[#b0b0b0]">{selectedOption.drivers}</p>
-                  )}
-                  {selectedOption.description && (
-                    <p className="mt-2 max-w-xs text-center text-xs text-neutral-400">
-                      {selectedOption.description}
-                    </p>
-                  )}
-                </div>
-              ) : selectedOption.emoji ? (
-                <div className="flex flex-col items-center">
-                  <div className="flex h-36 w-36 items-center justify-center text-8xl">
-                    {selectedOption.emoji}
+                ) : option.emoji ? (
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-2xl">
+                    {option.emoji}
                   </div>
-                  <p className="mt-2 text-base font-semibold uppercase tracking-wider text-white">
-                    {selectedOption.label}
-                  </p>
-                  {selectedOption.subtitle && (
-                    <p className="mt-0.5 text-xs text-[#b0b0b0]">{selectedOption.subtitle}</p>
-                  )}
-                </div>
-              ) : selectedOption.character ? (
-                <div className="flex flex-col items-center">
-                  <div className="h-40 w-20">
-                    <PixelCharacter characterId={selectedOption.id} className="h-full w-full" />
-                  </div>
-                  <p className="mt-2 text-base font-semibold uppercase tracking-wider text-white">
-                    {selectedOption.label}
-                  </p>
-                  <p className="mt-1 max-w-xs text-center text-xs text-neutral-400">
-                    {selectedOption.description}
-                  </p>
-                </div>
-              ) : (
-                /* Circuit / celebration with image */
-                <div className="flex flex-col items-center">
-                  <div className="relative h-40 w-full max-w-xs overflow-hidden rounded-sm">
+                ) : option.image ? (
+                  /* Circuit / celebration — try neon outline for circuits */
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-white/10">
                     <Image
-                      src={selectedOption.image!}
-                      alt={selectedOption.label}
+                      src={circuitNeon ?? option.image}
+                      alt={option.label}
                       fill
                       unoptimized
-                      priority
                       className="object-cover"
+                      onError={(e) => {
+                        // Fall back to photo if neon outline not found
+                        if (circuitNeon && e.currentTarget.src.includes(circuitNeon.split("/").pop()!)) {
+                          e.currentTarget.src = option.image!;
+                        }
+                      }}
                     />
-                    <div className="absolute inset-0 border border-neutral-700" />
                   </div>
-                  <p className="mt-3 text-base font-semibold uppercase tracking-wider text-white">
-                    {selectedOption.label}
+                ) : (
+                  <div className="h-12 w-12 flex-shrink-0 rounded-lg bg-white/10" />
+                )}
+
+                {/* Label + subtitle */}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold uppercase tracking-wide text-white">
+                    {option.label}
                   </p>
-                  {selectedOption.subtitle && (
-                    <p className="mt-0.5 text-xs text-[#b0b0b0]">{selectedOption.subtitle}</p>
-                  )}
-                  {selectedOption.description && (
-                    <p className="mt-1.5 max-w-xs text-center text-xs text-neutral-400">
-                      {selectedOption.description}
+                  {(option.subtitle ?? option.drivers) && (
+                    <p className="mt-0.5 truncate text-[11px] text-white/50">
+                      {option.subtitle ?? option.drivers}
                     </p>
                   )}
                 </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.p
-              key="placeholder"
-              className="text-sm uppercase tracking-wider text-neutral-600"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              Move the slider to choose
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
 
-      {/* Slider selector — fixed at bottom */}
-      <div className="relative z-10 pb-3">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4 }}
-        >
-          <SliderSelector
-            options={options}
-            selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
-            onIndexChange={handleIndexChange}
-          />
-        </motion.div>
+                {/* Checkmark when selected */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      className="flex-shrink-0 text-white"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Navigation */}
-      <div className="relative z-10 px-4 pb-5 pt-1">
+      <div className="relative z-10 px-4 pb-5 pt-2">
         <motion.div
           className="flex items-center justify-between"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
         >
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+            className="text-xs uppercase tracking-[0.15em] text-white/60 transition-colors hover:text-white"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-neutral-800 text-xs font-bold text-white">
-              B
-            </span>
             Back
           </button>
 
@@ -299,16 +217,13 @@ export function KnobQuestionScreen({
             {selectedId && (
               <motion.button
                 onClick={onNext}
-                className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-400 transition-colors hover:text-white"
+                className="rounded-full bg-white px-8 py-2.5 text-sm font-bold uppercase tracking-[0.15em] text-[#001050] shadow-lg transition-opacity hover:opacity-90"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
               >
                 Next
-                <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[#E10600] text-xs font-bold text-white">
-                  A
-                </span>
               </motion.button>
             )}
           </AnimatePresence>

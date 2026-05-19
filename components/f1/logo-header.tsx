@@ -44,3 +44,20 @@ export function SlackbotAvatar({ className }: { className?: string }) {
     />
   );
 }
+
+export function AstroAvatar({ className }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="https://developer.salesforce.com/resource/images/astro/Astro_DJ.png"
+      alt="Agent Astro"
+      className={cn("object-contain", className)}
+      onError={(e) => {
+        const target = e.currentTarget;
+        target.style.display = "none";
+        const fallback = target.nextSibling as HTMLElement | null;
+        if (fallback) fallback.style.display = "flex";
+      }}
+    />
+  );
+}

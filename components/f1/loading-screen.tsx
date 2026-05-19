@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { LogoHeader, SlackbotAvatar } from "./logo-header";
+import { LogoHeader, AstroAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 import { teamOptions } from "@/app/f1/options";
 
@@ -150,12 +150,12 @@ export function LoadingScreen({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <SlackbotAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
+          <AstroAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
         </motion.div>
 
         {driverName && (
           <motion.p
-            className="mb-2 text-xs uppercase tracking-[0.25em] text-[#E10600]"
+            className="mb-2 text-xs uppercase tracking-[0.25em] text-white/70"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.4 }}
@@ -174,10 +174,10 @@ export function LoadingScreen({
           {message}
         </motion.h2>
 
-        <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-neutral-800">
+        <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-white/20">
           <div
             ref={barRef}
-            className="h-full rounded-full bg-[#E10600]"
+            className="h-full rounded-full bg-white"
             style={{ width: "0%" }}
           />
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { LogoHeader, SlackbotAvatar } from "./logo-header";
+import { LogoHeader, AstroAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface IntroScreenProps {
@@ -30,35 +30,44 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <SlackbotAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
+          <AstroAvatar className="mx-auto mb-8 h-40 w-40" />
         </motion.div>
 
-        <motion.p
-          className="max-w-md text-center text-sm uppercase tracking-[0.3em] text-[#b0b0b0]"
+        <motion.h1
+          className="text-center text-4xl font-bold uppercase tracking-tight text-white md:text-5xl"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
         >
-          I&apos;m Slackbot, your personal producer.
-        </motion.p>
+          I&apos;m Agent Astro.
+        </motion.h1>
 
-        <motion.h1
-          className="mt-4 text-center text-4xl font-semibold text-white md:text-5xl"
+        <motion.p
+          className="mt-4 max-w-sm text-center text-base text-white/70"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Ready to make your podium track?
-        </motion.h1>
+          Your F1® audio producer and part of your pit crew.
+        </motion.p>
+
+        <motion.p
+          className="mt-3 max-w-sm text-center text-sm text-white/50"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          Let&apos;s make your personalized track.
+        </motion.p>
 
         <motion.button
           onClick={onNext}
-          className="mt-10 rounded-sm bg-[#E10600] px-10 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#c00500]"
+          className="mt-10 rounded-full bg-white px-10 py-3 text-sm font-bold uppercase tracking-[0.2em] text-[#001050] shadow-lg transition-opacity hover:opacity-90"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65, duration: 0.5 }}
+          transition={{ delay: 0.75, duration: 0.5 }}
         >
-          Start Your Engine
+          Ready to make noise?
         </motion.button>
       </div>
     </div>
