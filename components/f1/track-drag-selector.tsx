@@ -130,14 +130,14 @@ export function TrackDragSelector({ options, selectedId, onSelect }: TrackDragSe
       <div
         ref={trackRef}
         className="relative mx-4 touch-none select-none cursor-grab active:cursor-grabbing"
-        style={{ height: showLabels ? 72 : 52 }}
+        style={{ height: showLabels ? 88 : 68 }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={commit}
         onPointerCancel={commit}
       >
         {/* Track line */}
-        <div className="pointer-events-none absolute inset-x-0 top-[22px] h-[2px] rounded-full bg-white/20" />
+        <div className="pointer-events-none absolute inset-x-0 top-[30px] h-[2px] rounded-full bg-white/20" />
 
         {/* Zone markers */}
         {zonePcts.map((zp, i) => {
@@ -146,7 +146,7 @@ export function TrackDragSelector({ options, selectedId, onSelect }: TrackDragSe
             <div
               key={options[i].id}
               className="pointer-events-none absolute"
-              style={{ left: `${zp}%`, top: "14px", transform: "translateX(-50%)" }}
+              style={{ left: `${zp}%`, top: "22px", transform: "translateX(-50%)" }}
             >
               <div
                 className={`rounded-full transition-all duration-200 ${
@@ -168,10 +168,10 @@ export function TrackDragSelector({ options, selectedId, onSelect }: TrackDragSe
           );
         })}
 
-        {/* F1 car */}
+        {/* Fader thumb */}
         <motion.div
           className="pointer-events-none absolute"
-          style={{ top: "0px" }}
+          style={{ top: "6px" }}
           animate={{ left: `${carPct}%` }}
           transition={
             isDragging
@@ -232,31 +232,16 @@ function OptionThumb({ option, size }: { option: KnobOption; size: number }) {
 }
 
 function F1CarSVG() {
+  // White rectangle thumb — matches Figma "Music" fader design
   return (
-    <svg
-      width="64"
-      height="28"
-      viewBox="0 0 64 28"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Main body */}
-      <path d="M10 20 Q14 11 22 9 L42 9 Q52 11 56 20 Z" fill="white" />
-      {/* Nose cone */}
-      <path d="M56 14 L64 15 L64 17 L56 18 Z" fill="white" />
-      {/* Rear wing post */}
-      <rect x="3" y="12" width="7" height="6" rx="1" fill="#E10600" />
-      {/* Cockpit halo */}
-      <ellipse cx="33" cy="11" rx="7" ry="4" fill="#001050" />
-      <ellipse cx="33" cy="11" rx="5" ry="2.5" fill="#0a1a60" />
-      {/* Rear tyre */}
-      <circle cx="16" cy="22" r="5" fill="#1a1a1a" />
-      <circle cx="16" cy="22" r="3" fill="#333" />
-      {/* Front tyre */}
-      <circle cx="49" cy="22" r="5" fill="#1a1a1a" />
-      <circle cx="49" cy="22" r="3" fill="#333" />
-      {/* Front wing */}
-      <path d="M54 20 L64 19 L64 24 L54 24 Z" fill="#E10600" />
-    </svg>
+    <div
+      style={{
+        width: 28,
+        height: 48,
+        borderRadius: 6,
+        background: "white",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
+      }}
+    />
   );
 }

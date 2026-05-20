@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { DotBg } from "./dot-bg";
+import { DotBg, F1_GRADIENT } from "./dot-bg";
 import { LogoHeader } from "./logo-header";
 import { AstroAvatar } from "./logo-header";
 
@@ -15,7 +15,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
   return (
     <motion.div
       className="fixed inset-0 z-50 cursor-pointer"
-      style={{ background: "#001050" }}
+      style={{ background: F1_GRADIENT }}
       onClick={onStart}
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.6, ease: "easeInOut" }}

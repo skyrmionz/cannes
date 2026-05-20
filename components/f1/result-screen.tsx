@@ -149,7 +149,7 @@ export function ResultScreen({
   return (
     <div
       className="relative flex h-screen flex-col items-center overflow-hidden"
-      style={{ background: "linear-gradient(180deg, #0a1aaa 0%, #1a6aff 60%, #4a9fff 100%)" }}
+      style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
     >
       {/* Vertical light streaks background */}
       <LightStreaks />
@@ -287,7 +287,7 @@ function SharedPhoneView({
   return (
     <div
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6"
-      style={{ background: "linear-gradient(180deg, #0a1aaa 0%, #1a6aff 60%, #4a9fff 100%)" }}
+      style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
     >
       <LightStreaks />
 

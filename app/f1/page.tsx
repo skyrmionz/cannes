@@ -201,11 +201,12 @@ function F1Content() {
   void optIn;
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: "#001050" }}>
+    <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}>
       <AnimatePresence>
         {resetting && (
           <motion.div
-            className="fixed inset-0 z-[60] bg-[#001050]"
+            className="fixed inset-0 z-[60]"
+            style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

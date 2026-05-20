@@ -82,7 +82,7 @@ export default function SharedResultPage({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
+    <div className="flex min-h-screen flex-col bg-[#022AC0]">
       <ResultScreen
         driverName={state.data.driverName}
         team={state.data.team}
@@ -124,7 +124,7 @@ function Shell({
   showBack?: boolean;
 }) {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#0a0a0a] px-4">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#022AC0] px-4">
       <DotBg />
       <div className="relative z-10 pt-8">
         <LogoHeader className="justify-center" />
