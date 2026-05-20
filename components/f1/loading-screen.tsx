@@ -57,22 +57,32 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-function teamToMelodyGroup(teamId: string): string {
-  const team = teamOptions.find((t) => t.id === teamId);
-  return team?.melodyGroup ?? teamId;
+// 3 circuits → 5 drum stems via modulo
+// Race(monza)=D1, Street(monaco)=D2, Mixed(spa)=D3, D4→D1, D5→D2
+const CIRCUIT_TO_D: Record<string, number> = {
+  monza: 1, monaco: 2, spa: 3,
+};
+
+// 5 celebrations → 5 bass stems, direct 1:1
+const CELEBRATION_TO_B: Record<string, number> = {
+  jump: 1, nod: 2, meltdown: 3, frozen: 4, tears: 5,
+};
+
+// 11 teams → 5 snare/melody stems via melodyGroup, then melodyGroup → S number
+const MELODY_GROUP_TO_S: Record<string, number> = {
+  "red-bull": 1, ferrari: 2, mclaren: 3, mercedes: 4, haas: 5,
+};
+
+function songFilename(circuit: string, celebration: string, teamId: string): string {
+  const teamOpt = teamOptions.find((t) => t.id === teamId);
+  const melodyGroup = teamOpt?.melodyGroup ?? "red-bull";
+
+  const d = CIRCUIT_TO_D[circuit] ?? 1;
+  const b = CELEBRATION_TO_B[celebration] ?? 1;
+  const s = MELODY_GROUP_TO_S[melodyGroup] ?? 1;
+
+  return `/songs/F1_Cannes_D${d}B${b}S${s}_v01.wav`;
 }
-
-const MELODY_GROUP_STEM: Record<string, string> = {
-  "red-bull": "red-bull",
-  ferrari:    "ferrari",
-  mclaren:    "mclaren",
-  mercedes:   "mercedes",
-  haas:       "haas",
-};
-
-const CELEBRATION_STEM: Record<string, string> = {
-  jump: "jump", nod: "nod", meltdown: "meltdown", frozen: "frozen", tears: "tears",
-};
 
 export function LoadingScreen({
   driverName,
@@ -108,10 +118,9 @@ export function LoadingScreen({
     };
     rafId = requestAnimationFrame(tick);
 
-    const circuit     = grandPrix ?? "monaco";
-    const cel         = CELEBRATION_STEM[celebration ?? ""] ?? (celebration ?? "jump");
-    const melody      = MELODY_GROUP_STEM[teamToMelodyGroup(team ?? "")] ?? "red-bull";
-    const songUrl     = `/songs/${circuit}-${cel}-${melody}.wav`;
+    const circuit  = grandPrix ?? "monaco";
+    const cel      = celebration ?? "jump";
+    const songUrl  = songFilename(circuit, cel, team ?? "red-bull");
 
     const timer = setTimeout(() => {
       clearInterval(messageTimer);
