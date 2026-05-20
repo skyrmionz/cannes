@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
 import { LogoHeader } from "./logo-header";
+import { AudioReactiveStreaks } from "./audio-reactive-streaks";
 import {
   grandPrixOptions,
   celebrations,
   teamOptions,
 } from "@/app/f1/options";
-
 interface ResultScreenProps {
   driverName: string;
   grandPrix: string | null;
@@ -33,10 +33,17 @@ export function ResultScreen({
 }: ResultScreenProps) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareErrored, setShareErrored] = useState(false);
+  const [kioskPlaying, setKioskPlaying] = useState(false);
+  const [kioskAudioEl, setKioskAudioEl] = useState<HTMLAudioElement | null>(null);
+  const [kioskAnalyser, setKioskAnalyser] = useState<AnalyserNode | null>(null);
+  const [reverbWet, setReverbWet] = useState(0);
   const sharedRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const playedRef = useRef(false);
   const commentaryRef = useRef(false);
+  const kioskAudioRef = useRef<HTMLAudioElement | null>(null);
+  const reverbWetRef = useRef<GainNode | null>(null);
+  const reverbDryRef = useRef<GainNode | null>(null);
 
   const circuitOpt = grandPrixOptions.find((o) => o.id === grandPrix);
   const celebOpt = celebrations.find((o) => o.id === celebration);
@@ -59,7 +66,7 @@ export function ResultScreen({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Autoplay commentary in background on kiosk (no UI blocker)
+  // Build audio graph: source → analyser → dry/wet reverb → destination
   useEffect(() => {
     if (!songUrl || sharedView) return;
     if (commentaryRef.current) return;
@@ -68,12 +75,62 @@ export function ResultScreen({
     const controller = new AbortController();
     (async () => {
       try {
-        // Play the song stem silently in background so the room hears it
+        const CtxCls =
+          window.AudioContext ??
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+
         const audio = new Audio(songUrl);
         audio.volume = 0.85;
+        audio.crossOrigin = "anonymous";
+        kioskAudioRef.current = audio;
+        audio.onplay = () => setKioskPlaying(true);
+        audio.onpause = () => setKioskPlaying(false);
+        audio.onended = () => setKioskPlaying(false);
+        setKioskAudioEl(audio);
+
+        if (CtxCls) {
+          const ctx = new CtxCls();
+          const source = ctx.createMediaElementSource(audio);
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 64;
+
+          // Dry / wet gains for reverb
+          const dryGain = ctx.createGain();
+          const wetGain = ctx.createGain();
+          dryGain.gain.value = 1;
+          wetGain.gain.value = 0;
+          reverbDryRef.current = dryGain;
+          reverbWetRef.current = wetGain;
+
+          // Build a simple impulse reverb
+          const convolver = ctx.createConvolver();
+          const irLen = ctx.sampleRate * 2.5;
+          const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
+          for (let ch = 0; ch < 2; ch++) {
+            const d = irBuf.getChannelData(ch);
+            for (let i = 0; i < irLen; i++) {
+              d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 2.5);
+            }
+          }
+          convolver.buffer = irBuf;
+
+          // source → analyser → dry → destination
+          //                  → convolver → wet → destination
+          source.connect(analyser);
+          analyser.connect(dryGain);
+          analyser.connect(convolver);
+          convolver.connect(wetGain);
+          dryGain.connect(ctx.destination);
+          wetGain.connect(ctx.destination);
+
+          setKioskAnalyser(analyser);
+
+          audio.addEventListener("play", () => ctx.resume().catch(() => {}));
+        }
+
         await audio.play().catch(() => {});
 
-        // Then fetch and overlay commentary
+        // Overlay commentary
         const res = await fetch("/api/commentary", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -93,13 +150,20 @@ export function ResultScreen({
           await commentary.play().catch(() => {});
         }
       } catch {
-        // Commentary is enhancement-only
+        // Audio is enhancement-only
       }
     })();
 
     return () => controller.abort();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Apply reverb wet/dry when slider changes
+  useEffect(() => {
+    if (!reverbWetRef.current || !reverbDryRef.current) return;
+    reverbWetRef.current.gain.value = reverbWet;
+    reverbDryRef.current.gain.value = 1 - reverbWet * 0.6;
+  }, [reverbWet]);
 
   // Track first play
   const trackPlay = useCallback(() => {
@@ -151,8 +215,8 @@ export function ResultScreen({
       className="relative flex h-screen flex-col items-center overflow-hidden"
       style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
     >
-      {/* Vertical light streaks background */}
-      <LightStreaks />
+      {/* Audio-reactive light streaks background */}
+      <AudioReactiveStreaks audioElement={kioskAudioEl} analyserNode={kioskAnalyser} />
 
       {/* Logos */}
       <motion.div
@@ -215,13 +279,32 @@ export function ResultScreen({
         visualizer to share
       </motion.p>
 
-      {/* Restart button */}
+      {/* Reverb slider + play/restart */}
       <motion.div
-        className="relative z-10 mt-auto w-full px-6 pb-8 pt-4"
+        className="relative z-10 mt-auto w-full px-6 pb-8 pt-4 flex flex-col gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.4 }}
       >
+        {/* Reverb wet/dry fader */}
+        <ReverbSlider value={reverbWet} onChange={setReverbWet} />
+
+        {/* Play / Pause */}
+        {kioskAudioEl && (
+          <button
+            onClick={() => {
+              if (kioskPlaying) {
+                kioskAudioEl.pause();
+              } else {
+                kioskAudioEl.play().catch(() => {});
+              }
+            }}
+            className="w-full rounded-full bg-white/20 py-4 text-base font-bold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+          >
+            {kioskPlaying ? "⏸ Pause" : "▶ Play"}
+          </button>
+        )}
+
         <button
           onClick={onStartOver}
           className="w-full rounded-full bg-white/20 py-4 text-base font-bold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/30"
@@ -229,6 +312,76 @@ export function ResultScreen({
           Restart
         </button>
       </motion.div>
+    </div>
+  );
+}
+
+// ── Reverb wet/dry slider ────────────────────────────────────────────────────
+
+function ReverbSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+
+  const pctFromPointer = (clientX: number) => {
+    if (!trackRef.current) return value;
+    const { left, width } = trackRef.current.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (clientX - left) / width));
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDragging.current = true;
+    onChange(pctFromPointer(e.clientX));
+  };
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    onChange(pctFromPointer(e.clientX));
+  };
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    isDragging.current = false;
+    onChange(pctFromPointer(e.clientX));
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between px-1">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Dry</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/70">Reverb</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/50">Wet</span>
+      </div>
+
+      {/* Track */}
+      <div
+        ref={trackRef}
+        className="relative h-[52px] touch-none select-none cursor-grab active:cursor-grabbing"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        {/* Rail */}
+        <div className="pointer-events-none absolute inset-x-0 top-[25px] h-[2px] rounded-full bg-white/20" />
+        {/* Fill */}
+        <div
+          className="pointer-events-none absolute top-[25px] h-[2px] rounded-full bg-white/60"
+          style={{ left: 0, width: `${value * 100}%` }}
+        />
+        {/* Thumb */}
+        <div
+          className="pointer-events-none absolute top-[11px]"
+          style={{ left: `${value * 100}%`, transform: "translateX(-50%)" }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              background: "white",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -246,14 +399,60 @@ function SharedPhoneView({
 }) {
   const [playing, setPlaying] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
+  const [reverbWet, setReverbWet] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reverbWetRef = useRef<GainNode | null>(null);
+  const reverbDryRef = useRef<GainNode | null>(null);
 
   const togglePlay = useCallback(() => {
     if (!songUrl) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(songUrl);
-      audioRef.current.onended = () => setPlaying(false);
+      const a = new Audio(songUrl);
+      a.crossOrigin = "anonymous";
+      a.onended = () => setPlaying(false);
+      audioRef.current = a;
+      setAudioEl(a);
+
+      // Build audio graph for phone view too
+      const CtxCls =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (CtxCls) {
+        try {
+          const ctx = new CtxCls();
+          const source = ctx.createMediaElementSource(a);
+          const dryGain = ctx.createGain();
+          const wetGain = ctx.createGain();
+          dryGain.gain.value = 1;
+          wetGain.gain.value = 0;
+          reverbDryRef.current = dryGain;
+          reverbWetRef.current = wetGain;
+
+          const convolver = ctx.createConvolver();
+          const irLen = ctx.sampleRate * 2.5;
+          const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
+          for (let ch = 0; ch < 2; ch++) {
+            const d = irBuf.getChannelData(ch);
+            for (let i = 0; i < irLen; i++) {
+              d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 2.5);
+            }
+          }
+          convolver.buffer = irBuf;
+
+          source.connect(dryGain);
+          source.connect(convolver);
+          convolver.connect(wetGain);
+          dryGain.connect(ctx.destination);
+          wetGain.connect(ctx.destination);
+
+          a.addEventListener("play", () => ctx.resume().catch(() => {}));
+        } catch {
+          // Reverb is enhancement only
+        }
+      }
     }
+
     if (playing) {
       audioRef.current.pause();
       setPlaying(false);
@@ -264,6 +463,13 @@ function SharedPhoneView({
       }).catch(() => {});
     }
   }, [songUrl, playing, onTrackPlay]);
+
+  // Sync reverb on phone view
+  useEffect(() => {
+    if (!reverbWetRef.current || !reverbDryRef.current) return;
+    reverbWetRef.current.gain.value = reverbWet;
+    reverbDryRef.current.gain.value = 1 - reverbWet * 0.6;
+  }, [reverbWet]);
 
   const handleDownload = useCallback(async () => {
     if (!songUrl) return;
@@ -289,10 +495,10 @@ function SharedPhoneView({
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6"
       style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
     >
-      <LightStreaks />
+      <AudioReactiveStreaks audioElement={audioEl} />
 
       <motion.div
-        className="relative z-10 flex flex-col items-center gap-8 text-center"
+        className="relative z-10 flex w-full flex-col items-center gap-8 text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -331,6 +537,11 @@ function SharedPhoneView({
           {playing ? "Playing your anthem…" : "Tap to play your anthem"}
         </p>
 
+        {/* Reverb slider */}
+        <div className="w-full max-w-xs">
+          <ReverbSlider value={reverbWet} onChange={setReverbWet} />
+        </div>
+
         {/* Download */}
         {songUrl && (
           <button
@@ -342,31 +553,6 @@ function SharedPhoneView({
           </button>
         )}
       </motion.div>
-    </div>
-  );
-}
-
-// ── Light streaks background decoration ─────────────────────────────────────
-
-function LightStreaks() {
-  const streaks = Array.from({ length: 18 }, (_, i) => ({
-    x: 5 + i * 5.5,
-    delay: i * 0.08,
-    height: 40 + ((i * 37) % 50),
-    opacity: 0.08 + ((i * 13) % 20) / 100,
-  }));
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {streaks.map((s, i) => (
-        <motion.div
-          key={i}
-          className="absolute bottom-0 w-[1.5px] rounded-full bg-white"
-          style={{ left: `${s.x}%`, height: `${s.height}%`, opacity: s.opacity }}
-          animate={{ opacity: [s.opacity, s.opacity * 3, s.opacity] }}
-          transition={{ delay: s.delay, duration: 2 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
     </div>
   );
 }
