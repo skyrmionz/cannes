@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server";
+import { readFile } from "fs/promises";
+import path from "path";
 import { createShare } from "@/lib/f1-share";
 
 export const runtime = "nodejs";
@@ -26,21 +28,27 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Resolve relative song URLs (e.g. /songs/x.wav) to absolute so server-side
-    // fetch works. The request origin is the canonical base.
-    const songUrl = b.mp3Url.startsWith("/")
-      ? `${request.nextUrl.origin}${b.mp3Url}`
-      : b.mp3Url;
+    let mp3: Buffer;
+    let mp3Mime: string;
 
-    const mp3Res = await fetch(songUrl);
-    if (!mp3Res.ok) {
-      return Response.json(
-        { error: `Upstream fetch failed: ${mp3Res.status}` },
-        { status: 502 }
-      );
+    if (b.mp3Url.startsWith("/")) {
+      // Static file in /public — read from disk, no network round-trip.
+      // Prevents SSL termination issues on Heroku where internal requests
+      // arrive as plain HTTP but Node tries to open a TLS connection.
+      const filePath = path.join(process.cwd(), "public", b.mp3Url);
+      mp3 = await readFile(filePath);
+      mp3Mime = b.mp3Url.endsWith(".wav") ? "audio/wav" : "audio/mpeg";
+    } else {
+      const mp3Res = await fetch(b.mp3Url);
+      if (!mp3Res.ok) {
+        return Response.json(
+          { error: `Upstream fetch failed: ${mp3Res.status}` },
+          { status: 502 }
+        );
+      }
+      mp3 = Buffer.from(await mp3Res.arrayBuffer());
+      mp3Mime = mp3Res.headers.get("content-type") ?? "audio/wav";
     }
-    const mp3 = Buffer.from(await mp3Res.arrayBuffer());
-    const mp3Mime = mp3Res.headers.get("content-type") ?? "audio/wav";
 
     const code = await createShare({
       driverName: b.driverName,
