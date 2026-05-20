@@ -17,10 +17,35 @@ export async function GET(
     if (!share) {
       return new Response("Not found or expired", { status: 404 });
     }
-    return new Response(new Uint8Array(share.mp3), {
+
+    const buf = new Uint8Array(share.mp3);
+    const total = buf.length;
+    const rangeHeader = _request.headers.get("range");
+
+    if (rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (match) {
+        const start = parseInt(match[1], 10);
+        const end = match[2] ? parseInt(match[2], 10) : total - 1;
+        const chunkLength = end - start + 1;
+        return new Response(buf.slice(start, end + 1), {
+          status: 206,
+          headers: {
+            "Content-Type": share.mp3Mime,
+            "Content-Length": String(chunkLength),
+            "Content-Range": `bytes ${start}-${end}/${total}`,
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600, immutable",
+          },
+        });
+      }
+    }
+
+    return new Response(buf, {
       headers: {
         "Content-Type": share.mp3Mime,
-        "Content-Length": String(share.mp3.length),
+        "Content-Length": String(total),
+        "Accept-Ranges": "bytes",
         "Cache-Control": "public, max-age=3600, immutable",
       },
     });
