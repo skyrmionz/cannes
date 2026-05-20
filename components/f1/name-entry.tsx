@@ -122,8 +122,8 @@ export function NameEntry({
           }}
           animate={
             highlightCheckbox
-              ? { scale: [1, 1.03, 1, 1.03, 1], backgroundColor: ["rgba(255,255,255,0)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0.06)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0)"] }
-              : { scale: 1, backgroundColor: "rgba(255,255,255,0)" }
+              ? { opacity: 1, scale: [1, 1.03, 1, 1.03, 1], backgroundColor: ["rgba(255,255,255,0)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0.06)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0)"] }
+              : { opacity: 1, scale: 1, backgroundColor: "rgba(255,255,255,0)" }
           }
           transition={{ duration: 0.6 }}
           initial={{ opacity: 0 }}
