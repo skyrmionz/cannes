@@ -12,48 +12,40 @@ export interface KnobOption {
   musicNote?: string;
 }
 
-export const grandPrixOptions: KnobOption[] = [
+// Driving style → circuit ID mapping. Race=Monza, Street=Monaco, Mixed=Spa.
+// These IDs must match the pre-rendered song filenames (e.g. monza-jump-haas.wav).
+export const drivingStyleOptions: KnobOption[] = [
   {
-    id: "spa",
-    label: "Spa-Francorchamps",
-    subtitle: "Belgium",
-    description: "Sweeping elevation changes through the Ardennes forest — raw, dramatic, unpredictable.",
-    musicNote: "Driving acoustic rock kit with thunderous floor-tom fills",
-    image: "/f1/circuits/photos/spa.jpg",
-  },
-  {
-    id: "suzuka",
-    label: "Suzuka",
-    subtitle: "Japan",
-    description: "A figure-of-eight crossover masterpiece — technical, flowing, relentless.",
-    musicNote: "Tight electronic kit with intricate syncopated hi-hats",
-    image: "/f1/circuits/photos/suzuka.jpg",
+    id: "monza",
+    label: "Race Circuit",
+    subtitle: "Full throttle",
+    description: "Flat-out speed, zero compromise. The throttle is wide open from lights to flag.",
+    musicNote: "Relentless double-kick pattern — flat-out Italian disco-rock energy",
+    image: "/f1/circuits/photos/italian.png",
+    emoji: "🏁",
   },
   {
     id: "monaco",
-    label: "Monaco",
-    subtitle: "Monaco",
-    description: "Precision and prestige through the streets of Monte Carlo — unforgiving, iconic.",
+    label: "Street Circuit",
+    subtitle: "Precision on the limit",
+    description: "Millimetres from the barrier, every corner demands perfection.",
     musicNote: "Crisp precision rock kit — every hit locked to the grid",
     image: "/f1/circuits/photos/monaco.jpg",
+    emoji: "🏙️",
   },
   {
-    id: "silverstone",
-    label: "Silverstone",
-    subtitle: "United Kingdom",
-    description: "High-speed corners and rich heritage — the birthplace of Formula 1.",
-    musicNote: "Classic British rock kit with open hi-hats and live cymbal work",
-    image: "/f1/circuits/photos/british.jpg",
-  },
-  {
-    id: "monza",
-    label: "Monza",
-    subtitle: "Italy",
-    description: "The Temple of Speed — flat-out, intense, electric atmosphere.",
-    musicNote: "Relentless double-kick pattern — flat-out Italian disco-rock energy",
-    image: "/f1/circuits/photos/italian.png",
+    id: "spa",
+    label: "Mixed Circuit",
+    subtitle: "Anything can happen",
+    description: "High-speed and technical, sunshine and storms. Spa keeps everyone guessing.",
+    musicNote: "Driving acoustic rock kit with thunderous floor-tom fills",
+    image: "/f1/circuits/photos/spa.jpg",
+    emoji: "⛈️",
   },
 ];
+
+// Kept as alias — some screens still reference grandPrixOptions.
+export const grandPrixOptions = drivingStyleOptions;
 
 export const celebrations: KnobOption[] = [
   {

@@ -12,7 +12,7 @@ import { LoadingScreen } from "@/components/f1/loading-screen";
 import { ResultScreen } from "@/components/f1/result-screen";
 import { SpeedLines } from "@/components/f1/speed-lines";
 import {
-  grandPrixOptions,
+  drivingStyleOptions,
   celebrations,
   teamOptions,
   personaOptions,
@@ -127,9 +127,9 @@ function F1Content() {
       case 4:
         return (
           <KnobQuestionScreen
-            title="What is your favourite Grand Prix?"
-            subtitle="Your answer controls the drum track — the heartbeat of your song."
-            options={grandPrixOptions}
+            title="What's your driving style?"
+            subtitle="Drag the car to your circuit — this sets the rhythm of your track."
+            options={drivingStyleOptions}
             selectedId={grandPrix}
             onSelect={setGrandPrix}
             onNext={goForward}
@@ -141,8 +141,8 @@ function F1Content() {
       case 5:
         return (
           <KnobQuestionScreen
-            title="Your driver just took the chequered flag. What do you do?"
-            subtitle="This shapes the bass line — how much raw emotion drives your track."
+            title="Lights out. Your driver wins. What do you do?"
+            subtitle="Drag the car to your reaction — this shapes the bass line."
             options={celebrations}
             selectedId={celebration}
             onSelect={setCelebration}
@@ -155,8 +155,8 @@ function F1Content() {
       case 6:
         return (
           <KnobQuestionScreen
-            title="What is your favourite team?"
-            subtitle="Your team picks the melody line — the musical identity that makes this track yours."
+            title="Who do you race for?"
+            subtitle="Drag the car to your team — this picks your melody."
             options={teamOptions}
             selectedId={team}
             onSelect={setTeam}
