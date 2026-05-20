@@ -33,10 +33,13 @@ export function ResultScreen({
 }: ResultScreenProps) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareErrored, setShareErrored] = useState(false);
+  const [kioskPlaying, setKioskPlaying] = useState(false);
+  const [kioskAudioReady, setKioskAudioReady] = useState(false);
   const sharedRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const playedRef = useRef(false);
   const commentaryRef = useRef(false);
+  const kioskAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const circuitOpt = grandPrixOptions.find((o) => o.id === grandPrix);
   const celebOpt = celebrations.find((o) => o.id === celebration);
@@ -71,6 +74,11 @@ export function ResultScreen({
         // Play the song stem silently in background so the room hears it
         const audio = new Audio(songUrl);
         audio.volume = 0.85;
+        kioskAudioRef.current = audio;
+        audio.onplay = () => setKioskPlaying(true);
+        audio.onpause = () => setKioskPlaying(false);
+        audio.onended = () => setKioskPlaying(false);
+        setKioskAudioReady(true);
         await audio.play().catch(() => {});
 
         // Then fetch and overlay commentary
@@ -215,13 +223,29 @@ export function ResultScreen({
         visualizer to share
       </motion.p>
 
-      {/* Restart button */}
+      {/* Stop / Restart buttons */}
       <motion.div
-        className="relative z-10 mt-auto w-full px-6 pb-8 pt-4"
+        className="relative z-10 mt-auto w-full px-6 pb-8 pt-4 flex flex-col gap-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.4 }}
       >
+        {kioskAudioReady && (
+          <button
+            onClick={() => {
+              const audio = kioskAudioRef.current;
+              if (!audio) return;
+              if (kioskPlaying) {
+                audio.pause();
+              } else {
+                audio.play().catch(() => {});
+              }
+            }}
+            className="w-full rounded-full bg-white/20 py-4 text-base font-bold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+          >
+            {kioskPlaying ? "⏸ Pause" : "▶ Play"}
+          </button>
+        )}
         <button
           onClick={onStartOver}
           className="w-full rounded-full bg-white/20 py-4 text-base font-bold tracking-wide text-white backdrop-blur-sm transition-colors hover:bg-white/30"
