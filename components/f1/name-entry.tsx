@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { LogoHeader, AstroAvatar } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
@@ -21,34 +21,50 @@ export function NameEntry({
   onOptInChange,
 }: NameEntryProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const checkboxRef = useRef<HTMLLabelElement>(null);
   const [optIn, setOptIn] = useState(false);
+  const [highlightCheckbox, setHighlightCheckbox] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => inputRef.current?.focus(), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && driverName.trim()) {
-      onNext();
-    }
-  };
-
   const handleOptInChange = (v: boolean) => {
     setOptIn(v);
+    setHighlightCheckbox(false);
     onOptInChange?.(v);
+  };
+
+  const canProceed = driverName.trim().length > 0 && optIn;
+
+  const handleNext = () => {
+    if (!optIn) {
+      // Flash the checkbox to draw attention
+      setHighlightCheckbox(true);
+      checkboxRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => setHighlightCheckbox(false), 2000);
+      return;
+    }
+    onNext();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && driverName.trim()) {
+      handleNext();
+    }
   };
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
 
-      {/* Progress bar — step 1 of 4 questions (pre-questions, show at 20%) */}
+      {/* Progress bar */}
       <div className="relative z-10 h-1 w-full bg-white/20">
         <div className="h-full bg-white" style={{ width: "20%" }} />
       </div>
 
-      {/* Logos pinned to top */}
+      {/* Logos */}
       <div className="relative z-10 pt-6">
         <LogoHeader className="justify-center" />
       </div>
@@ -99,19 +115,53 @@ export function NameEntry({
 
         {/* GDPR opt-in */}
         <motion.label
-          className="mt-4 flex max-w-sm cursor-pointer items-center gap-2 text-xs text-white/60"
+          ref={checkboxRef}
+          className="mt-4 flex max-w-sm cursor-pointer items-start gap-3 rounded-xl px-3 py-2 text-xs transition-all"
+          style={{
+            color: highlightCheckbox ? "white" : "rgba(255,255,255,0.6)",
+          }}
+          animate={
+            highlightCheckbox
+              ? { scale: [1, 1.03, 1, 1.03, 1], backgroundColor: ["rgba(255,255,255,0)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0.06)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0)"] }
+              : { scale: 1, backgroundColor: "rgba(255,255,255,0)" }
+          }
+          transition={{ duration: 0.6 }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.45, duration: 0.4 }}
         >
-          <input
-            type="checkbox"
-            checked={optIn}
-            onChange={(e) => handleOptInChange(e.target.checked)}
-            className="h-4 w-4 accent-white"
-          />
-          Opt in for personalised quiz results only. We never sell your data.
+          <motion.div
+            animate={highlightCheckbox ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-0.5 flex-shrink-0"
+          >
+            <input
+              type="checkbox"
+              checked={optIn}
+              onChange={(e) => handleOptInChange(e.target.checked)}
+              className="h-4 w-4 accent-white"
+            />
+          </motion.div>
+          <span>
+            Opt in for personalised quiz results only. We never sell your data.
+            {highlightCheckbox && (
+              <span className="ml-1 font-semibold text-white"> ← required to continue</span>
+            )}
+          </span>
         </motion.label>
+
+        {/* Inline error nudge */}
+        <AnimatePresence>
+          {highlightCheckbox && (
+            <motion.p
+              className="mt-1 text-[11px] font-medium text-white/80"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Please agree to continue
+            </motion.p>
+          )}
+        </AnimatePresence>
 
         <motion.div
           className="mt-6 flex items-center gap-4"
@@ -126,9 +176,13 @@ export function NameEntry({
             Back
           </button>
           <button
-            onClick={onNext}
+            onClick={handleNext}
             disabled={!driverName.trim()}
-            className="rounded-full bg-white px-8 py-3 text-sm font-bold uppercase tracking-[0.15em] text-[#001050] shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className={`rounded-full px-8 py-3 text-sm font-bold uppercase tracking-[0.15em] shadow-lg transition-all ${
+              canProceed
+                ? "bg-white text-[#001050] hover:opacity-90"
+                : "cursor-pointer bg-white/30 text-white/50"
+            }`}
           >
             Next
           </button>
