@@ -10,6 +10,7 @@ import {
   celebrations,
   teamOptions,
 } from "@/app/f1/options";
+
 interface ResultScreenProps {
   driverName: string;
   grandPrix: string | null;
@@ -102,7 +103,7 @@ export function ResultScreen({
           reverbDryRef.current = dryGain;
           reverbWetRef.current = wetGain;
 
-          // Build a simple impulse reverb
+          // Synthetic impulse reverb (2.5 s exponential decay)
           const convolver = ctx.createConvolver();
           const irLen = ctx.sampleRate * 2.5;
           const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
@@ -279,14 +280,18 @@ export function ResultScreen({
         visualizer to share
       </motion.p>
 
-      {/* Reverb slider + play/restart */}
+      {/* DRS reverb fader + play/restart */}
       <motion.div
         className="relative z-10 mt-auto w-full px-6 pb-8 pt-4 flex flex-col gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.4 }}
       >
-        {/* Reverb wet/dry fader */}
+        {/* DRS reverb fader */}
+        <div className="flex flex-col gap-1">
+          <p className="text-center text-[11px] font-extrabold uppercase tracking-widest text-white">Deploy DRS</p>
+          <p className="text-center text-[10px] text-white/50">Add atmosphere to your track</p>
+        </div>
         <ReverbSlider value={reverbWet} onChange={setReverbWet} />
 
         {/* Play / Pause */}
@@ -537,8 +542,10 @@ function SharedPhoneView({
           {playing ? "Playing your anthem…" : "Tap to play your anthem"}
         </p>
 
-        {/* Reverb slider */}
-        <div className="w-full max-w-xs">
+        {/* Deploy DRS reverb slider */}
+        <div className="w-full max-w-xs flex flex-col gap-1">
+          <p className="text-center text-[11px] font-extrabold uppercase tracking-widest text-white">Deploy DRS</p>
+          <p className="text-center text-[10px] text-white/50">Add atmosphere to your track</p>
           <ReverbSlider value={reverbWet} onChange={setReverbWet} />
         </div>
 
