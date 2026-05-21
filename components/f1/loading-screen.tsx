@@ -57,10 +57,9 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-// 3 circuits → 5 drum stems via modulo
-// Race(monza)=D1, Street(monaco)=D2, Mixed(spa)=D3, D4→D1, D5→D2
+// 5 circuits → 5 drum stems, direct 1:1
 const CIRCUIT_TO_D: Record<string, number> = {
-  monza: 1, monaco: 2, spa: 3,
+  monza: 1, monaco: 2, spa: 3, silverstone: 4, suzuka: 5,
 };
 
 // 5 celebrations → 5 bass stems, direct 1:1

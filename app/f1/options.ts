@@ -12,8 +12,9 @@ export interface KnobOption {
   musicNote?: string;
 }
 
-// Driving style → circuit ID mapping. Race=Monza, Street=Monaco, Mixed=Spa.
-// These IDs must match the pre-rendered song filenames (e.g. monza-jump-haas.wav).
+// Driving style → circuit ID mapping.
+// D1=monza, D2=monaco, D3=spa, D4=silverstone, D5=suzuka
+// These IDs must match CIRCUIT_TO_D in loading-screen.tsx.
 export const drivingStyleOptions: KnobOption[] = [
   {
     id: "monza",
@@ -41,6 +42,24 @@ export const drivingStyleOptions: KnobOption[] = [
     musicNote: "Driving acoustic rock kit with thunderous floor-tom fills",
     image: "/f1/circuits/photos/spa.jpg",
     emoji: "⛈️",
+  },
+  {
+    id: "silverstone",
+    label: "Home Circuit",
+    subtitle: "Fast and flowing",
+    description: "The birthplace of Formula 1 — sweeping high-speed corners, a crowd that lives for it.",
+    musicNote: "Rolling groove with wide snare crack — open, powerful, euphoric",
+    image: "/f1/circuits/photos/british.jpg",
+    emoji: "🇬🇧",
+  },
+  {
+    id: "suzuka",
+    label: "Technical Circuit",
+    subtitle: "Chess at 300 km/h",
+    description: "The figure-of-eight challenge — a driver's circuit where finesse beats horsepower.",
+    musicNote: "Tight hi-hat shuffle with syncopated kick — intricate and surgical",
+    image: "/f1/circuits/photos/suzuka.jpg",
+    emoji: "🎌",
   },
 ];
 
@@ -90,8 +109,7 @@ export const celebrations: KnobOption[] = [
   },
 ];
 
-// Full team list for display — each carries a melodyGroup that maps to
-// one of the 5 Melody stems (and the pre-rendered song filename).
+// 5 teams — one per snare/melody stem. melodyGroup === id, maps directly to S1–S5.
 const MELODY_NOTES: Record<string, string> = {
   "red-bull": "Bold brass fanfare with tuba foundation — commanding and authoritative",
   "ferrari":  "Italian opera brass led by high trumpet and trombone — passionate and melodic",
@@ -100,22 +118,12 @@ const MELODY_NOTES: Record<string, string> = {
   "haas":     "Wildcard melody — unconventional, distinctive, unforgettable",
 };
 
-// All 11 teams are shown in the selector. melodyGroup maps each team to one of 5 audio
-// stems using a modulo pattern: teams 1,6 → red-bull, 2,7 → ferrari, 3,8 → mclaren,
-// 4,9 → mercedes, 5,10,11 → haas. Song filenames use melodyGroup, so adding or
-// swapping teams here never requires an audio rebuild.
 export const teamOptions: KnobOption[] = [
-  { id: "red-bull",     melodyGroup: "red-bull",  musicNote: MELODY_NOTES["red-bull"],  label: "Red Bull Racing",  description: "Four-time constructors' champions — relentless innovation, dominant pace.",            image: "/f1/teams/cars/red-bull.png",      logo: "/f1/teams/logos/red-bull.png",      drivers: "Verstappen & Lawson" },
-  { id: "ferrari",      melodyGroup: "ferrari",   musicNote: MELODY_NOTES["ferrari"],   label: "Ferrari",          description: "The most iconic name in motorsport — passion, drama, legacy.",                        image: "/f1/teams/cars/ferrari.png",       logo: "/f1/teams/logos/ferrari.png",       drivers: "Leclerc & Hamilton" },
-  { id: "mclaren",      melodyGroup: "mclaren",   musicNote: MELODY_NOTES["mclaren"],   label: "McLaren",          description: "One of F1's most storied teams — a winning tradition reborn.",                        image: "/f1/teams/cars/mclaren.png",       logo: "/f1/teams/logos/mclaren.png",       drivers: "Norris & Piastri" },
-  { id: "mercedes",     melodyGroup: "mercedes",  musicNote: MELODY_NOTES["mercedes"],  label: "Mercedes",         description: "Eight consecutive constructors' titles — engineering excellence defined.",            image: "/f1/teams/cars/mercedes.png",      logo: "/f1/teams/logos/mercedes.png",      drivers: "Russell & Antonelli" },
-  { id: "aston-martin", melodyGroup: "haas",      musicNote: MELODY_NOTES["haas"],      label: "Aston Martin",     description: "British racing green ambition — building a dynasty from the ground up.",             image: "/f1/teams/cars/aston-martin.png",  logo: "/f1/teams/logos/aston-martin.png",  drivers: "Alonso & Stroll" },
-  { id: "racing-bulls", melodyGroup: "red-bull",  musicNote: MELODY_NOTES["red-bull"],  label: "Racing Bulls",     description: "The proving ground for Red Bull's next generation — raw talent, rapid development.", image: "/f1/teams/cars/racing-bulls.png",  logo: "/f1/teams/logos/racing-bulls.png",  drivers: "Tsunoda & Hadjar" },
-  { id: "alpine",       melodyGroup: "ferrari",   musicNote: MELODY_NOTES["ferrari"],   label: "Alpine",           description: "French flair meets racing pedigree — the spirit of Renault reborn.",                 image: "/f1/teams/cars/alpine.png",        logo: "/f1/teams/logos/alpine.png",        drivers: "Gasly & Doohan" },
-  { id: "williams",     melodyGroup: "mclaren",   musicNote: MELODY_NOTES["mclaren"],   label: "Williams",         description: "Nine constructors' championships — a legendary name fighting back.",                  image: "/f1/teams/cars/williams.png",      logo: "/f1/teams/logos/williams.png",      drivers: "Sainz & Albon" },
-  { id: "haas",         melodyGroup: "mercedes",  musicNote: MELODY_NOTES["mercedes"],  label: "Haas",             description: "America's F1 team — grit, determination, and a growing grid presence.",              image: "/f1/teams/cars/haas.png",          logo: "/f1/teams/logos/haas.png",          drivers: "Ocon & Bearman" },
-  { id: "audi",         melodyGroup: "haas",      musicNote: MELODY_NOTES["haas"],      label: "Audi",             description: "A new era begins — German engineering enters Formula 1.",                            image: "/f1/teams/cars/audi.png",          logo: "/f1/teams/logos/audi.png",          drivers: "Hülkenberg & Bortoleto" },
-  { id: "cadillac",     melodyGroup: "red-bull",  musicNote: MELODY_NOTES["red-bull"],  label: "Cadillac",         description: "The newest entry on the grid — American ambition at full throttle.",                 image: "/f1/teams/cars/cadillac.png",      logo: "/f1/teams/logos/cadillac.png",      drivers: "TBA" },
+  { id: "red-bull",  melodyGroup: "red-bull",  musicNote: MELODY_NOTES["red-bull"],  label: "Red Bull Racing", description: "Four-time constructors' champions — relentless innovation, dominant pace.",  image: "/f1/teams/cars/red-bull.png",  logo: "/f1/teams/logos/red-bull.png",  drivers: "Verstappen & Lawson" },
+  { id: "ferrari",   melodyGroup: "ferrari",   musicNote: MELODY_NOTES["ferrari"],   label: "Ferrari",         description: "The most iconic name in motorsport — passion, drama, legacy.",                image: "/f1/teams/cars/ferrari.png",   logo: "/f1/teams/logos/ferrari.png",   drivers: "Leclerc & Hamilton" },
+  { id: "mclaren",   melodyGroup: "mclaren",   musicNote: MELODY_NOTES["mclaren"],   label: "McLaren",         description: "One of F1's most storied teams — a winning tradition reborn.",                image: "/f1/teams/cars/mclaren.png",   logo: "/f1/teams/logos/mclaren.png",   drivers: "Norris & Piastri" },
+  { id: "mercedes",  melodyGroup: "mercedes",  musicNote: MELODY_NOTES["mercedes"],  label: "Mercedes",        description: "Eight consecutive constructors' titles — engineering excellence defined.",    image: "/f1/teams/cars/mercedes.png",  logo: "/f1/teams/logos/mercedes.png",  drivers: "Russell & Antonelli" },
+  { id: "haas",      melodyGroup: "haas",      musicNote: MELODY_NOTES["haas"],      label: "Haas",            description: "America's F1 team — grit, determination, and a growing grid presence.",     image: "/f1/teams/cars/haas.png",      logo: "/f1/teams/logos/haas.png",      drivers: "Ocon & Bearman" },
 ];
 
 // Used only for randomly assigning the podium pixel character — not shown as a question.
