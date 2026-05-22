@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 45;
 
 function randomVoice(): string {
   const male   = process.env.ELEVENLABS_VOICE_MALE   ?? "KWgrCrnZUL9fUdhsHwbS";
@@ -13,8 +13,6 @@ function randomVoice(): string {
   return Math.random() < 0.5 ? male : female;
 }
 
-// Write the GCP service account JSON to a temp file so the SDK can find it,
-// exactly as the original server.js does.
 function setupGoogleAuth(): boolean {
   const jsonStr = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
   if (!jsonStr) return false;
@@ -28,26 +26,42 @@ function setupGoogleAuth(): boolean {
   }
 }
 
-async function buildScript(
+export interface CommentaryLine {
+  offsetSeconds: number;
+  text: string;
+}
+
+/**
+ * Generates a 4-beat race arc that fits a 40-second track.
+ * Returns an array of { offsetSeconds, text } objects.
+ */
+async function buildArc(
   name: string,
   grandPrix: string,
   celebration: string,
-  team: string
-): Promise<string> {
-  if (!setupGoogleAuth()) {
-    return fallbackScript(name, grandPrix, team);
-  }
+  team: string,
+): Promise<CommentaryLine[]> {
+  const fallback = fallbackArc(name, grandPrix, team);
+
+  if (!setupGoogleAuth()) return fallback;
 
   const project  = process.env.VERTEX_PROJECT;
   const location = process.env.VERTEX_LOCATION ?? "us-central1";
-  if (!project) return fallbackScript(name, grandPrix, team);
+  if (!project) return fallback;
 
   const prompt = [
-    `Write a punchy F1 race-commentary voiceover, maximum 50 words, spoken aloud in about 7 seconds.`,
-    `The fan's name is "${name}". Their favourite circuit is ${grandPrix}. Their favourite team is ${team}. Their celebration style: ${celebration}.`,
-    `Structure: (1) Their name surging to the front, (2) intense battle into the final corner, (3) ${name} pulling away, (4) chequered flag — crowd erupts.`,
-    `Output ONLY the spoken words. No stage directions. No punctuation beyond commas and exclamation marks. Single line.`,
-  ].join(" ");
+    `You are an F1 race commentator. Write a 4-part voiceover arc for a 40-second personalised fan track.`,
+    `Fan name: "${name}". Circuit: ${grandPrix}. Team: ${team}. Celebration style: ${celebration}.`,
+    ``,
+    `Rules:`,
+    `- Part 1 (offset 0s): ~8 words. Name is the FIRST word. Lights out, explosive start.`,
+    `- Part 2 (offset 10s): ~10 words. Being pushed hard, intense battle, challenged.`,
+    `- Part 3 (offset 22s): ~10 words. Overtaken briefly, then fights back and reclaims position.`,
+    `- Part 4 (offset 34s): ~10 words. Crosses line, euphoric, shout the NAME and TEAM loudly.`,
+    ``,
+    `Return ONLY a valid JSON array, no markdown, no explanation:`,
+    `[{"offsetSeconds":0,"text":"..."},{"offsetSeconds":10,"text":"..."},{"offsetSeconds":22,"text":"..."},{"offsetSeconds":34,"text":"..."}]`,
+  ].join("\n");
 
   try {
     const ai = new GoogleGenAI({ vertexai: true, project, location });
@@ -55,15 +69,56 @@ async function buildScript(
       model: "gemini-2.0-flash",
       contents: prompt,
     });
-    return response.text?.trim() ?? fallbackScript(name, grandPrix, team);
+    const raw = response.text?.trim() ?? "";
+    // Strip any accidental markdown fences
+    const json = raw.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").trim();
+    const parsed = JSON.parse(json) as CommentaryLine[];
+    if (Array.isArray(parsed) && parsed.length >= 2) return parsed;
+    return fallback;
   } catch {
-    return fallbackScript(name, grandPrix, team);
+    return fallback;
   }
 }
 
-function fallbackScript(name: string, grandPrix: string, team: string): string {
+function fallbackArc(name: string, grandPrix: string, team: string): CommentaryLine[] {
   const n = name || "Champion";
-  return `${n} is making a move! Into the final corner at ${grandPrix} — ${n} won't give an inch! ${team} have done it, ${n} pulls away — it's ${n.toUpperCase()}, the crowd goes absolutely wild!`;
+  const t = team || "the team";
+  return [
+    { offsetSeconds: 0,  text: `${n} is on pole — lights out, GO!` },
+    { offsetSeconds: 10, text: `Into sector two at ${grandPrix}, pushing hard — there's a challenge!` },
+    { offsetSeconds: 22, text: `${n} is overtaken! But wait — finds the gap, makes the move, takes it back!` },
+    { offsetSeconds: 34, text: `IT'S ${n.toUpperCase()}!! ${t.toUpperCase()} HAS DONE IT!! THE CROWD GOES ABSOLUTELY WILD!!` },
+  ];
+}
+
+async function elevenLabsTTS(text: string, voiceId: string, apiKey: string): Promise<Buffer | null> {
+  try {
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=pcm_44100`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          Accept: "audio/mpeg",
+        },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: {
+            stability: 0.35,
+            similarity_boost: 0.75,
+            style: 0.5,
+            use_speaker_boost: true,
+          },
+        }),
+      }
+    );
+    if (!res.ok) return null;
+    return Buffer.from(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -80,13 +135,26 @@ export async function POST(request: NextRequest) {
   const celebration = typeof b.celebration === "string" ? b.celebration : "jump";
   const team        = typeof b.team        === "string" ? b.team        : "the team";
 
+  // structured=true → return JSON arc for the bake pipeline (no audio)
+  const structured  = b.structured === true;
+
+  const arc = await buildArc(name, grandPrix, celebration, team);
+
+  if (structured) {
+    return Response.json({ arc });
+  }
+
   const elevenKey = process.env.ELEVENLABS_API_KEY;
   const voiceId   = randomVoice();
-  const script    = await buildScript(name, grandPrix, celebration, team);
 
   if (!elevenKey) {
-    return Response.json({ script });
+    return Response.json({ arc });
   }
+
+  // For kiosk live playback: concatenate all lines into one script with natural pauses,
+  // return as a single audio stream so the client can play it with timed offsets via JS.
+  // We return the arc metadata in a header so the client knows when to play each chunk.
+  const fullScript = arc.map((l) => l.text).join("  ...  ");
 
   const ttsRes = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
@@ -98,7 +166,7 @@ export async function POST(request: NextRequest) {
         Accept: "audio/mpeg",
       },
       body: JSON.stringify({
-        text: script,
+        text: fullScript,
         model_id: "eleven_turbo_v2_5",
         voice_settings: {
           stability: 0.35,
@@ -111,7 +179,7 @@ export async function POST(request: NextRequest) {
   );
 
   if (!ttsRes.ok) {
-    return Response.json({ script });
+    return Response.json({ arc });
   }
 
   const buffer = await ttsRes.arrayBuffer();
@@ -119,7 +187,10 @@ export async function POST(request: NextRequest) {
     headers: {
       "Content-Type": "audio/mpeg",
       "Content-Length": String(buffer.byteLength),
-      "X-Commentary-Script": encodeURIComponent(script),
+      "X-Commentary-Arc": encodeURIComponent(JSON.stringify(arc)),
     },
   });
 }
+
+// Named export so the share route can call this directly without HTTP
+export { buildArc, elevenLabsTTS };

@@ -190,7 +190,7 @@ export function ResultScreen({
         const res = await fetch("/api/share", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ driverName, team, persona, mp3Url: songUrl }),
+          body: JSON.stringify({ driverName, team, persona, mp3Url: songUrl, grandPrix, celebration }),
           signal: controller.signal,
         });
         if (!res.ok) { setShareErrored(true); return; }
