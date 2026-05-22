@@ -65,6 +65,7 @@ function F1Content() {
   // Persona is never asked — assigned randomly when loading starts.
   const [persona, setPersona] = useState<string | null>(null);
   const [songUrl, setSongUrl] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
     setDirection(1);
@@ -92,10 +93,25 @@ function F1Content() {
       setTeam(null);
       setPersona(null);
       setSongUrl(null);
+      setSessionId(null);
       setShowStart(true);
       setResetting(false);
     }, 600);
   }, []);
+
+  // Create a session row as soon as the user passes NameEntry so we have an ID
+  // to attach screen_dropped events to during the question flow.
+  const handleNameNext = useCallback(() => {
+    fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed: false, answers: {} }),
+    })
+      .then((r) => r.json())
+      .then((d: { id: string }) => setSessionId(d.id))
+      .catch(() => {});
+    goForward();
+  }, [goForward]);
 
   const handleLoadingStart = useCallback(() => {
     // Assign persona randomly at the moment we enter the loading screen.
@@ -112,7 +128,7 @@ function F1Content() {
           <NameEntry
             driverName={driverName}
             onNameChange={setDriverName}
-            onNext={goForward}
+            onNext={handleNameNext}
             onBack={goBack}
             onOptInChange={setOptIn}
           />
@@ -128,7 +144,7 @@ function F1Content() {
         return (
           <KnobQuestionScreen
             title="What's your driving style?"
-            subtitle="Drag the car to your circuit — this sets the rhythm of your track."
+            subtitle="Tap your circuit — this sets the rhythm of your track."
             options={drivingStyleOptions}
             selectedId={grandPrix}
             onSelect={setGrandPrix}
@@ -136,13 +152,14 @@ function F1Content() {
             onBack={goBack}
             stepIndex={0}
             totalSteps={3}
+            sessionId={sessionId}
           />
         );
       case 5:
         return (
           <KnobQuestionScreen
             title="Lights out. Your driver wins. What do you do?"
-            subtitle="Drag the car to your reaction — this shapes the bass line."
+            subtitle="Tap your reaction — this shapes the bass line."
             options={celebrations}
             selectedId={celebration}
             onSelect={setCelebration}
@@ -150,13 +167,14 @@ function F1Content() {
             onBack={goBack}
             stepIndex={1}
             totalSteps={3}
+            sessionId={sessionId}
           />
         );
       case 6:
         return (
           <KnobQuestionScreen
             title="Who do you race for?"
-            subtitle="Drag the car to your team — this picks your melody."
+            subtitle="Tap your team — this picks your melody."
             options={teamOptions}
             selectedId={team}
             onSelect={setTeam}
@@ -164,6 +182,7 @@ function F1Content() {
             onBack={goBack}
             stepIndex={2}
             totalSteps={3}
+            sessionId={sessionId}
           />
         );
       case 7:

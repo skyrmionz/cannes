@@ -43,17 +43,29 @@ export async function ensureSchema(): Promise<void> {
     CREATE INDEX IF NOT EXISTS f1_shares_expires_at_idx ON f1_shares(expires_at);
 
     CREATE TABLE IF NOT EXISTS cannes_sessions (
-      id           TEXT PRIMARY KEY,
-      activation   TEXT NOT NULL DEFAULT 'f1',
-      event        TEXT NOT NULL DEFAULT 'cannes-2026',
-      answers      JSONB NOT NULL,
-      completed    BOOLEAN NOT NULL DEFAULT FALSE,
-      played       BOOLEAN NOT NULL DEFAULT FALSE,
-      downloaded   BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      id             TEXT PRIMARY KEY,
+      activation     TEXT NOT NULL DEFAULT 'f1',
+      event          TEXT NOT NULL DEFAULT 'cannes-2026',
+      answers        JSONB NOT NULL,
+      completed      BOOLEAN NOT NULL DEFAULT FALSE,
+      played         BOOLEAN NOT NULL DEFAULT FALSE,
+      downloaded     BOOLEAN NOT NULL DEFAULT FALSE,
+      qr_scanned     BOOLEAN NOT NULL DEFAULT FALSE,
+      screen_dropped INTEGER,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Idempotent migrations for existing tables
+    ALTER TABLE cannes_sessions ADD COLUMN IF NOT EXISTS qr_scanned BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE cannes_sessions ADD COLUMN IF NOT EXISTS screen_dropped INTEGER;
     CREATE INDEX IF NOT EXISTS cs_activation_idx ON cannes_sessions(activation);
     CREATE INDEX IF NOT EXISTS cs_created_at_idx ON cannes_sessions(created_at);
+
+    CREATE TABLE IF NOT EXISTS cannes_scans (
+      id         SERIAL PRIMARY KEY,
+      share_code TEXT NOT NULL,
+      scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS cs_scans_code_idx ON cannes_scans(share_code);
   `);
   schemaReady = true;
 }

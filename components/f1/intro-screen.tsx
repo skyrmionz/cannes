@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "motion/react";
-import { LogoHeader, AstroAvatar } from "./logo-header";
+import { LogoHeader } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface IntroScreenProps {
@@ -13,7 +14,15 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
     <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
 
-      {/* Logos pinned to the top */}
+      {/* Stripe chrome */}
+      <div className="pointer-events-none absolute left-0 top-0 z-0 w-40 opacity-80">
+        <Image src="/f1/stripe-top-left.png" alt="" width={160} height={160} unoptimized className="object-contain" />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 right-0 z-0 w-40 opacity-80">
+        <Image src="/f1/stripe-bottom-right.png" alt="" width={160} height={160} unoptimized className="object-contain" />
+      </div>
+
+      {/* Logo */}
       <motion.div
         className="relative z-10 pt-8"
         initial={{ opacity: 0, y: -10 }}
@@ -24,50 +33,65 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
       </motion.div>
 
       {/* Centered content */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0">
+        {/* Astro with headphones */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          initial={{ opacity: 0, scale: 0.85, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.55, type: "spring", stiffness: 260, damping: 22 }}
         >
-          <AstroAvatar className="mx-auto mb-8 h-40 w-40" />
+          <Image
+            src="/f1/astro-headphones.png"
+            alt="Agent Astro"
+            width={160}
+            height={160}
+            unoptimized
+            className="mx-auto mb-4"
+          />
         </motion.div>
 
         <motion.h1
-          className="text-center text-4xl font-bold uppercase tracking-tight text-white md:text-5xl"
-          initial={{ opacity: 0, y: 10 }}
+          className="text-center text-4xl font-extrabold uppercase tracking-tight text-white"
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
+          transition={{ delay: 0.32, duration: 0.45 }}
         >
           I&apos;m Agent Astro.
         </motion.h1>
 
         <motion.p
-          className="mt-4 max-w-sm text-center text-base text-white/70"
+          className="mt-3 max-w-xs text-center text-sm text-white/70"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
+          transition={{ delay: 0.44, duration: 0.4 }}
         >
           Your F1® audio producer and part of your pit crew.
         </motion.p>
 
         <motion.p
-          className="mt-3 max-w-sm text-center text-sm text-white/50"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-1.5 max-w-xs text-center text-xs text-white/45"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.54, duration: 0.4 }}
         >
-          Let&apos;s make your personalized track.
+          Let&apos;s make your personalised track.
         </motion.p>
 
+        {/* Figma-style pill CTA */}
         <motion.button
           onClick={onNext}
-          className="mt-10 rounded-full bg-white px-10 py-3 text-sm font-bold uppercase tracking-[0.2em] text-[#001050] shadow-lg transition-opacity hover:opacity-90"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.75, duration: 0.5 }}
+          whileTap={{ scale: 0.94 }}
+          transition={{ delay: 0.68, duration: 0.4 }}
+          className="mt-8 rounded-full px-10 py-3.5 text-sm font-extrabold uppercase tracking-[0.15em]"
+          style={{
+            background: "#CCE8FF",
+            color: "#022AC0",
+            boxShadow: "0 4px 20px rgba(0,179,255,0.3)",
+          }}
         >
-          Ready to make noise?
+          Start your engines
         </motion.button>
       </div>
     </div>

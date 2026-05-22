@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import dynamic from "next/dynamic";
 import { QRCodeSVG } from "qrcode.react";
 import { LogoHeader } from "./logo-header";
 import { AudioReactiveStreaks } from "./audio-reactive-streaks";
@@ -10,6 +11,9 @@ import {
   celebrations,
   teamOptions,
 } from "@/app/f1/options";
+
+// Lottie loaded client-side only (no SSR)
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 interface ResultScreenProps {
   driverName: string;
@@ -38,6 +42,8 @@ export function ResultScreen({
   const [kioskAudioEl, setKioskAudioEl] = useState<HTMLAudioElement | null>(null);
   const [kioskAnalyser, setKioskAnalyser] = useState<AnalyserNode | null>(null);
   const [reverbWet, setReverbWet] = useState(0);
+  const [confettiData, setConfettiData] = useState<object | null>(null);
+  const [showConfetti, setShowConfetti] = useState(!sharedView);
   const sharedRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const playedRef = useRef(false);
@@ -64,6 +70,18 @@ export function ResultScreen({
       .then((r) => r.json())
       .then((d: { id: string }) => { sessionIdRef.current = d.id; })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load Lottie confetti JSON once and auto-dismiss after 2.8s
+  useEffect(() => {
+    if (sharedView) return;
+    fetch("/lottie/confetti.json")
+      .then((r) => r.json())
+      .then((data) => setConfettiData(data))
+      .catch(() => {});
+    const t = setTimeout(() => setShowConfetti(false), 2800);
+    return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -218,6 +236,24 @@ export function ResultScreen({
     >
       {/* Audio-reactive light streaks background */}
       <AudioReactiveStreaks audioElement={kioskAudioEl} analyserNode={kioskAnalyser} />
+
+      {/* Lottie confetti burst on reveal */}
+      <AnimatePresence>
+        {showConfetti && confettiData && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-50"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Lottie
+              animationData={confettiData}
+              loop={false}
+              style={{ width: "100%", height: "100%" }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Logos */}
       <motion.div

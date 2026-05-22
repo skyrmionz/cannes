@@ -30,6 +30,15 @@ export default function SharedResultPage({
   const { code } = use(params);
   const [state, setState] = useState<LoadState>({ kind: "loading" });
 
+  // Record QR scan — fire-and-forget
+  useEffect(() => {
+    fetch("/api/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }).catch(() => {});
+  }, [code]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {

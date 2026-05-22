@@ -13,8 +13,10 @@ export async function PATCH(
   const sets: string[] = [];
   const vals: unknown[] = [];
 
-  if (body.played    !== undefined) { sets.push(`played = $${sets.length + 1}`);     vals.push(body.played); }
-  if (body.downloaded !== undefined) { sets.push(`downloaded = $${sets.length + 1}`); vals.push(body.downloaded); }
+  if (body.played         !== undefined) { sets.push(`played = $${sets.length + 1}`);          vals.push(body.played); }
+  if (body.downloaded     !== undefined) { sets.push(`downloaded = $${sets.length + 1}`);      vals.push(body.downloaded); }
+  if (body.qr_scanned     !== undefined) { sets.push(`qr_scanned = $${sets.length + 1}`);      vals.push(body.qr_scanned); }
+  if (body.screen_dropped !== undefined) { sets.push(`screen_dropped = $${sets.length + 1}`);  vals.push(body.screen_dropped); }
 
   if (sets.length) {
     try {
