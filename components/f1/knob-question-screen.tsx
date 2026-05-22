@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { LogoHeader } from "./logo-header";
@@ -86,15 +85,6 @@ export function KnobQuestionScreen({
       transition={p.transition}
     >
       <DotBg />
-
-      {/* Top-left stripe chrome */}
-      <div className="pointer-events-none absolute left-0 top-0 z-0 w-32 opacity-70">
-        <Image src="/f1/stripe-top-left.png" alt="" width={128} height={128} unoptimized className="object-contain" />
-      </div>
-      {/* Bottom-right stripe chrome */}
-      <div className="pointer-events-none absolute bottom-0 right-0 z-0 w-32 opacity-70">
-        <Image src="/f1/stripe-bottom-right.png" alt="" width={128} height={128} unoptimized className="object-contain" />
-      </div>
 
       {/* Progress bar */}
       <div className="relative z-10 h-1 w-full bg-white/20">

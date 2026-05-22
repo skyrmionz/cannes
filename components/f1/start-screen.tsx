@@ -120,6 +120,14 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <DotBg />
       <ParticleCanvas />
 
+      {/* Corner stripes — start screen only */}
+      <div className="pointer-events-none absolute left-0 top-0 z-10 w-[45vw]">
+        <Image src="/f1/stripe-top-left.png" alt="" width={785} height={842} unoptimized className="object-contain" />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 right-0 z-10 w-[45vw]">
+        <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
+      </div>
+
       {/* Logos */}
       <motion.div
         className="absolute left-0 right-0 top-0 z-20 pt-8"

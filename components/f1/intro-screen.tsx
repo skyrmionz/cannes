@@ -14,14 +14,6 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
     <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
       <DotBg />
 
-      {/* Stripe chrome */}
-      <div className="pointer-events-none absolute left-0 top-0 z-0 w-40 opacity-80">
-        <Image src="/f1/stripe-top-left.png" alt="" width={160} height={160} unoptimized className="object-contain" />
-      </div>
-      <div className="pointer-events-none absolute bottom-0 right-0 z-0 w-40 opacity-80">
-        <Image src="/f1/stripe-bottom-right.png" alt="" width={160} height={160} unoptimized className="object-contain" />
-      </div>
-
       {/* Logo */}
       <motion.div
         className="relative z-10 pt-8"
