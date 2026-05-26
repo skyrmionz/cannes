@@ -14,8 +14,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   return (
     <>
       {/* Content column — top stack; CTA pinned absolute below.
-          pb leaves room so body copy doesn't slide under the button. */}
-      <div className="relative z-20 flex h-full w-full flex-col items-center px-8 pt-10 pb-44">
+          pb-60 leaves room so body copy can't slide under the button. */}
+      <div className="relative z-20 flex h-full w-full flex-col items-center overflow-y-auto px-8 pt-8 pb-60">
         <div className="flex w-full max-w-md flex-col items-center gap-4 text-center text-[#001050]">
           <motion.h1
             className="font-bold leading-[1.05] tracking-tight"
