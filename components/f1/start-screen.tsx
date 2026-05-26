@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { DotBg, F1_GRADIENT } from "./dot-bg";
@@ -11,9 +11,21 @@ interface StartScreenProps {
 
 const words = ["Are you", "Podium", "ready?"];
 
-function ParticleCanvas() {
+// Launch sequence (after button click):
+//   t=0–300ms     UI fades out
+//   t=300–700ms   Car revs in place
+//   t=700–1400ms  Car shoots off top with particle trail
+//   t=1400ms      Parent navigates to next screen
+const LAUNCH_TOTAL_MS = 1400;
+
+function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef(0);
+  const launchAtRef = useRef<number | null>(launchAt);
+
+  useEffect(() => {
+    launchAtRef.current = launchAt;
+  }, [launchAt]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,10 +41,6 @@ function ParticleCanvas() {
     }
 
     const particles: Particle[] = [];
-    // Launch phase starts at ~1.4s, car exits by ~2.2s
-    // We spawn particles during that window based on elapsed time
-    let elapsed = 0;
-    let last = performance.now();
 
     function resize() {
       canvas!.width = canvas!.offsetWidth;
@@ -47,7 +55,7 @@ function ParticleCanvas() {
           x: cx + (Math.random() - 0.5) * 20,
           y: cy + (Math.random() - 0.5) * 10,
           vx: (Math.random() - 0.5) * 1.5,
-          vy: 3 + Math.random() * 3,   // trail falls downward (car moves up)
+          vy: 3 + Math.random() * 3,
           life: 1,
           decay: 0.8 + Math.random() * 0.8,
           size: 2 + Math.random() * 5,
@@ -55,19 +63,24 @@ function ParticleCanvas() {
       }
     }
 
+    let last = performance.now();
     function tick(now: number) {
       const dt = (now - last) / 1000;
       last = now;
-      elapsed += dt;
 
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
 
-      // Spawn during launch window (1.4s–2.2s) at car exhaust position
-      if (elapsed > 1.4 && elapsed < 2.4) {
-        const progress = (elapsed - 1.4) / 0.8; // 0→1 during launch
-        // Car top = 15% of screen, moves from there upward
-        const carY = canvas!.height * (0.35 - progress * 0.55);
-        spawnAt(canvas!.width / 2, carY + canvas!.height * 0.25);
+      // Spawn particles only during the launch window
+      const trigger = launchAtRef.current;
+      if (trigger !== null) {
+        const since = (now - trigger) / 1000; // seconds since click
+        // Launch motion runs from 0.7s..1.4s after click
+        if (since >= 0.7 && since < 1.4) {
+          const launchProgress = (since - 0.7) / 0.7; // 0..1 across launch
+          // Car settles at top:12% with height ~450; exhaust at ~25% of height below top
+          const carY = canvas!.height * (0.35 - launchProgress * 0.55);
+          spawnAt(canvas!.width / 2, carY + canvas!.height * 0.25);
+        }
       }
 
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -101,38 +114,56 @@ function ParticleCanvas() {
 }
 
 export function StartScreen({ onStart }: StartScreenProps) {
-  // Timeline:
-  // 0.1s  → car enters from bottom
-  // 0.7s  → car settles behind headline
-  // 1.4s  → headline + UI fully visible, car holds
-  // 1.5s  → car launches off top
-  // 2.2s  → car gone, particles fade
+  const [launching, setLaunching] = useState(false);
+  const [launchAt, setLaunchAt] = useState<number | null>(null);
+
+  const handleLaunchClick = () => {
+    if (launching) return;
+    setLaunching(true);
+    setLaunchAt(performance.now());
+    setTimeout(onStart, LAUNCH_TOTAL_MS);
+  };
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 cursor-pointer overflow-hidden"
+      className="fixed inset-0 z-50 overflow-hidden"
       style={{ background: F1_GRADIENT }}
-      onClick={onStart}
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.6, ease: "easeInOut" }}
     >
       <DotBg />
-      <ParticleCanvas />
+      <ParticleCanvas launchAt={launchAt} />
 
       {/* Corner stripes — start screen only */}
-      <div className="pointer-events-none absolute left-0 top-0 z-10 w-[45vw]">
+      <motion.div
+        className="pointer-events-none absolute left-0 top-0 z-10 w-[45vw]"
+        animate={launching ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
         <Image src="/f1/stripe-top-left.png" alt="" width={785} height={842} unoptimized className="object-contain" />
-      </div>
-      <div className="pointer-events-none absolute bottom-0 right-0 z-10 w-[45vw]">
+      </motion.div>
+      <motion.div
+        className="pointer-events-none absolute bottom-0 right-0 z-10 w-[45vw]"
+        animate={launching ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
         <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
-      </div>
+      </motion.div>
 
-      {/* Header logos (F1 + Salesforce) — image already includes "Global Partner of Formula 1®" */}
+      {/* Header logos (F1 + Salesforce) */}
       <motion.div
         className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-7"
         initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+        animate={
+          launching
+            ? { opacity: 0, y: -8 }
+            : { opacity: 1, y: 0 }
+        }
+        transition={
+          launching
+            ? { duration: 0.3, ease: "easeOut" }
+            : { delay: 0.2, duration: 0.5 }
+        }
       >
         <Image
           src="/f1/header-logos.png"
@@ -148,28 +179,27 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="absolute inset-x-0 z-10 flex justify-center"
         style={{ top: "12%" }}
-        initial={{ y: "110%" }}
-        animate={{ y: ["110%", "0%", "0%", "-130%"], scale: [0.9, 1, 1, 0.75] }}
-        transition={{
-          duration: 2.1,
-          times: [0, 0.3, 0.68, 1],
-          ease: "easeOut",
-          delay: 0.1,
-        }}
+        initial={{ y: "110%", scale: 0.9 }}
+        animate={
+          launching
+            ? { y: ["0%", "2%", "-130%"], scale: [1, 1.04, 0.75] }
+            : { y: "0%", scale: 1 }
+        }
+        transition={
+          launching
+            ? { duration: 1.1, times: [0, 0.36, 1], ease: [0.32, 0.72, 0, 1], delay: 0.3 }
+            : { duration: 0.7, ease: "easeOut", delay: 0.1 }
+        }
       >
-        <Image
-          src="/f1/f1-car-top.png"
-          alt="F1 car"
-          width={300}
-          height={450}
-          priority
-          className="select-none"
-          style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))" }}
-        />
+        <CarMedia />
       </motion.div>
 
       {/* Content — z-20 so it sits above the car */}
-      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pb-32 pt-32">
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pb-32 pt-32"
+        animate={launching ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
         <div className="flex flex-col items-center">
           {words.map((word, i) => (
             <motion.span
@@ -200,19 +230,27 @@ export function StartScreen({ onStart }: StartScreenProps) {
             className="h-auto w-[min(80vw,320px)] select-none"
           />
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Button — pinned near the bottom, above the disclaimer */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
-        <StartEnginesButton onStart={onStart} />
-      </div>
+      <motion.div
+        className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6"
+        animate={launching ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <StartEnginesButton onClick={handleLaunchClick} disabled={launching} />
+      </motion.div>
 
       {/* Trademark disclaimer */}
       <motion.div
         className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-4"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.7, duration: 0.5 }}
+        animate={launching ? { opacity: 0 } : { opacity: 1 }}
+        transition={
+          launching
+            ? { duration: 0.3, ease: "easeOut" }
+            : { delay: 1.7, duration: 0.5 }
+        }
       >
         <Image
           src="/f1/f1-trademark-disclaimer.png"
@@ -226,17 +264,63 @@ export function StartScreen({ onStart }: StartScreenProps) {
   );
 }
 
-function StartEnginesButton({ onStart }: { onStart: () => void }) {
+// Renders the idle car. Tries the looping <video> first; if it fails to load
+// (e.g. the asset hasn't been generated yet) falls back to the static PNG so
+// the screen still works.
+function CarMedia() {
+  const [videoFailed, setVideoFailed] = useState(false);
+
+  if (videoFailed) {
+    return (
+      <Image
+        src="/f1/f1-car-top.png"
+        alt="F1 car"
+        width={300}
+        height={450}
+        priority
+        className="select-none"
+        style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))" }}
+      />
+    );
+  }
+
+  return (
+    <video
+      src="/f1/f1-car-idle.mp4"
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+      onError={() => setVideoFailed(true)}
+      className="select-none"
+      style={{
+        width: 300,
+        height: "auto",
+        filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))",
+      }}
+    />
+  );
+}
+
+function StartEnginesButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <motion.button
       type="button"
-      onClick={onStart}
+      onClick={onClick}
+      disabled={disabled}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.5, duration: 0.4 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className="group pointer-events-auto relative isolate overflow-hidden rounded-full px-14 py-4 text-base font-semibold tracking-tight text-white"
+      whileHover={disabled ? undefined : { scale: 1.02 }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
+      className="group pointer-events-auto relative isolate overflow-hidden rounded-full px-14 py-4 text-base font-semibold tracking-tight text-white disabled:cursor-not-allowed"
       style={{
         WebkitBackdropFilter: "blur(22px) saturate(160%)",
         backdropFilter: "blur(22px) saturate(160%)",

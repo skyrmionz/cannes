@@ -42,3 +42,8 @@ next-env.d.ts
 
 # placeholder / pre-rendered songs — committed on cannes-v3 for Heroku deploy
 # /public/songs/
+
+# Agent skill installs (Higgsfield, etc.) — local tooling, not app code
+/.agents/
+/.claude/
+/skills-lock.json
