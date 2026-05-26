@@ -24,34 +24,33 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       {/* Soft inner glass card frame — subtle rounded inset to match Figma */}
       <div className="pointer-events-none absolute inset-3 rounded-[40px] border border-white/40 shadow-[0_0_60px_rgba(255,255,255,0.5)_inset]" />
 
-      {/* Invisible cross-brand corner tap — top-left → /f1.
-          Lives inside the z-50 start screen so it isn't covered by the screen overlay. */}
+      {/* Invisible cross-brand corner tap — top-left → /f1. */}
       <CornerTap to="/f1" />
 
-      {/* L'Oreal wordmark */}
-      <motion.div
-        className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-8"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
-        <Image
-          src="/loreal/loreal-logo.png"
-          alt="L'Oréal"
-          width={600}
-          height={160}
-          priority
-          className="h-auto w-[min(48vw,200px)] select-none"
-        />
-      </motion.div>
+      {/* Vertical flex column — logo / headline+glasses / powered-by+button.
+          Predictable layout that doesn't overflow on tall or short viewports. */}
+      <div className="relative z-20 flex h-full w-full flex-col items-center justify-between px-6 py-8">
+        {/* Top: L'Oreal wordmark */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <Image
+            src="/loreal/loreal-logo.png"
+            alt="L'Oréal"
+            width={600}
+            height={160}
+            priority
+            className="h-auto w-[min(42vw,180px)] select-none"
+          />
+        </motion.div>
 
-      {/* Headline + glasses — single flex column, sized to fit between the
-          logo (top) and powered-by/button (bottom) without overflow. */}
-      <div className="pointer-events-none absolute left-0 right-0 top-24 bottom-44 z-20 flex items-center justify-center px-6">
+        {/* Middle: headline column with inline glasses */}
         <div className="flex flex-col items-center gap-1 text-[#001050]">
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
@@ -59,7 +58,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             What&apos;s
           </motion.span>
           <motion.div
-            className="-my-1 flex justify-center"
+            className="-my-2 flex justify-center"
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
@@ -68,7 +67,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.div>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
@@ -77,7 +76,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.span>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
@@ -85,28 +84,25 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             vibe?
           </motion.span>
         </div>
-      </div>
 
-      {/* Powered by Agentforce — dark variant for the light L'Oreal background */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-32 z-20 flex justify-center px-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-      >
-        <Image
-          src="/loreal/powered-by-astro.png"
-          alt="Powered by Agentforce from Salesforce"
-          width={1140}
-          height={120}
-          priority
-          className="h-auto w-[min(80vw,320px)] select-none"
-        />
-      </motion.div>
-
-      {/* Glassy "Let's glow" CTA — same Liquid Glass pattern as F1, label changed */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-12 z-20 flex justify-center px-6">
-        <LetsGlowButton onClick={onStart} />
+        {/* Bottom: powered-by + button stacked together */}
+        <div className="flex flex-col items-center gap-5">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+          >
+            <Image
+              src="/loreal/powered-by-astro.png"
+              alt="Powered by Agentforce from Salesforce"
+              width={1140}
+              height={120}
+              priority
+              className="h-auto w-[min(80vw,300px)] select-none"
+            />
+          </motion.div>
+          <LetsGlowButton onClick={onStart} />
+        </div>
       </div>
     </motion.div>
   );
