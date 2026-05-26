@@ -49,6 +49,7 @@ export function ResultScreen({
   const playedRef = useRef(false);
   const commentaryRef = useRef(false);
   const kioskAudioRef = useRef<HTMLAudioElement | null>(null);
+  const kioskCommentaryRef = useRef<HTMLAudioElement | null>(null);
   const reverbWetRef = useRef<GainNode | null>(null);
   const reverbDryRef = useRef<GainNode | null>(null);
 
@@ -166,6 +167,14 @@ export function ResultScreen({
           const url = URL.createObjectURL(blob);
           const commentary = new Audio(url);
           commentary.volume = 1;
+          kioskCommentaryRef.current = commentary;
+
+          // Keep commentary in sync with main track
+          audio.addEventListener("pause", () => commentary.pause());
+          audio.addEventListener("play", () => {
+            if (!commentary.ended) commentary.play().catch(() => {});
+          });
+
           await commentary.play().catch(() => {});
         }
       } catch {
