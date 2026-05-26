@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { DotBg, F1_GRADIENT } from "./dot-bg";
+import { CornerTap } from "@/components/ui/corner-tap";
 
 interface StartScreenProps {
   onStart: () => void;
@@ -149,6 +150,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
       >
         <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
       </motion.div>
+
+      {/* Invisible cross-brand corner tap — top-left → /loreal */}
+      <CornerTap to="/loreal" />
 
       {/* Header logos (F1 + Salesforce) */}
       <motion.div
