@@ -68,7 +68,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
               width={720}
               height={720}
               priority
-              className="h-auto w-[min(50vw,220px)] select-none"
+              className="h-auto w-[min(58vw,260px)] select-none"
               style={{ filter: "drop-shadow(0 18px 40px rgba(60,120,240,0.3))" }}
             />
           </motion.div>
