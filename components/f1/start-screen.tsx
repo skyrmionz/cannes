@@ -216,19 +216,39 @@ export function StartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* F1 Car — z-10 so headline text sits on top */}
+      {/* F1 Car — z-10 so headline text sits on top.
+          Launch motion (after click): brief rev with a shake-rattle, then shoots off the top.
+          Keyframe layout (1.1s duration, with 0.3s pre-delay during which UI fades):
+            t=0    rest position
+            t=0.05 shake left
+            t=0.10 shake right
+            t=0.15 shake left (smaller)
+            t=0.20 shake right (smaller)
+            t=0.25 settled at apex of rev
+            t=0.36 rev compression peak
+            t=1.0  off the top */}
       <motion.div
         className="absolute inset-x-0 z-10 flex justify-center"
         style={{ top: "12%" }}
         initial={{ y: "110%", scale: 0.9 }}
         animate={
           launching
-            ? { y: ["0%", "2%", "-130%"], scale: [1, 1.04, 0.75] }
-            : { y: "0%", scale: 1 }
+            ? {
+                y: ["0%", "0%", "0%", "0%", "0%", "0%", "2%", "-130%"],
+                x: [0, -10, 10, -7, 7, -3, 0, 0],
+                rotate: [0, -2, 2, -1.4, 1.4, -0.5, 0, 0],
+                scale: [1, 1, 1, 1, 1, 1, 1.04, 0.75],
+              }
+            : { y: "0%", x: 0, rotate: 0, scale: 1 }
         }
         transition={
           launching
-            ? { duration: 1.1, times: [0, 0.36, 1], ease: [0.32, 0.72, 0, 1], delay: 0.3 }
+            ? {
+                duration: 1.1,
+                times: [0, 0.045, 0.09, 0.14, 0.19, 0.23, 0.36, 1],
+                ease: [0.32, 0.72, 0, 1],
+                delay: 0.3,
+              }
             : { duration: 0.7, ease: "easeOut", delay: 0.1 }
         }
       >
