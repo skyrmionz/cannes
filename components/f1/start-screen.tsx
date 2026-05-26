@@ -191,7 +191,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
             : { duration: 0.7, ease: "easeOut", delay: 0.1 }
         }
       >
-        <CarMedia />
+        <CarMedia rumble={!launching} />
       </motion.div>
 
       {/* Content — z-20 so it sits above the car */}
@@ -264,27 +264,37 @@ export function StartScreen({ onStart }: StartScreenProps) {
   );
 }
 
+// Continuous engine-rumble jitter applied while the car is idle.
+// Disabled during launch so launch motion isn't fought by the rumble loop.
+const rumbleAnimate = {
+  x: [0, -0.6, 0.5, -0.4, 0.7, -0.3, 0.5, 0],
+  y: [0, 0.4, -0.5, 0.6, -0.4, 0.5, -0.6, 0],
+  rotate: [0, -0.15, 0.18, -0.12, 0.16, -0.14, 0.13, 0],
+};
+
+const rumbleTransition = {
+  duration: 0.32,
+  repeat: Infinity,
+  ease: "linear" as const,
+};
+
 // Renders the idle car. Tries the looping <video> first; if it fails to load
 // (e.g. the asset hasn't been generated yet) falls back to the static PNG so
 // the screen still works.
-function CarMedia() {
+function CarMedia({ rumble }: { rumble: boolean }) {
   const [videoFailed, setVideoFailed] = useState(false);
 
-  if (videoFailed) {
-    return (
-      <Image
-        src="/f1/f1-car-top.png"
-        alt="F1 car"
-        width={300}
-        height={450}
-        priority
-        className="select-none"
-        style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))" }}
-      />
-    );
-  }
-
-  return (
+  const inner = videoFailed ? (
+    <Image
+      src="/f1/f1-car-top.png"
+      alt="F1 car"
+      width={300}
+      height={450}
+      priority
+      className="select-none"
+      style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))" }}
+    />
+  ) : (
     <video
       autoPlay
       loop
@@ -303,6 +313,16 @@ function CarMedia() {
       <source src="/f1/f1-car-idle.mp4" type='video/mp4; codecs="hvc1"' />
       <source src="/f1/f1-car-idle.webm" type="video/webm" />
     </video>
+  );
+
+  return (
+    <motion.div
+      animate={rumble ? rumbleAnimate : { x: 0, y: 0, rotate: 0 }}
+      transition={rumble ? rumbleTransition : { duration: 0.2 }}
+      style={{ willChange: "transform" }}
+    >
+      {inner}
+    </motion.div>
   );
 }
 
