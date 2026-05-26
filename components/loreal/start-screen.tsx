@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { CornerTap } from "@/components/ui/corner-tap";
 import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
+import { GlassyButton } from "./glassy-button";
 
 interface StartScreenProps {
   onStart: () => void;
@@ -21,21 +22,18 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.6, ease: "easeInOut" }}
     >
-      {/* Frosted glass card — sits under the content, on top of the page gradient.
-          Combines backdrop-blur (for actual frostiness) with a translucent overlay,
-          a soft inner glow, and a thin specular border. */}
+      {/* Glass card — light, more transparent than fully frosted. */}
       <div
         className="pointer-events-none absolute inset-3 rounded-[40px]"
         style={{
-          WebkitBackdropFilter: "blur(28px) saturate(150%) brightness(1.05)",
-          backdropFilter: "blur(28px) saturate(150%) brightness(1.05)",
+          WebkitBackdropFilter: "blur(10px) saturate(120%)",
+          backdropFilter: "blur(10px) saturate(120%)",
           background:
-            "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.45) 100%)",
+            "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.16) 100%)",
           boxShadow: [
-            "0 0 0 1px rgba(255,255,255,0.7) inset",
-            "0 1px 0 rgba(255,255,255,0.9) inset",
-            "0 0 120px rgba(255,255,255,0.6) inset",
-            "0 24px 70px rgba(120,160,220,0.3)",
+            "0 0 0 1px rgba(255,255,255,0.45) inset",
+            "0 1px 0 rgba(255,255,255,0.65) inset",
+            "0 18px 50px rgba(120,160,220,0.18)",
           ].join(", "),
         }}
       />
@@ -117,7 +115,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
               className="h-auto w-[min(60vw,200px)] select-none"
             />
           </motion.div>
-          <LetsGlowButton onClick={onStart} />
+          <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
         </div>
       </div>
     </motion.div>
@@ -138,67 +136,3 @@ function GlassesMedia() {
   );
 }
 
-function LetsGlowButton({ onClick }: { onClick: () => void }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.4, duration: 0.4 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className="group pointer-events-auto relative isolate overflow-hidden rounded-full px-14 py-4 text-base font-semibold tracking-tight text-white"
-      style={{
-        WebkitBackdropFilter: "blur(22px) saturate(160%)",
-        backdropFilter: "blur(22px) saturate(160%)",
-        // Glassy + #1A6CF0 base — translucent overlay on top of the brand blue
-        background:
-          "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)",
-        boxShadow: [
-          "0 1px 0 rgba(255,255,255,0.45) inset",
-          "0 -1px 0 rgba(0,16,80,0.25) inset",
-          "0 0 0 1px rgba(255,255,255,0.25) inset",
-          "0 12px 36px rgba(15,84,200,0.45)",
-        ].join(", "),
-      }}
-    >
-      {/* Top specular edge */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-6 top-[1px] h-[1px] rounded-full opacity-90"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0) 100%)",
-        }}
-      />
-      {/* Bottom soft refraction glow */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-8 -bottom-3 h-3 rounded-full opacity-70 blur-md"
-        style={{ background: "rgba(170,220,255,0.55)" }}
-      />
-      {/* Hover sheen */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-[900ms] ease-out group-hover:translate-x-full"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%)",
-        }}
-      />
-      {/* Active press darken */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-150 group-active:opacity-100"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,16,80,0.18) 0%, rgba(0,16,80,0.06) 100%)",
-        }}
-      />
-      <span className="relative z-10 drop-shadow-[0_1px_1px_rgba(0,16,80,0.35)]">
-        Let&apos;s glow
-      </span>
-    </motion.button>
-  );
-}
