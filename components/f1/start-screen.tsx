@@ -4,13 +4,12 @@ import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { DotBg, F1_GRADIENT } from "./dot-bg";
-import { LogoHeader, AstroAvatar } from "./logo-header";
 
 interface StartScreenProps {
   onStart: () => void;
 }
 
-const words = ["ARE YOU", "PODIUM", "READY?"];
+const words = ["Are you", "Podium", "ready?"];
 
 function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -128,14 +127,21 @@ export function StartScreen({ onStart }: StartScreenProps) {
         <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
       </div>
 
-      {/* Logos */}
+      {/* Header logos (F1 + Salesforce) */}
       <motion.div
-        className="absolute left-0 right-0 top-0 z-20 pt-8"
+        className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-8"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <LogoHeader className="justify-center" />
+        <Image
+          src="/f1/header-logos.png"
+          alt="F1 × Salesforce"
+          width={690}
+          height={210}
+          priority
+          className="h-auto w-[min(80vw,420px)] select-none"
+        />
       </motion.div>
 
       {/* F1 Car — z-10 so headline text sits on top */}
@@ -168,7 +174,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
           {words.map((word, i) => (
             <motion.span
               key={word}
-              className="block text-center font-bold uppercase leading-none tracking-tight text-white"
+              className="block text-center font-bold leading-none tracking-tight text-white"
               style={{ fontSize: "clamp(3rem, 16vw, 7rem)" }}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -180,38 +186,86 @@ export function StartScreen({ onStart }: StartScreenProps) {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.2, duration: 0.5 }}
-        >
-          <AstroAvatar className="mb-4 h-24 w-24" />
-        </motion.div>
-
-        <motion.p
-          className="mb-8 text-center text-sm uppercase tracking-[0.25em] text-white/60"
+          className="mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.35, duration: 0.5 }}
         >
-          Powered by Agent Astro from Salesforce
-        </motion.p>
+          <Image
+            src="/f1/powered-by-astro.png"
+            alt="Powered by Agent Astro from Salesforce"
+            width={1140}
+            height={120}
+            priority
+            className="h-auto w-[min(80vw,360px)] select-none"
+          />
+        </motion.div>
 
-        <motion.button
-          className="pointer-events-auto rounded-full bg-white px-10 py-3 text-sm font-bold uppercase tracking-[0.2em] text-[#001050] shadow-lg"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.4 }}
-          onClick={onStart}
-        >
-          <motion.span
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="block"
-          >
-            Tap to start
-          </motion.span>
-        </motion.button>
+        <StartEnginesButton onStart={onStart} />
       </div>
+
+      {/* Trademark disclaimer */}
+      <motion.div
+        className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.7, duration: 0.5 }}
+      >
+        <Image
+          src="/f1/f1-trademark-disclaimer.png"
+          alt="The F1 logo, FORMULA 1, F1, GRAND PRIX and related marks are trademarks of Formula One Licensing BV, a Formula 1 company. All rights reserved."
+          width={1200}
+          height={28}
+          className="h-auto w-[min(94vw,720px)] select-none opacity-80"
+        />
+      </motion.div>
     </motion.div>
+  );
+}
+
+function StartEnginesButton({ onStart }: { onStart: () => void }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onStart}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.5, duration: 0.4 }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.96 }}
+      className="group pointer-events-auto relative overflow-hidden rounded-full px-12 py-4 text-base font-bold tracking-tight text-[#001050] shadow-[0_12px_40px_rgba(2,42,192,0.45)] backdrop-blur-md transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,179,255,0.55)]"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(170,220,255,0.95) 0%, rgba(86,170,255,0.95) 100%)",
+        border: "1px solid rgba(255,255,255,0.6)",
+      }}
+    >
+      {/* Inner glass highlight */}
+      <span
+        className="pointer-events-none absolute inset-x-2 top-[2px] h-1/2 rounded-full opacity-80"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%)",
+        }}
+      />
+      {/* Bottom inner glow */}
+      <span
+        className="pointer-events-none absolute inset-x-3 bottom-[2px] h-1/3 rounded-full opacity-60"
+        style={{
+          background:
+            "linear-gradient(0deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%)",
+        }}
+      />
+      {/* Hover sheen — diagonal swipe */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-full"
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.65) 50%, transparent 70%)",
+        }}
+      />
+      <span className="relative z-10">Start your engines</span>
+    </motion.button>
   );
 }
