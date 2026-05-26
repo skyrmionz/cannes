@@ -127,9 +127,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
         <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
       </div>
 
-      {/* Header logos (F1 + Salesforce) */}
+      {/* Header logos (F1 + Salesforce) + tagline */}
       <motion.div
-        className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-8"
+        className="absolute left-0 right-0 top-0 z-20 flex flex-col items-center px-6 pt-7"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
@@ -140,8 +140,11 @@ export function StartScreen({ onStart }: StartScreenProps) {
           width={690}
           height={210}
           priority
-          className="h-auto w-[min(80vw,420px)] select-none"
+          className="h-auto w-[min(48vw,220px)] select-none"
         />
+        <p className="mt-3 text-center text-[13px] font-medium tracking-tight text-white">
+          Global Partner of Formula 1<sup className="ml-[1px] text-[8px]">®</sup>
+        </p>
       </motion.div>
 
       {/* F1 Car — z-10 so headline text sits on top */}
@@ -174,8 +177,8 @@ export function StartScreen({ onStart }: StartScreenProps) {
           {words.map((word, i) => (
             <motion.span
               key={word}
-              className="block text-center font-bold leading-none tracking-tight text-white"
-              style={{ fontSize: "clamp(3rem, 16vw, 7rem)" }}
+              className="block text-center font-bold leading-[0.95] tracking-tight text-white"
+              style={{ fontSize: "clamp(3.5rem, 18vw, 7rem)" }}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 + i * 0.15, duration: 0.5, ease: "easeOut" }}
@@ -231,41 +234,60 @@ function StartEnginesButton({ onStart }: { onStart: () => void }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.5, duration: 0.4 }}
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.96 }}
-      className="group pointer-events-auto relative overflow-hidden rounded-full px-12 py-4 text-base font-bold tracking-tight text-[#001050] shadow-[0_12px_40px_rgba(2,42,192,0.45)] backdrop-blur-md transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,179,255,0.55)]"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      className="group pointer-events-auto relative isolate overflow-hidden rounded-full px-14 py-4 text-base font-semibold tracking-tight text-white"
       style={{
+        WebkitBackdropFilter: "blur(22px) saturate(160%)",
+        backdropFilter: "blur(22px) saturate(160%)",
         background:
-          "linear-gradient(180deg, rgba(170,220,255,0.95) 0%, rgba(86,170,255,0.95) 100%)",
-        border: "1px solid rgba(255,255,255,0.6)",
+          "linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.18) 100%)",
+        boxShadow: [
+          "0 1px 0 rgba(255,255,255,0.55) inset",
+          "0 -1px 0 rgba(255,255,255,0.18) inset",
+          "0 0 0 1px rgba(255,255,255,0.35) inset",
+          "0 12px 36px rgba(2,16,80,0.35)",
+        ].join(", "),
       }}
     >
-      {/* Inner glass highlight */}
+      {/* Top highlight — thin specular edge */}
       <span
-        className="pointer-events-none absolute inset-x-2 top-[2px] h-1/2 rounded-full opacity-80"
+        aria-hidden
+        className="pointer-events-none absolute inset-x-6 top-[1px] h-[1px] rounded-full opacity-90"
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%)",
+            "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0) 100%)",
         }}
       />
-      {/* Bottom inner glow */}
+      {/* Bottom soft refraction glow */}
       <span
-        className="pointer-events-none absolute inset-x-3 bottom-[2px] h-1/3 rounded-full opacity-60"
+        aria-hidden
+        className="pointer-events-none absolute inset-x-8 -bottom-3 h-3 rounded-full opacity-70 blur-md"
         style={{
-          background:
-            "linear-gradient(0deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%)",
+          background: "rgba(170,220,255,0.55)",
         }}
       />
       {/* Hover sheen — diagonal swipe */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-full"
+        className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-[900ms] ease-out group-hover:translate-x-full"
         style={{
           background:
-            "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.65) 50%, transparent 70%)",
+            "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%)",
         }}
       />
-      <span className="relative z-10">Start your engines</span>
+      {/* Active press darken */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-150 group-active:opacity-100"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0,16,80,0.18) 0%, rgba(0,16,80,0.06) 100%)",
+        }}
+      />
+      <span className="relative z-10 drop-shadow-[0_1px_1px_rgba(0,16,80,0.35)]">
+        Start your engines
+      </span>
     </motion.button>
   );
 }
