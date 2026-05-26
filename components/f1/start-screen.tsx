@@ -9,7 +9,7 @@ interface StartScreenProps {
   onStart: () => void;
 }
 
-const words = ["Are you", "Podium", "ready?"];
+const words = ["Are you", "podium", "ready?"];
 
 // Launch sequence (after button click):
 //   t=0–300ms     UI fades out
@@ -267,13 +267,13 @@ export function StartScreen({ onStart }: StartScreenProps) {
 // Continuous engine-rumble jitter applied while the car is idle.
 // Disabled during launch so launch motion isn't fought by the rumble loop.
 const rumbleAnimate = {
-  x: [0, -0.25, 0.2, -0.15, 0.25, -0.1, 0.2, 0],
-  y: [0, 0.15, -0.2, 0.25, -0.15, 0.2, -0.2, 0],
-  rotate: [0, -0.05, 0.06, -0.04, 0.05, -0.05, 0.04, 0],
+  x: [0, -0.12, 0.1, -0.08, 0.12, -0.06, 0.1, 0],
+  y: [0, 0.08, -0.1, 0.12, -0.08, 0.1, -0.1, 0],
+  rotate: [0, -0.025, 0.03, -0.02, 0.025, -0.025, 0.02, 0],
 };
 
 const rumbleTransition = {
-  duration: 0.45,
+  duration: 0.55,
   repeat: Infinity,
   ease: "linear" as const,
 };
@@ -393,7 +393,7 @@ function StartEnginesButton({
         }}
       />
       <span className="relative z-10 drop-shadow-[0_1px_1px_rgba(0,16,80,0.35)]">
-        Start your engines
+        Start your engine
       </span>
     </motion.button>
   );
