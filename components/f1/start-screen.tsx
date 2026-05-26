@@ -127,24 +127,21 @@ export function StartScreen({ onStart }: StartScreenProps) {
         <Image src="/f1/stripe-bottom-right.png" alt="" width={785} height={842} unoptimized className="object-contain" />
       </div>
 
-      {/* Header logos (F1 + Salesforce) + tagline */}
+      {/* Header logos (F1 + Salesforce) — image already includes "Global Partner of Formula 1®" */}
       <motion.div
-        className="absolute left-0 right-0 top-0 z-20 flex flex-col items-center px-6 pt-7"
+        className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-7"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
         <Image
           src="/f1/header-logos.png"
-          alt="F1 × Salesforce"
+          alt="F1 × Salesforce — Global Partner of Formula 1"
           width={690}
           height={210}
           priority
           className="h-auto w-[min(48vw,220px)] select-none"
         />
-        <p className="mt-3 text-center text-[13px] font-medium tracking-tight text-white">
-          Global Partner of Formula 1<sup className="ml-[1px] text-[8px]">®</sup>
-        </p>
       </motion.div>
 
       {/* F1 Car — z-10 so headline text sits on top */}
@@ -172,13 +169,13 @@ export function StartScreen({ onStart }: StartScreenProps) {
       </motion.div>
 
       {/* Content — z-20 so it sits above the car */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pointer-events-none">
-        <div className="mb-6 flex flex-col items-center">
+      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pb-32 pt-32">
+        <div className="flex flex-col items-center">
           {words.map((word, i) => (
             <motion.span
               key={word}
               className="block text-center font-bold leading-[0.95] tracking-tight text-white"
-              style={{ fontSize: "clamp(3.5rem, 18vw, 7rem)" }}
+              style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 + i * 0.15, duration: 0.5, ease: "easeOut" }}
@@ -189,7 +186,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
         </div>
 
         <motion.div
-          className="mb-8"
+          className="mt-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.35, duration: 0.5 }}
@@ -200,10 +197,13 @@ export function StartScreen({ onStart }: StartScreenProps) {
             width={1140}
             height={120}
             priority
-            className="h-auto w-[min(80vw,360px)] select-none"
+            className="h-auto w-[min(80vw,320px)] select-none"
           />
         </motion.div>
+      </div>
 
+      {/* Button — pinned near the bottom, above the disclaimer */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
         <StartEnginesButton onStart={onStart} />
       </div>
 
