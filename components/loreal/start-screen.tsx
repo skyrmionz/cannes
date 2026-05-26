@@ -21,8 +21,24 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       exit={{ opacity: 0, scale: 1.05 }}
       transition={{ duration: 0.6, ease: "easeInOut" }}
     >
-      {/* Soft inner glass card frame — subtle rounded inset to match Figma */}
-      <div className="pointer-events-none absolute inset-3 rounded-[40px] border border-white/40 shadow-[0_0_60px_rgba(255,255,255,0.5)_inset]" />
+      {/* Frosted glass card — sits under the content, on top of the page gradient.
+          Combines backdrop-blur (for actual frostiness) with a translucent overlay,
+          a soft inner glow, and a thin specular border. */}
+      <div
+        className="pointer-events-none absolute inset-3 rounded-[40px]"
+        style={{
+          WebkitBackdropFilter: "blur(28px) saturate(150%) brightness(1.05)",
+          backdropFilter: "blur(28px) saturate(150%) brightness(1.05)",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.45) 100%)",
+          boxShadow: [
+            "0 0 0 1px rgba(255,255,255,0.7) inset",
+            "0 1px 0 rgba(255,255,255,0.9) inset",
+            "0 0 120px rgba(255,255,255,0.6) inset",
+            "0 24px 70px rgba(120,160,220,0.3)",
+          ].join(", "),
+        }}
+      />
 
       {/* Invisible cross-brand corner tap — top-left → /f1. */}
       <CornerTap to="/f1" />
