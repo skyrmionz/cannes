@@ -58,7 +58,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             Find
           </motion.span>
           <motion.div
-            className="relative z-10 -my-[90px] flex justify-center"
+            className="relative z-10 -mt-[90px] -mb-[60px] flex justify-center"
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
