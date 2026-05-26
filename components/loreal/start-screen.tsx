@@ -50,12 +50,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         <div className="flex flex-col items-center gap-1 text-[#001050]">
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
+            style={{ fontSize: "clamp(3.5rem, 16vw, 6rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
           >
-            What&apos;s
+            Find
           </motion.span>
           <motion.div
             className="-my-6 flex justify-center"
@@ -67,7 +67,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.div>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
+            style={{ fontSize: "clamp(3.5rem, 16vw, 6rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
@@ -76,12 +76,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.span>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.25rem, 10vw, 3.75rem)" }}
+            style={{ fontSize: "clamp(3.5rem, 16vw, 6rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
           >
-            vibe?
+            vibe
           </motion.span>
         </div>
 
@@ -98,7 +98,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
               width={1140}
               height={120}
               priority
-              className="h-auto w-[min(80vw,300px)] select-none"
+              className="h-auto w-[min(60vw,200px)] select-none"
             />
           </motion.div>
           <LetsGlowButton onClick={onStart} />
