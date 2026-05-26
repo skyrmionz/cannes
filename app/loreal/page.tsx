@@ -19,7 +19,9 @@ function LorealContent() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      <AnimatePresence mode="wait">
+      {/* No `mode="wait"` — we want exit + enter to overlap so the zoom
+          cross-fade lands continuously, with no flash of dark page. */}
+      <AnimatePresence>
         {step === "start" && (
           <LorealStartScreen key="start" onStart={goToIntro} />
         )}
