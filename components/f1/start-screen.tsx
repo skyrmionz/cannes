@@ -247,13 +247,12 @@ export function StartScreen({ onStart }: StartScreenProps) {
                 scaleY: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.7],
               }
             : {
-                // Skid-in entry: fast approach → overshoot past rest → bounce back to rest.
-                // Tail-kick rotation + brief squash at impact for a braking feel.
-                y: ["110%", "30%", "-6%", "2%", "0%"],
-                x: [0, 0, 0, -2, 0],
-                rotate: [0, 0, -2.5, 1.2, 0],
-                scaleY: [0.9, 0.95, 1.04, 0.97, 1],
-                scaleX: [0.9, 0.95, 0.96, 1.03, 1],
+                // Skid-in entry: fast approach, decelerating to a hard stop at rest.
+                y: "0%",
+                x: 0,
+                rotate: 0,
+                scaleX: 1,
+                scaleY: 1,
               }
         }
         transition={
@@ -267,10 +266,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
                 delay: 0.3,
               }
             : {
-                duration: 1.0,
-                // Aggressive brake curve at the impact, smaller settle bounces after.
-                times: [0, 0.55, 0.78, 0.9, 1],
-                ease: [0.16, 0.84, 0.32, 1],
+                duration: 0.9,
+                // Fast in, hard decel to a clean stop — no overshoot.
+                ease: [0.05, 0.7, 0.1, 1],
                 delay: 0.1,
               }
         }
