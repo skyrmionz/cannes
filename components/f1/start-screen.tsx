@@ -286,7 +286,6 @@ function CarMedia() {
 
   return (
     <video
-      src="/f1/f1-car-idle.mp4"
       autoPlay
       loop
       muted
@@ -299,7 +298,11 @@ function CarMedia() {
         height: "auto",
         filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))",
       }}
-    />
+    >
+      {/* HEVC+alpha listed first — Safari picks it; Chrome/Firefox skip and use WebM */}
+      <source src="/f1/f1-car-idle.mp4" type='video/mp4; codecs="hvc1"' />
+      <source src="/f1/f1-car-idle.webm" type="video/webm" />
+    </video>
   );
 }
 
