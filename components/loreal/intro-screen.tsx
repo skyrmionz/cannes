@@ -15,7 +15,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
     <>
       {/* Content column — top stack; CTA pinned absolute below.
           pb-60 leaves room so body copy can't slide under the button. */}
-      <div className="relative z-20 flex h-full w-full flex-col items-center overflow-y-auto px-8 pt-8 pb-60">
+      <div className="relative z-20 flex h-full w-full flex-col items-center px-8 pt-8 pb-60">
         <div className="flex w-full max-w-md flex-col items-center gap-4 text-center text-[#001050]">
           <motion.h1
             className="font-bold leading-[1.05] tracking-tight"
@@ -68,7 +68,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
               width={720}
               height={720}
               priority
-              className="h-auto w-[min(70vw,320px)] select-none"
+              className="h-auto w-[min(50vw,220px)] select-none"
               style={{ filter: "drop-shadow(0 18px 40px rgba(60,120,240,0.3))" }}
             />
           </motion.div>
