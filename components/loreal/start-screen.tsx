@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import Image from "next/image";
-import { CornerTap } from "@/components/ui/corner-tap";
 import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 import { GlassyButton } from "./glassy-button";
 
@@ -10,37 +9,11 @@ interface StartScreenProps {
   onStart: () => void;
 }
 
-// Soft pastel sky-blue → cream gradient matching the L'Oreal Figma reference.
-const LOREAL_GRADIENT =
-  "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";
-
+// NOTE: background, glass card, and CornerTap live in app/loreal/page.tsx
+// as a persistent shell so they stay still while step content cross-zooms.
 export function LorealStartScreen({ onStart }: StartScreenProps) {
   return (
-    <motion.div
-      className="fixed inset-0 z-50 overflow-hidden"
-      style={{ background: LOREAL_GRADIENT, transformOrigin: "center" }}
-      exit={{ opacity: 0, scale: 1.18 }}
-      transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-    >
-      {/* Glass card — light, more transparent than fully frosted. */}
-      <div
-        className="pointer-events-none absolute inset-3 rounded-[40px]"
-        style={{
-          WebkitBackdropFilter: "blur(10px) saturate(120%)",
-          backdropFilter: "blur(10px) saturate(120%)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.16) 100%)",
-          boxShadow: [
-            "0 0 0 1px rgba(255,255,255,0.45) inset",
-            "0 1px 0 rgba(255,255,255,0.65) inset",
-            "0 18px 50px rgba(120,160,220,0.18)",
-          ].join(", "),
-        }}
-      />
-
-      {/* Invisible cross-brand corner tap — top-left → /f1. */}
-      <CornerTap to="/f1" />
-
+    <>
       {/* Top: L'Oreal wordmark */}
       <motion.div
         className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-8"
@@ -118,7 +91,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
         <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
       </div>
-    </motion.div>
+    </>
   );
 }
 
