@@ -58,7 +58,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             What&apos;s
           </motion.span>
           <motion.div
-            className="-my-2 flex justify-center"
+            className="-my-6 flex justify-center"
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
@@ -113,7 +113,7 @@ function GlassesMedia() {
     <TransparentVideoLoop
       mp4Src="/loreal/glasses-idle.mp4"
       webmSrc="/loreal/glasses-idle.webm"
-      width="min(40vw, 200px)"
+      width="min(60vw, 320px)"
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
