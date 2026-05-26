@@ -45,23 +45,21 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Headline + glasses — single flex column so the glasses sit
-          *between* "What's" and "your vibe?" without overlapping the words. */}
-      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pb-32 pt-32">
-        <div className="flex flex-col items-center text-[#001050]">
+      {/* Headline + glasses — single flex column, sized to fit between the
+          logo (top) and powered-by/button (bottom) without overflow. */}
+      <div className="pointer-events-none absolute left-0 right-0 top-24 bottom-44 z-20 flex items-center justify-center px-6">
+        <div className="flex flex-col items-center gap-1 text-[#001050]">
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
           >
             What&apos;s
           </motion.span>
-          {/* Glasses live inline between the headlines. Negative margins let
-              them visually crowd the text without colliding with letterforms. */}
           <motion.div
-            className="-my-2 flex justify-center"
+            className="-my-1 flex justify-center"
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
@@ -70,7 +68,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.div>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
@@ -79,7 +77,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           </motion.span>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
+            style={{ fontSize: "clamp(2.25rem, 11vw, 4rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
@@ -119,7 +117,7 @@ function GlassesMedia() {
     <TransparentVideoLoop
       mp4Src="/loreal/glasses-idle.mp4"
       webmSrc="/loreal/glasses-idle.webm"
-      width="min(50vw, 280px)"
+      width="min(40vw, 200px)"
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
