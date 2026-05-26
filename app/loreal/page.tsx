@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
-import { CornerTap } from "@/components/ui/corner-tap";
 import { LorealStartScreen } from "@/components/loreal/start-screen";
 
 function LorealContent() {
@@ -15,11 +14,8 @@ function LorealContent() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Invisible cross-brand corner tap — top-left → /f1.
-          Rendered outside of the start-screen so it's always tappable. */}
-      <CornerTap to="/f1" />
-
-      {/* Start screen — primary view */}
+      {/* Start screen — primary view. CornerTap → /f1 lives inside it
+          so it isn't covered by the z-50 overlay. */}
       <AnimatePresence>
         {showStart && <LorealStartScreen onStart={handleStart} />}
       </AnimatePresence>
