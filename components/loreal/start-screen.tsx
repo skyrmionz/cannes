@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { CornerTap } from "@/components/ui/corner-tap";
+import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 
 interface StartScreenProps {
   onStart: () => void;
@@ -45,21 +45,10 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Hero glasses video — sits between "Find" and "your" lines.
-          Video is positioned absolutely so it can overlap the headline. */}
-      <motion.div
-        className="absolute inset-x-0 z-10 flex justify-center"
-        style={{ top: "30%" }}
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
-      >
-        <GlassesMedia />
-      </motion.div>
-
-      {/* Headline — "What's" / [glasses] / "your vibe?" with glasses overlapping between lines */}
+      {/* Headline + glasses — single flex column so the glasses sit
+          *between* "What's" and "your vibe?" without overlapping the words. */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 pb-32 pt-32">
-        <div className="flex flex-col items-center gap-1 text-[#001050]">
+        <div className="flex flex-col items-center text-[#001050]">
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
             style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
@@ -69,8 +58,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           >
             What&apos;s
           </motion.span>
-          {/* Spacer roughly the height of the overlapping glasses */}
-          <div className="h-[clamp(4.5rem,18vw,8rem)]" aria-hidden />
+          {/* Glasses live inline between the headlines. Negative margins let
+              them visually crowd the text without colliding with letterforms. */}
+          <motion.div
+            className="-my-2 flex justify-center"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
+          >
+            <GlassesMedia />
+          </motion.div>
           <motion.span
             className="block text-center font-bold leading-[0.95] tracking-tight"
             style={{ fontSize: "clamp(2.75rem, 13vw, 5.25rem)" }}
@@ -92,23 +89,20 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </div>
       </div>
 
-      {/* Powered by Agentforce — rendered as text + Salesforce cloud icon
-          (the F1 PNG is white-on-dark; doesn't work on the light L'Oreal background) */}
+      {/* Powered by Agentforce — dark variant for the light L'Oreal background */}
       <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-32 z-20 flex items-center justify-center gap-2 px-6 text-[#001050]"
+        className="pointer-events-none absolute inset-x-0 bottom-32 z-20 flex justify-center px-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.5 }}
       >
-        <span className="text-[clamp(0.85rem,3.5vw,1.05rem)] font-semibold tracking-tight">
-          Powered by Agentforce from
-        </span>
         <Image
-          src="/logos/salesforce.png"
-          alt="Salesforce"
-          width={180}
+          src="/loreal/powered-by-astro.png"
+          alt="Powered by Agentforce from Salesforce"
+          width={1140}
           height={120}
-          className="h-[clamp(1.4rem,5vw,1.8rem)] w-auto select-none"
+          priority
+          className="h-auto w-[min(80vw,320px)] select-none"
         />
       </motion.div>
 
@@ -121,40 +115,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
 }
 
 function GlassesMedia() {
-  const [videoFailed, setVideoFailed] = useState(false);
-
-  if (videoFailed) {
-    return (
-      <Image
-        src="/loreal/holographic-glasses.png"
-        alt="Holographic sunglasses"
-        width={520}
-        height={400}
-        priority
-        className="h-auto w-[min(50vw,280px)] select-none"
-        style={{ filter: "drop-shadow(0 18px 40px rgba(180,140,255,0.35))" }}
-      />
-    );
-  }
-
   return (
-    <video
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="auto"
-      onError={() => setVideoFailed(true)}
+    <TransparentVideoLoop
+      mp4Src="/loreal/glasses-idle.mp4"
+      webmSrc="/loreal/glasses-idle.webm"
+      width="min(50vw, 280px)"
+      fallbackSrc="/loreal/holographic-glasses.png"
+      fallbackAlt="Holographic sunglasses"
       className="select-none"
-      style={{
-        width: "min(50vw, 280px)",
-        height: "auto",
-        filter: "drop-shadow(0 18px 40px rgba(180,140,255,0.35))",
-      }}
-    >
-      <source src="/loreal/glasses-idle.mp4" type='video/mp4; codecs="hvc1"' />
-      <source src="/loreal/glasses-idle.webm" type="video/webm" />
-    </video>
+      filter="drop-shadow(0 18px 40px rgba(180,140,255,0.35))"
+    />
   );
 }
 
@@ -172,13 +142,14 @@ function LetsGlowButton({ onClick }: { onClick: () => void }) {
       style={{
         WebkitBackdropFilter: "blur(22px) saturate(160%)",
         backdropFilter: "blur(22px) saturate(160%)",
+        // Glassy + #1A6CF0 base — translucent overlay on top of the brand blue
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.18) 100%)",
+          "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)",
         boxShadow: [
-          "0 1px 0 rgba(255,255,255,0.55) inset",
-          "0 -1px 0 rgba(255,255,255,0.18) inset",
-          "0 0 0 1px rgba(255,255,255,0.35) inset",
-          "0 12px 36px rgba(2,16,80,0.35)",
+          "0 1px 0 rgba(255,255,255,0.45) inset",
+          "0 -1px 0 rgba(0,16,80,0.25) inset",
+          "0 0 0 1px rgba(255,255,255,0.25) inset",
+          "0 12px 36px rgba(15,84,200,0.45)",
         ].join(", "),
       }}
     >

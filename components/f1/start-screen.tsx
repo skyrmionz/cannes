@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { DotBg, F1_GRADIENT } from "./dot-bg";
 import { CornerTap } from "@/components/ui/corner-tap";
+import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 
 interface StartScreenProps {
   onStart: () => void;
@@ -286,46 +287,21 @@ const rumbleTransition = {
 // (e.g. the asset hasn't been generated yet) falls back to the static PNG so
 // the screen still works.
 function CarMedia({ rumble }: { rumble: boolean }) {
-  const [videoFailed, setVideoFailed] = useState(false);
-
-  const inner = videoFailed ? (
-    <Image
-      src="/f1/f1-car-top.png"
-      alt="F1 car"
-      width={300}
-      height={450}
-      priority
-      className="select-none"
-      style={{ filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))" }}
-    />
-  ) : (
-    <video
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="auto"
-      onError={() => setVideoFailed(true)}
-      className="select-none"
-      style={{
-        width: 300,
-        height: "auto",
-        filter: "drop-shadow(0 12px 40px rgba(0,0,80,0.5))",
-      }}
-    >
-      {/* HEVC+alpha listed first — Safari picks it; Chrome/Firefox skip and use WebM */}
-      <source src="/f1/f1-car-idle.mp4" type='video/mp4; codecs="hvc1"' />
-      <source src="/f1/f1-car-idle.webm" type="video/webm" />
-    </video>
-  );
-
   return (
     <motion.div
       animate={rumble ? rumbleAnimate : { x: 0, y: 0, rotate: 0 }}
       transition={rumble ? rumbleTransition : { duration: 0.2 }}
       style={{ willChange: "transform" }}
     >
-      {inner}
+      <TransparentVideoLoop
+        mp4Src="/f1/f1-car-idle.mp4"
+        webmSrc="/f1/f1-car-idle.webm"
+        width={300}
+        fallbackSrc="/f1/f1-car-top.png"
+        fallbackAlt="F1 car"
+        className="select-none"
+        filter="drop-shadow(0 12px 40px rgba(0,0,80,0.5))"
+      />
     </motion.div>
   );
 }
