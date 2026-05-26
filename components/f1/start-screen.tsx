@@ -40,9 +40,11 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
       vx: number; vy: number;
       life: number; decay: number;
       size: number;
+      isSmoke: boolean;
     }
 
     const particles: Particle[] = [];
+    let smokeBurstFired = false;
 
     function resize() {
       canvas!.width = canvas!.offsetWidth;
@@ -51,7 +53,7 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
     resize();
     window.addEventListener("resize", resize);
 
-    function spawnAt(cx: number, cy: number) {
+    function spawnTrail(cx: number, cy: number) {
       for (let i = 0; i < 4; i++) {
         particles.push({
           x: cx + (Math.random() - 0.5) * 20,
@@ -61,6 +63,25 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
           life: 1,
           decay: 0.8 + Math.random() * 0.8,
           size: 2 + Math.random() * 5,
+          isSmoke: false,
+        });
+      }
+    }
+
+    // Larger gray smoke burst — fired once when the car revs.
+    function spawnSmokeBurst(cx: number, cy: number) {
+      for (let i = 0; i < 16; i++) {
+        const angle = Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 1.3;
+        const speed = 0.6 + Math.random() * 2.8;
+        particles.push({
+          x: cx + (Math.random() - 0.5) * 40,
+          y: cy + (Math.random() - 0.5) * 16,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed * 0.35 + 0.6,
+          life: 1,
+          decay: 0.3 + Math.random() * 0.3,
+          size: 12 + Math.random() * 22,
+          isSmoke: true,
         });
       }
     }
@@ -72,17 +93,27 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
 
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
 
-      // Spawn particles only during the launch window
       const trigger = launchAtRef.current;
       if (trigger !== null) {
         const since = (now - trigger) / 1000; // seconds since click
-        // Launch motion runs from 0.7s..1.4s after click
-        if (since >= 0.7 && since < 1.4) {
-          const launchProgress = (since - 0.7) / 0.7; // 0..1 across launch
-          // Car settles at top:12% with height ~450; exhaust at ~25% of height below top
-          const carY = canvas!.height * (0.35 - launchProgress * 0.55);
-          spawnAt(canvas!.width / 2, carY + canvas!.height * 0.25);
+
+        // Smoke puff at exhaust during the rev moment (~0.3–0.5s).
+        // Car sits at top:12% with height ~450; exhaust is the bottom edge.
+        if (!smokeBurstFired && since >= 0.3) {
+          smokeBurstFired = true;
+          const exhaustY = canvas!.height * 0.12 + 450 * 0.92;
+          spawnSmokeBurst(canvas!.width / 2, exhaustY);
         }
+
+        // White trail particles during the launch window (0.7s..1.4s).
+        if (since >= 0.7 && since < 1.4) {
+          const launchProgress = (since - 0.7) / 0.7;
+          const carY = canvas!.height * (0.35 - launchProgress * 0.55);
+          spawnTrail(canvas!.width / 2, carY + canvas!.height * 0.25);
+        }
+      } else {
+        // Reset latch if launch isn't active (e.g. component re-mounts).
+        smokeBurstFired = false;
       }
 
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -93,7 +124,12 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
         if (p.life <= 0) { particles.splice(i, 1); continue; }
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(255,255,255,${p.life * 0.6})`;
+        if (p.isSmoke) {
+          const g = Math.floor(200 + 55 * p.life);
+          ctx!.fillStyle = `rgba(${g},${g},${g},${p.life * 0.5})`;
+        } else {
+          ctx!.fillStyle = `rgba(255,255,255,${p.life * 0.6})`;
+        }
         ctx!.fill();
       }
 
