@@ -13,12 +13,14 @@ interface StartScreenProps {
 
 const words = ["Are you", "podium", "ready?"];
 
-// Launch sequence (after button click):
+// Launch sequence (after button click) — matches f1-cannes/poz-tap-to-rev:
 //   t=0–300ms     UI fades out
-//   t=300–700ms   Car revs in place
-//   t=700–1400ms  Car shoots off top with particle trail
-//   t=1400ms      Parent navigates to next screen
-const LAUNCH_TOTAL_MS = 1400;
+//   t=300         smoke puff #1 fires at exhaust
+//   t=300–800ms   Car shakes/revs in place (x ±12, rotate ±3, decaying)
+//   t=800         smoke puff #2 fires + white particle trail starts
+//   t=800–1350ms  Car shoots off the top (y → -130%, scale → 0.7)
+//   t=1350ms      Parent navigates to next screen
+const LAUNCH_TOTAL_MS = 1350;
 
 function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,7 +46,8 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
     }
 
     const particles: Particle[] = [];
-    let smokeBurstFired = false;
+    let smokeBurst1Fired = false;
+    let smokeBurst2Fired = false;
 
     function resize() {
       canvas!.width = canvas!.offsetWidth;
@@ -97,23 +100,31 @@ function ParticleCanvas({ launchAt }: { launchAt: number | null }) {
       if (trigger !== null) {
         const since = (now - trigger) / 1000; // seconds since click
 
-        // Smoke puff at exhaust during the rev moment (~0.3–0.5s).
         // Car sits at top:12% with height ~450; exhaust is the bottom edge.
-        if (!smokeBurstFired && since >= 0.3) {
-          smokeBurstFired = true;
-          const exhaustY = canvas!.height * 0.12 + 450 * 0.92;
+        const exhaustY = canvas!.height * 0.12 + 450 * 0.92;
+
+        // Smoke puff #1 — fires when shake starts (right after UI fade).
+        if (!smokeBurst1Fired && since >= 0.3) {
+          smokeBurst1Fired = true;
           spawnSmokeBurst(canvas!.width / 2, exhaustY);
         }
 
-        // White trail particles during the launch window (0.7s..1.4s).
-        if (since >= 0.7 && since < 1.4) {
-          const launchProgress = (since - 0.7) / 0.7;
+        // Smoke puff #2 — fires when shake ends, just before launch.
+        if (!smokeBurst2Fired && since >= 0.8) {
+          smokeBurst2Fired = true;
+          spawnSmokeBurst(canvas!.width / 2, exhaustY);
+        }
+
+        // White trail particles during the launch window (0.8s..1.35s).
+        if (since >= 0.8 && since < 1.35) {
+          const launchProgress = (since - 0.8) / 0.55;
           const carY = canvas!.height * (0.35 - launchProgress * 0.55);
           spawnTrail(canvas!.width / 2, carY + canvas!.height * 0.25);
         }
       } else {
-        // Reset latch if launch isn't active (e.g. component re-mounts).
-        smokeBurstFired = false;
+        // Reset latches if launch isn't active (e.g. component re-mounts).
+        smokeBurst1Fired = false;
+        smokeBurst2Fired = false;
       }
 
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -216,17 +227,11 @@ export function StartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* F1 Car — z-10 so headline text sits on top.
-          Launch motion (after click): brief rev with a shake-rattle, then shoots off the top.
-          Keyframe layout (1.1s duration, with 0.3s pre-delay during which UI fades):
-            t=0    rest position
-            t=0.05 shake left
-            t=0.10 shake right
-            t=0.15 shake left (smaller)
-            t=0.20 shake right (smaller)
-            t=0.25 settled at apex of rev
-            t=0.36 rev compression peak
-            t=1.0  off the top */}
+      {/* F1 Car — matches the launch animation from f1-cannes/poz-tap-to-rev exactly.
+          Two-stage motion using one keyframe array:
+          Stage 1 — shake/rev (0–500ms, 48% of total): x ±12, rotate ±3, decaying.
+          Stage 2 — launch (500–1050ms, 52% of total): y: 0% → -130%, scale: 1 → 0.7,
+                   with ease-in cubic-bezier (slow start, hard acceleration). */}
       <motion.div
         className="absolute inset-x-0 z-10 flex justify-center"
         style={{ top: "12%" }}
@@ -234,19 +239,22 @@ export function StartScreen({ onStart }: StartScreenProps) {
         animate={
           launching
             ? {
-                y: ["0%", "0%", "0%", "0%", "0%", "0%", "2%", "-130%"],
-                x: [0, -10, 10, -7, 7, -3, 0, 0],
-                rotate: [0, -2, 2, -1.4, 1.4, -0.5, 0, 0],
-                scale: [1, 1, 1, 1, 1, 1, 1.04, 0.75],
+                // Shake (8 keyframes through 500ms) → hold → launch off
+                x: [0, -12, 12, -9, 9, -6, 6, -3, 3, 0, 0, 0],
+                rotate: [0, -3, 3, -2, 2, -1, 1, 0, 0, 0, 0, 0],
+                y: ["0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "-130%"],
+                scale: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.7],
               }
             : { y: "0%", x: 0, rotate: 0, scale: 1 }
         }
         transition={
           launching
             ? {
-                duration: 1.1,
-                times: [0, 0.045, 0.09, 0.14, 0.19, 0.23, 0.36, 1],
-                ease: [0.32, 0.72, 0, 1],
+                duration: 1.05,
+                // 0–48% = 500ms shake, 48–100% = 550ms launch
+                times: [0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.46, 0.48, 1],
+                // Poz's launch ease: slow start, hard acceleration off the top
+                ease: [0.55, 0, 1, 0.45],
                 delay: 0.3,
               }
             : { duration: 0.7, ease: "easeOut", delay: 0.1 }
