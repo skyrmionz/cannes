@@ -235,7 +235,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="absolute inset-x-0 z-10 flex justify-center"
         style={{ top: "12%" }}
-        initial={{ y: "110%", scale: 0.9 }}
+        initial={{ y: "110%", scaleX: 0.9, scaleY: 0.9 }}
         animate={
           launching
             ? {
@@ -243,9 +243,18 @@ export function StartScreen({ onStart }: StartScreenProps) {
                 x: [0, -12, 12, -9, 9, -6, 6, -3, 3, 0, 0, 0],
                 rotate: [0, -3, 3, -2, 2, -1, 1, 0, 0, 0, 0, 0],
                 y: ["0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "0%", "-130%"],
-                scale: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.7],
+                scaleX: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.7],
+                scaleY: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.7],
               }
-            : { y: "0%", x: 0, rotate: 0, scale: 1 }
+            : {
+                // Skid-in entry: fast approach → overshoot past rest → bounce back to rest.
+                // Tail-kick rotation + brief squash at impact for a braking feel.
+                y: ["110%", "30%", "-6%", "2%", "0%"],
+                x: [0, 0, 0, -2, 0],
+                rotate: [0, 0, -2.5, 1.2, 0],
+                scaleY: [0.9, 0.95, 1.04, 0.97, 1],
+                scaleX: [0.9, 0.95, 0.96, 1.03, 1],
+              }
         }
         transition={
           launching
@@ -257,7 +266,13 @@ export function StartScreen({ onStart }: StartScreenProps) {
                 ease: [0.55, 0, 1, 0.45],
                 delay: 0.3,
               }
-            : { duration: 0.7, ease: "easeOut", delay: 0.1 }
+            : {
+                duration: 1.0,
+                // Aggressive brake curve at the impact, smaller settle bounces after.
+                times: [0, 0.55, 0.78, 0.9, 1],
+                ease: [0.16, 0.84, 0.32, 1],
+                delay: 0.1,
+              }
         }
       >
         <CarMedia rumble={!launching} />
