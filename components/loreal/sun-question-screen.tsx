@@ -11,27 +11,30 @@ interface Props {
 }
 
 // Three sun positions inside the stage. Values are the `bottom` offset in px
-// from the stage's bottom edge. Stop 0 is "barely peeking" — most of the sun
+// from the screen's bottom edge. Stop 0 is "barely peeking" — most of the sun
 // is hidden behind the hill silhouette. Stop 2 is high above the sky.
-const STOPS = [-90, 170, 320] as const;
+const STOPS = [80, 320, 520] as const;
 type StopIndex = 0 | 1 | 2;
 
-const SKY_GRADIENTS = [
-  // sleepy / barely peeking — cool blue → muted peach
-  "linear-gradient(180deg, #BFD9FF 0%, #FFE4C4 100%)",
-  // golden hour — warm amber → buttery yellow
-  "linear-gradient(180deg, #FFB877 0%, #FFD89A 100%)",
-  // full sunny — bright yellow → orange
-  "linear-gradient(180deg, #FFE066 0%, #FFAA33 100%)",
+// The hill is positioned with its base at this `bottom` offset so the sun's
+// low stop sits behind the silhouette of the hill.
+const HILL_BOTTOM_PX = 80;
+
+// Soft warm overlay tints — sit behind the hill+sun, get more amber/orange
+// as the sun rises so the "sky" feels sunnier without a hard sky card.
+const SKY_TINTS = [
+  // low — barely tinted (still mostly the page-blue)
+  "radial-gradient(80% 60% at 50% 80%, rgba(255,210,160,0) 0%, rgba(255,210,160,0) 100%)",
+  // mid — golden warmth from the horizon
+  "radial-gradient(80% 60% at 50% 80%, rgba(255,180,120,0.55) 0%, rgba(255,210,140,0) 70%)",
+  // high — full warm wash
+  "radial-gradient(95% 75% at 50% 70%, rgba(255,170,80,0.7) 0%, rgba(255,210,120,0.2) 60%, rgba(255,230,150,0) 100%)",
 ] as const;
 
 export function LorealSunQuestionScreen({ onNext }: Props) {
   const [stopIndex, setStopIndex] = useState<StopIndex>(0);
 
   const handleDragEnd = (_: PointerEvent, info: PanInfo) => {
-    // info.offset.y: negative when dragged up, positive when dragged down.
-    // Compute the visual "bottom" the sun is currently at, then snap to the
-    // closest stop.
     const visualBottom = STOPS[stopIndex] - info.offset.y;
     let closest: StopIndex = 0;
     let bestDist = Infinity;
@@ -47,8 +50,17 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
 
   return (
     <div className="relative h-full w-full">
+      {/* Sky tint — sits behind everything, warms up as the sun rises */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background: SKY_TINTS[stopIndex],
+          transition: "background 700ms ease",
+        }}
+      />
+
       {/* Header zone — progress bar + title + subtitle */}
-      <div className="relative z-10 px-7 pt-6">
+      <div className="relative z-30 px-7 pt-6">
         <LorealProgressBar percent={20} label="20% to glow" />
 
         <motion.h1
@@ -77,10 +89,55 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         </motion.p>
       </div>
 
-      {/* Stage — sky + draggable sun + hill, mounted between header and CTA. */}
-      <div className="absolute inset-x-7 bottom-32 top-44">
-        <SunStage stopIndex={stopIndex} onDragEnd={handleDragEnd} />
-      </div>
+      {/* Sun — z-10, draggable, sits BEHIND the hill so the low stop appears
+          to peek. Centered horizontally; vertical position drives `bottom`. */}
+      <motion.div
+        className="absolute left-1/2 z-10 -translate-x-1/2"
+        drag="y"
+        dragConstraints={{
+          top: -(STOPS[2] - STOPS[0]) - 60,
+          bottom: 60,
+        }}
+        dragElastic={0.12}
+        dragMomentum={false}
+        onDragEnd={handleDragEnd}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        style={{ bottom: STOPS[stopIndex], cursor: "grab" }}
+        whileTap={{ cursor: "grabbing" }}
+      >
+        <Image
+          src="/loreal/sun.png"
+          alt="Sun"
+          width={400}
+          height={400}
+          priority
+          draggable={false}
+          className="select-none"
+          style={{
+            width: "min(40vw, 28vh)",
+            height: "auto",
+            filter: "drop-shadow(0 8px 24px rgba(255,170,40,0.45))",
+          }}
+        />
+      </motion.div>
+
+      {/* Hill — z-20, ALWAYS painted on top so the sun hides behind it at low.
+          Positioned directly on the page (no card). */}
+      <Image
+        src="/loreal/hill-scene.png"
+        alt=""
+        width={1024}
+        height={1024}
+        priority
+        className="pointer-events-none absolute z-20 h-auto select-none"
+        style={{
+          bottom: `${HILL_BOTTOM_PX}px`,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "min(90vw, 60vh)",
+        }}
+      />
 
       {/* Next button — bottom-right of glass card */}
       <motion.button
@@ -106,66 +163,6 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
       >
         <ChevronRight className="h-6 w-6 text-white" strokeWidth={3} />
       </motion.button>
-    </div>
-  );
-}
-
-function SunStage({
-  stopIndex,
-  onDragEnd,
-}: {
-  stopIndex: StopIndex;
-  onDragEnd: (e: PointerEvent, info: PanInfo) => void;
-}) {
-  return (
-    <div
-      className="relative h-full w-full overflow-hidden rounded-3xl"
-      style={{
-        background: SKY_GRADIENTS[stopIndex],
-        transition: "background 700ms ease",
-        boxShadow: "0 0 0 1px rgba(255,255,255,0.3) inset",
-      }}
-    >
-      {/* Sun — z-10, BELOW the hill so it appears to sit behind it at the low stop */}
-      <motion.div
-        className="absolute left-1/2 z-10 -translate-x-1/2"
-        drag="y"
-        dragConstraints={{
-          top: -(STOPS[2] - STOPS[0]) - 40, // slightly past stop 2
-          bottom: 40, // slightly past stop 0
-        }}
-        dragElastic={0.12}
-        dragMomentum={false}
-        onDragEnd={onDragEnd}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-        style={{ bottom: STOPS[stopIndex], cursor: "grab" }}
-        whileTap={{ cursor: "grabbing" }}
-      >
-        <Image
-          src="/loreal/sun.png"
-          alt="Sun"
-          width={400}
-          height={400}
-          priority
-          draggable={false}
-          className="h-[160px] w-[160px] select-none"
-          style={{
-            filter: "drop-shadow(0 8px 24px rgba(255,170,40,0.45))",
-          }}
-        />
-      </motion.div>
-
-      {/* Hill — z-20, ALWAYS painted on top so the sun hides behind it at low */}
-      <Image
-        src="/loreal/hill-scene.png"
-        alt=""
-        width={1024}
-        height={1820}
-        priority
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-auto w-full select-none"
-        style={{ transform: "translateY(8%)" }}
-      />
     </div>
   );
 }
