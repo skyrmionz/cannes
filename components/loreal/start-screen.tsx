@@ -43,7 +43,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           Find
         </motion.span>
         <motion.div
-          className="relative z-10 -mt-[110px] -mb-[80px] flex justify-center"
+          className="relative z-10 -mt-[110px] -mb-[60px] flex justify-center"
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
@@ -89,7 +89,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
 
       {/* CTA — pinned at bottom-14 to match F1's "Start your engine" placement */}
       <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
-        <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
+        <GlassyButton onClick={onStart}>Claim your prize</GlassyButton>
       </div>
     </>
   );

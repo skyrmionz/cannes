@@ -95,7 +95,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
       {/* CTA — pinned at bottom-14 to match start screen */}
       <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
         <GlassyButton onClick={onStart} delay={0.95}>
-          Time to vibe
+          Let&apos;s glow
         </GlassyButton>
       </div>
     </>
