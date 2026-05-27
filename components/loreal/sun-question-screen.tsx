@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useMotionValue } from "motion/react";
+import { motion, useMotionValue, animate } from "motion/react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
@@ -45,6 +45,13 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         closest = i as StopIndex;
       }
     }
+    // Always animate to the snapped position — even if the user dropped the
+    // sun mid-way between two stops or didn't change the closest stop.
+    animate(y, STOPS[closest].y, {
+      type: "spring",
+      stiffness: 420,
+      damping: 32,
+    });
     setStopIndex(closest);
   };
 
@@ -55,7 +62,11 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
 
   const goToStop = (i: StopIndex) => {
     setStopIndex(i);
-    y.set(STOPS[i].y);
+    animate(y, STOPS[i].y, {
+      type: "spring",
+      stiffness: 420,
+      damping: 32,
+    });
   };
 
   return (
@@ -103,9 +114,8 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         </motion.p>
       </div>
 
-      {/* Notch labels — sit ABOVE the hill silhouette in their own band
-          between the hill top and the subtitle. Vertical positions are
-          fixed so they stay visible regardless of where the sun is. */}
+      {/* Notch labels — anchored to the RIGHT side of the card, in their own
+          band above the hill silhouette. Bigger text, no dots. */}
       <NotchLabel
         label="Bake Me"
         bottomPx={580}
@@ -147,7 +157,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
           draggable={false}
           className="select-none"
           style={{
-            width: "min(40vw, 28vh)",
+            width: "min(50vw, 36vh)",
             height: "auto",
             filter: "drop-shadow(0 8px 24px rgba(255,170,40,0.45))",
           }}
@@ -214,29 +224,17 @@ function NotchLabel({
     <button
       type="button"
       onClick={onClick}
-      className="pointer-events-auto absolute left-7 z-30 flex items-center gap-2 transition-all duration-300"
+      className="pointer-events-auto absolute right-7 z-30 transition-all duration-300"
       style={{
         bottom: `${bottomPx}px`,
         opacity: active ? 1 : 0.55,
+        fontSize: "clamp(1.125rem, 4.4vw, 1.5rem)",
+        fontWeight: 700,
+        letterSpacing: "-0.01em",
+        color: active ? "#001050" : "rgba(0,16,80,0.55)",
       }}
     >
-      <span
-        className="block rounded-full transition-all duration-300"
-        style={{
-          width: active ? 14 : 10,
-          height: active ? 14 : 10,
-          background: active ? "#FFAA33" : "#001050",
-          boxShadow: active
-            ? "0 0 14px rgba(255,170,40,0.7), 0 0 0 3px rgba(255,255,255,0.6)"
-            : "0 0 0 2px rgba(255,255,255,0.5)",
-        }}
-      />
-      <span
-        className="text-sm font-bold tracking-tight transition-colors duration-300"
-        style={{ color: active ? "#001050" : "rgba(0,16,80,0.55)" }}
-      >
-        {label}
-      </span>
+      {label}
     </button>
   );
 }
