@@ -87,7 +87,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             transition={{ delay: 0.8, duration: 0.5, ease: "easeOut" }}
           >
             We&apos;ll use L&apos;Oréal beauty data and Salesforce intelligence
-            to find your vibe. Oh, and you&apos;ll get a little gift on your way out!
+            to find your vibe.
           </motion.p>
         </div>
       </div>
