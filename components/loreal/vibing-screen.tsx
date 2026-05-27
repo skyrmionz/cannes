@@ -62,7 +62,7 @@ export function LorealVibingScreen({ onComplete }: Props) {
             },
           }}
         >
-          You&apos;re glowing!
+          Glowing up!
         </motion.h1>
       </div>
 
