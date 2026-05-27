@@ -174,52 +174,148 @@
   }
 }
 
-/* L'Oreal glassy CTA — shimmer + sheen effects ported from
-   codepen.io/loganliffick/pen/WNdZQZQ, recolored to our blue palette. */
-@keyframes glassyShimmer {
-  to {
-    background-size: 100% 100%;
-    box-shadow:
-      -2px -2px 8px rgba(170, 220, 255, 0.45),
-      2px 2px 8px rgba(15, 84, 200, 0.55),
-      0 1px 0 rgba(255, 255, 255, 0.45) inset,
-      0 -1px 0 rgba(0, 16, 80, 0.25) inset,
-      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+/* L'Oreal glassy CTA — wipe shimmer effect ported from
+   buttons.cool/button/BaeZJqd (simeydotme), recolored to our blue palette.
+   Structure:
+     .glassy-cta            — the button: blue gradient + soft glow
+       .glassy-shimmer      — overlay with blend-mode plus-lighter
+                              ::before  outer glow rings
+                              ::after   inner edge highlight
+                              mask animates via @keyframes wipe
+       .glassy-cta-text     — text with background-clip: text gradient sweep on hover
+   On hover the inner overlays light up; on idle the wipe mask sweeps right→left. */
+
+@keyframes glassyWipe {
+  0% {
+    -webkit-mask-position: 200% center;
+            mask-position: 200% center;
+  }
+  100% {
+    -webkit-mask-position: 0% center;
+            mask-position: 0% center;
   }
 }
+
+@keyframes glassyTextSweep {
+  0% {
+    background-position: 100% center;
+  }
+  100% {
+    background-position: -100% center;
+  }
+}
+
 .glassy-cta {
-  background: linear-gradient(
-    90deg,
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(
+    315deg,
     #aacdff 0%,
-    #4e90f7 35%,
-    #1a6cf0 70%,
+    #1a6cf0 47%,
     #0f54c8 100%
   );
-  background-size: 220% 100%;
-  animation: 1.5s ease infinite alternate running glassyShimmer;
-  box-shadow:
-    -2px -2px 12px rgba(170, 220, 255, 0.55),
-    2px 2px 12px rgba(15, 84, 200, 0.55),
-    0 1px 0 rgba(255, 255, 255, 0.45) inset,
-    0 -1px 0 rgba(0, 16, 80, 0.25) inset,
-    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
-  transition: transform 0.2s ease;
+  box-shadow: 0 2px 3px 1px hsl(220 50% 20% / 50%);
+  border: none;
+  outline: none;
+  scale: 1;
+  transition: all 0.3s cubic-bezier(0.5, 1.65, 0.55, 1);
 }
-.glassy-cta .sheen {
-  left: -28px;
-  opacity: 0.55;
-  position: absolute;
-  top: -4px;
-  pointer-events: none;
-  transition: 0.5s cubic-bezier(0.5, -0.5, 0.5, 1.5);
-}
-.glassy-cta:hover {
-  transform: rotate(-3deg);
-}
-.glassy-cta:hover .sheen {
-  opacity: 0.9;
-  transform: translateX(170px) scale(1.4);
+.glassy-cta:hover:not(:active) {
+  scale: 1.06;
+  transition-duration: 0.15s;
 }
 .glassy-cta:active {
-  transform: scale(0.95) rotate(-3deg);
+  scale: 1.02;
+  transition-duration: 0.15s;
+}
+
+/* Outer shimmer overlay — sits 40px outside the button bounds so the glow
+   ::before bleeds beyond the button edge, then `mask-image` clips it back. */
+.glassy-shimmer {
+  position: absolute;
+  inset: -40px;
+  border-radius: inherit;
+  mix-blend-mode: plus-lighter;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 20%,
+    black 88%,
+    transparent 90%
+  );
+          mask-image: linear-gradient(
+    90deg,
+    transparent 20%,
+    black 88%,
+    transparent 90%
+  );
+  -webkit-mask-size: 200% 200%;
+          mask-size: 200% 200%;
+  -webkit-mask-position: center;
+          mask-position: center;
+  -webkit-animation: glassyWipe 1.5s linear infinite both -0.5s;
+          animation: glassyWipe 1.5s linear infinite both -0.5s;
+}
+
+.glassy-shimmer::before,
+.glassy-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 40px;
+  border-radius: inherit;
+  transition: opacity 0.4s ease;
+  opacity: 0;
+}
+/* Outer multi-layer glow ring */
+.glassy-shimmer::before {
+  box-shadow:
+    0 0 3px 2px hsl(210 30% 95%),
+    0 0 7px 4px hsl(215 60% 80%),
+    0 0 13px 8px hsl(220 80% 60%),
+    0 0 22px 6px hsl(220 60% 40%);
+  z-index: -1;
+}
+/* Inner edge highlight */
+.glassy-shimmer::after {
+  box-shadow:
+    inset 0 0 0 1px hsl(210 70% 95%),
+    inset 0 0 3px 1px hsl(215 100% 85%),
+    inset 0 0 9px 1px hsl(220 100% 75%);
+  z-index: 2;
+}
+.glassy-cta:hover .glassy-shimmer::before,
+.glassy-cta:hover .glassy-shimmer::after {
+  opacity: 1;
+}
+.glassy-cta:active .glassy-shimmer,
+.glassy-cta:focus-visible .glassy-shimmer {
+  -webkit-animation-play-state: paused !important;
+          animation-play-state: paused !important;
+  -webkit-mask-image: none !important;
+          mask-image: none !important;
+}
+
+/* Button label — gradient sweep across the text on hover */
+.glassy-cta-text {
+  color: white;
+  -webkit-background-clip: text;
+          background-clip: text;
+  background-color: white;
+  background-image: linear-gradient(
+    120deg,
+    transparent,
+    hsla(210, 100%, 95%, 0.66) 40%,
+    hsla(220, 100%, 90%, 0.9) 50%,
+    transparent 52%
+  );
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  background-position: center 200%;
+  position: relative;
+  z-index: 10;
+  text-shadow: 0 1px 1px rgba(0, 16, 80, 0.45);
+}
+.glassy-cta:not(:disabled):hover .glassy-cta-text {
+  -webkit-animation: glassyTextSweep 0.66s ease-in-out 1;
+          animation: glassyTextSweep 0.66s ease-in-out 1;
 }
