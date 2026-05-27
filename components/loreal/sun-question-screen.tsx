@@ -10,14 +10,14 @@ interface Props {
   onNext: () => void;
 }
 
-// Three sun positions inside the stage. Values are the `bottom` offset in px
-// from the screen's bottom edge. Stop 0 is "barely peeking" — most of the sun
-// is hidden behind the hill silhouette. Stop 2 is high above the sky.
-const STOPS = [80, 320, 520] as const;
+// Three sun positions. Values are the `bottom` offset in px from the screen's
+// bottom edge. The hill silhouette sits between bottom: 80px and ~380px tall.
+// Stop 0 puts the sun mostly behind the hill (only a sliver peeks above the
+// top of the hill). Stops 1 and 2 lift the sun fully into the sky.
+const STOPS = [100, 380, 580] as const;
 type StopIndex = 0 | 1 | 2;
 
-// The hill is positioned with its base at this `bottom` offset so the sun's
-// low stop sits behind the silhouette of the hill.
+// The hill is positioned with its base at this `bottom` offset.
 const HILL_BOTTOM_PX = 80;
 
 // Soft warm overlay tints — sit behind the hill+sun, get more amber/orange
@@ -123,19 +123,20 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
       </motion.div>
 
       {/* Hill — z-20, ALWAYS painted on top so the sun hides behind it at low.
-          Positioned directly on the page (no card). */}
+          PNG is cropped to the silhouette so width/height map directly to the
+          rendered hill shape. */}
       <Image
-        src="/loreal/hill-scene.png"
+        src="/loreal/hill-scene-v2.png"
         alt=""
-        width={1024}
-        height={1024}
+        width={893}
+        height={419}
         priority
         className="pointer-events-none absolute z-20 h-auto select-none"
         style={{
           bottom: `${HILL_BOTTOM_PX}px`,
           left: "50%",
           transform: "translateX(-50%)",
-          width: "min(90vw, 60vh)",
+          width: "min(90vw, 56vh)",
         }}
       />
 

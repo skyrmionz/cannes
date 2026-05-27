@@ -12,7 +12,7 @@ export function LorealProgressBar({ percent, label }: Props) {
   const clamped = Math.max(0, Math.min(100, percent));
   return (
     <div
-      className="relative h-10 w-full rounded-full"
+      className="relative h-11 w-full rounded-full"
       style={{
         WebkitBackdropFilter: "blur(14px) saturate(140%)",
         backdropFilter: "blur(14px) saturate(140%)",
@@ -24,9 +24,9 @@ export function LorealProgressBar({ percent, label }: Props) {
         ].join(", "),
       }}
     >
-      {/* Inset track that hosts the gradient fill, leaving 4px of glass on
+      {/* Inset track that hosts the gradient fill, leaving glass padding on
           all sides between the gradient and the outer pill border. */}
-      <div className="absolute inset-1 overflow-hidden rounded-full">
+      <div className="absolute inset-[6px] overflow-hidden rounded-full">
         <div
           className="h-full rounded-full transition-[width] duration-500 ease-out"
           style={{
