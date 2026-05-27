@@ -8,8 +8,9 @@ import { LorealStartScreen } from "@/components/loreal/start-screen";
 import { LorealIntroScreen } from "@/components/loreal/intro-screen";
 import { LorealVibingScreen } from "@/components/loreal/vibing-screen";
 import { LorealSunQuestionScreen } from "@/components/loreal/sun-question-screen";
+import { LorealHydrationQuestionScreen } from "@/components/loreal/hydration-question-screen";
 
-type Step = "start" | "intro" | "vibing" | "sun";
+type Step = "start" | "intro" | "vibing" | "sun" | "hydration";
 
 const LOREAL_GRADIENT =
   "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";
@@ -20,6 +21,7 @@ function LorealContent() {
   const goToIntro = useCallback(() => setStep("intro"), []);
   const goToVibing = useCallback(() => setStep("vibing"), []);
   const goToSun = useCallback(() => setStep("sun"), []);
+  const goToHydration = useCallback(() => setStep("hydration"), []);
   const goToNext = useCallback(() => {
     // Downstream not built yet — Next button is a no-op.
   }, []);
@@ -109,7 +111,20 @@ function LorealContent() {
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             style={{ transformOrigin: "center" }}
           >
-            <LorealSunQuestionScreen onNext={goToNext} />
+            <LorealSunQuestionScreen onNext={goToHydration} />
+          </motion.div>
+        )}
+        {step === "hydration" && (
+          <motion.div
+            key="hydration"
+            className="absolute inset-0 z-20"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.18 }}
+            transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+            style={{ transformOrigin: "center" }}
+          >
+            <LorealHydrationQuestionScreen onNext={goToNext} />
           </motion.div>
         )}
       </AnimatePresence>

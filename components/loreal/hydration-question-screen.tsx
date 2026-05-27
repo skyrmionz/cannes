@@ -1,0 +1,134 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { motion } from "motion/react";
+import { ChevronRight, Plus, Minus } from "lucide-react";
+import { LorealProgressBar } from "./progress-bar";
+import {
+  HydrationDroplet,
+  type DropletLevel,
+  type DropletPhase,
+} from "./hydration-droplet";
+import { RoundIconButton } from "./round-icon-button";
+
+interface Props {
+  onNext: () => void;
+}
+
+export function LorealHydrationQuestionScreen({ onNext }: Props) {
+  const [level, setLevel] = useState<DropletLevel>(0);
+  const [phase, setPhase] = useState<DropletPhase>("idle");
+  const [fromLevel, setFromLevel] = useState<DropletLevel>(0);
+  const [toLevel, setToLevel] = useState<DropletLevel>(0);
+
+  const onPlus = useCallback(() => {
+    if (phase !== "idle" || level >= 2) return;
+    const next = (level + 1) as DropletLevel;
+    setFromLevel(level);
+    setToLevel(next);
+    setPhase("transitioning");
+  }, [level, phase]);
+
+  const onMinus = useCallback(() => {
+    if (phase !== "idle" || level <= 0) return;
+    const next = (level - 1) as DropletLevel;
+    setFromLevel(level);
+    setToLevel(next);
+    setPhase("transitioning");
+  }, [level, phase]);
+
+  const onTransitionEnd = useCallback(() => {
+    setLevel(toLevel);
+    setPhase("idle");
+  }, [toLevel]);
+
+  return (
+    // Same outer wrapper as sun screen — clipped to glass card.
+    <div className="absolute inset-3 overflow-hidden rounded-[40px]">
+      {/* Header: progress + title + subtitle */}
+      <div className="relative z-30 px-7 pt-7">
+        <LorealProgressBar percent={40} label="40% to glow" />
+
+        <motion.h1
+          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
+        >
+          Be honest: how hydrated are you?
+        </motion.h1>
+
+        <motion.p
+          className="mt-2 text-center leading-snug text-[#001050]/75"
+          style={{
+            fontSize: "clamp(0.85rem, 3.4vw, 0.95rem)",
+            fontFamily:
+              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+          }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
+        >
+          L&apos;Oréal labs say dehydration encourages fine lines. I&apos;ll
+          calculate your bounce-back time.
+        </motion.p>
+      </div>
+
+      {/* Center stage — droplet + side controls */}
+      <div className="absolute inset-x-0 top-[44%] -translate-y-1/2 flex items-center justify-center gap-5 px-6">
+        <div className="shrink-0">
+          <HydrationDroplet
+            width="min(60vw, 50vh)"
+            level={level}
+            phase={phase}
+            fromLevel={fromLevel}
+            toLevel={toLevel}
+            onTransitionEnd={onTransitionEnd}
+          />
+        </div>
+        <div className="flex flex-col items-center gap-4">
+          <RoundIconButton
+            onClick={onPlus}
+            disabled={phase !== "idle" || level >= 2}
+            ariaLabel="Increase hydration"
+          >
+            <Plus className="h-6 w-6" strokeWidth={3} />
+          </RoundIconButton>
+          <RoundIconButton
+            onClick={onMinus}
+            disabled={phase !== "idle" || level <= 0}
+            ariaLabel="Decrease hydration"
+          >
+            <Minus className="h-6 w-6" strokeWidth={3} />
+          </RoundIconButton>
+        </div>
+      </div>
+
+      {/* Next button */}
+      <motion.button
+        type="button"
+        onClick={onNext}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        className="absolute bottom-8 right-6 z-30 grid h-14 w-14 place-items-center rounded-full"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)",
+          boxShadow: [
+            "0 1px 0 rgba(255,255,255,0.45) inset",
+            "0 -1px 0 rgba(0,16,80,0.25) inset",
+            "0 0 0 1px rgba(255,255,255,0.25) inset",
+            "0 12px 28px rgba(15,84,200,0.4)",
+          ].join(", "),
+        }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        aria-label="Next"
+      >
+        <ChevronRight className="h-6 w-6 text-white" strokeWidth={3} />
+      </motion.button>
+    </div>
+  );
+}
