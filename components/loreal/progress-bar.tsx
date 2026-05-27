@@ -5,14 +5,14 @@ interface Props {
   label: string; // e.g. "20% to glow"
 }
 
-// Glassmorphism pill with an inner gradient fill and a right-aligned label.
-// The fill width = `percent`; the label always sits at the far right of the
-// outer pill so it's readable on the empty (glass) portion.
+// Glassmorphism pill with an inset gradient fill and a right-aligned label.
+// The gradient fill is inset 4px on all sides via an inner padded track so
+// there's visible glass around it. Label color matches the page title.
 export function LorealProgressBar({ percent, label }: Props) {
   const clamped = Math.max(0, Math.min(100, percent));
   return (
     <div
-      className="relative h-9 w-full overflow-hidden rounded-full"
+      className="relative h-10 w-full rounded-full"
       style={{
         WebkitBackdropFilter: "blur(14px) saturate(140%)",
         backdropFilter: "blur(14px) saturate(140%)",
@@ -24,21 +24,21 @@ export function LorealProgressBar({ percent, label }: Props) {
         ].join(", "),
       }}
     >
-      {/* Inner gradient fill */}
-      <div
-        className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-500 ease-out"
-        style={{
-          width: `${clamped}%`,
-          background:
-            "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
-        }}
-      />
+      {/* Inset track that hosts the gradient fill, leaving 4px of glass on
+          all sides between the gradient and the outer pill border. */}
+      <div className="absolute inset-1 overflow-hidden rounded-full">
+        <div
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{
+            width: `${clamped}%`,
+            background:
+              "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
+          }}
+        />
+      </div>
 
-      {/* Right-aligned label, always over the empty/glass portion */}
-      <span
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold tracking-tight text-white"
-        style={{ textShadow: "0 1px 2px rgba(0,16,80,0.35)" }}
-      >
+      {/* Right-aligned label — same dark navy as the title text */}
+      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold tracking-tight text-[#001050]">
         {label}
       </span>
     </div>

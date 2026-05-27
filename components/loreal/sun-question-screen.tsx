@@ -52,7 +52,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         <LorealProgressBar percent={20} label="20% to glow" />
 
         <motion.h1
-          className="mt-6 text-left font-bold leading-[1.05] tracking-tight text-[#001050]"
+          className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -62,7 +62,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         </motion.h1>
 
         <motion.p
-          className="mt-2 text-left leading-snug text-[#001050]/75"
+          className="mt-2 text-center leading-snug text-[#001050]/75"
           style={{
             fontSize: "clamp(0.85rem, 3.4vw, 0.95rem)",
             fontFamily:
