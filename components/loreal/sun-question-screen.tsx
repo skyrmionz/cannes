@@ -135,9 +135,10 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         onClick={() => goToStop(0)}
       />
 
-      {/* Sun — z-10, draggable. */}
+      {/* Sun — z-40 so it sits in front of notch labels (z-30) but BEHIND the
+          hill (z-50, bumped). */}
       <motion.div
-        className="absolute left-1/2 z-10 -translate-x-1/2"
+        className="absolute left-1/2 z-40 -translate-x-1/2"
         drag="y"
         dragConstraints={dragBounds}
         dragElastic={0}
@@ -164,7 +165,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         />
       </motion.div>
 
-      {/* Hill — z-20, painted on top so the sun hides behind it at low.
+      {/* Hill — z-50, painted on top of the sun so it hides behind at low.
           Width capped at 100% of the card so it never bleeds past edges. */}
       <Image
         src="/loreal/hill-scene-v5.png"
@@ -172,7 +173,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         width={1247}
         height={350}
         priority
-        className="pointer-events-none absolute z-20 h-auto select-none"
+        className="pointer-events-none absolute z-50 h-auto select-none"
         style={{
           bottom: `${HILL_BOTTOM_PX}px`,
           left: "50%",
