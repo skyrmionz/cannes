@@ -11,15 +11,20 @@ interface StartScreenProps {
 
 // NOTE: background, glass card, and CornerTap live in app/loreal/page.tsx
 // as a persistent shell so they stay still while step content cross-zooms.
+//
+// Layout uses a flex column with three flex-1 sections (logo / headline+glasses
+// / powered-by + CTA) so the screen fills any viewport height proportionally.
+// All typography + image sizing uses min(N vw, M vh, Kpx) so things scale up
+// on tall/wide windows instead of capping at a small px maximum.
 export function LorealStartScreen({ onStart }: StartScreenProps) {
   return (
-    <>
-      {/* Top: L'Oreal wordmark */}
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 py-8">
+      {/* Top — L'Oreal wordmark */}
       <motion.div
-        className="absolute left-0 right-0 top-0 z-20 flex justify-center px-6 pt-8"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
+        className="flex shrink-0 justify-center"
       >
         <Image
           src="/loreal/loreal-logo.png"
@@ -27,71 +32,77 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           width={600}
           height={160}
           priority
-          className="h-auto w-[min(42vw,180px)] select-none"
+          className="h-auto select-none"
+          style={{ width: "min(42vw, 18vh, 220px)" }}
         />
       </motion.div>
 
-      {/* Headline + inline glasses — sits just below the logo. */}
-      <div className="absolute left-0 right-0 top-[18%] z-20 flex flex-col items-center gap-1 px-6 text-[#001050]">
-        <motion.span
-          className="block text-center font-bold leading-[0.95] tracking-tight"
-          style={{ fontSize: "clamp(4.5rem, 19vw, 7.5rem)" }}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
-        >
-          Find
-        </motion.span>
-        <motion.div
-          className="relative z-10 -mt-[110px] -mb-[60px] flex justify-center"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
-        >
-          <GlassesMedia />
-        </motion.div>
-        <motion.span
-          className="block text-center font-bold leading-[0.95] tracking-tight"
-          style={{ fontSize: "clamp(4.5rem, 19vw, 7.5rem)" }}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
-        >
-          your
-        </motion.span>
-        <motion.span
-          className="block text-center font-bold leading-[0.95] tracking-tight"
-          style={{ fontSize: "clamp(4.5rem, 19vw, 7.5rem)" }}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
-        >
-          vibe
-        </motion.span>
+      {/* Middle — headline + inline glasses, fills the available middle space */}
+      <div className="flex flex-1 flex-col items-center justify-center text-[#001050]">
+        <HeadlineWord text="Find" delay={0.7} />
+        <GlassesGap />
+        <HeadlineWord text="your" delay={0.85} />
+        <HeadlineWord text="vibe" delay={1.0} />
       </div>
 
-      {/* Powered by Agentforce — same size as F1 (w-[min(80vw,320px)]) */}
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-32 z-20 flex justify-center px-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-      >
-        <Image
-          src="/loreal/powered-by-astro.png"
-          alt="Powered by Agentforce from Salesforce"
-          width={1140}
-          height={120}
-          priority
-          className="h-auto w-[min(80vw,320px)] select-none"
-        />
-      </motion.div>
-
-      {/* CTA — pinned at bottom-14 to match F1's "Start your engine" placement */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 flex justify-center px-6">
+      {/* Bottom — Powered-by + CTA */}
+      <div className="flex shrink-0 flex-col items-center gap-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.5 }}
+        >
+          <Image
+            src="/loreal/powered-by-astro.png"
+            alt="Powered by Agentforce from Salesforce"
+            width={1140}
+            height={120}
+            priority
+            className="h-auto select-none"
+            style={{ width: "min(80vw, 36vh, 360px)" }}
+          />
+        </motion.div>
         <GlassyButton onClick={onStart}>Claim your prize</GlassyButton>
       </div>
-    </>
+    </div>
+  );
+}
+
+function HeadlineWord({ text, delay }: { text: string; delay: number }) {
+  return (
+    <motion.span
+      className="block text-center font-bold leading-[0.95] tracking-tight"
+      // Scales with both viewport width AND height so it fills tall windows
+      // (e.g. 1920×1080) instead of capping at the previous 7.5rem.
+      style={{ fontSize: "min(19vw, 13vh, 9rem)" }}
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease: "easeOut" }}
+    >
+      {text}
+    </motion.span>
+  );
+}
+
+function GlassesGap() {
+  // The glasses overlap the headline lines above and below via negative
+  // margins. Margins scale with viewport height so the overlap stays
+  // proportional on big screens.
+  return (
+    <motion.div
+      className="relative z-10 flex justify-center"
+      style={{
+        // clamp(min, mid, max) on negative values — keeps overlap proportional
+        // to viewport height but bounded on tiny + huge screens.
+        marginTop: "clamp(-150px, -10vh, -60px)",
+        marginBottom: "clamp(-100px, -6vh, -40px)",
+      }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
+    >
+      <GlassesMedia />
+    </motion.div>
   );
 }
 
@@ -100,7 +111,8 @@ function GlassesMedia() {
     <TransparentVideoLoop
       mp4Src="/loreal/glasses-idle.mp4"
       webmSrc="/loreal/glasses-idle.webm"
-      width="min(60vw, 300px)"
+      // Glasses scale with both axes so they fill space on tall windows.
+      width="min(60vw, 38vh, 380px)"
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
@@ -108,4 +120,3 @@ function GlassesMedia() {
     />
   );
 }
-
