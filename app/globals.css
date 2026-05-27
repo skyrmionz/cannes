@@ -180,16 +180,15 @@
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
-/* Wipe sweeps the highlight band fully across and OFF the button (left→right),
-   then holds invisible for the remainder of the cycle.
-   With mask-image being a narrow black band and mask-size 300%, positions
-   beyond the button bounds park the band entirely off-screen. */
+/* Wipe: highlight band travels left→right and fully off the button over
+   2.5s, then holds invisible (parked off-right) for 2s before looping.
+   Total cycle 4.5s. */
 @keyframes glassyWipe {
   0% {
     -webkit-mask-position: -120% center;
             mask-position: -120% center;
   }
-  43% {
+  56% {
     -webkit-mask-position: 220% center;
             mask-position: 220% center;
   }
@@ -264,8 +263,8 @@
           mask-size: 300% 100%;
   -webkit-mask-repeat: no-repeat;
           mask-repeat: no-repeat;
-  -webkit-animation: glassyWipe 3.5s linear infinite both;
-          animation: glassyWipe 3.5s linear infinite both;
+  -webkit-animation: glassyWipe 4.5s linear infinite both;
+          animation: glassyWipe 4.5s linear infinite both;
 }
 
 .glassy-shimmer::before,

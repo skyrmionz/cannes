@@ -33,7 +33,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           height={160}
           priority
           className="h-auto select-none"
-          style={{ width: "min(42vw, 26vh, 320px)" }}
+          style={{ width: "min(50vw, 24vh)" }}
         />
       </motion.div>
 
@@ -59,7 +59,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             height={120}
             priority
             className="h-auto select-none"
-            style={{ width: "min(80vw, 40vh, 480px)" }}
+            style={{ width: "min(85vw, 36vh)" }}
           />
         </motion.div>
         <GlassyButton onClick={onStart}>Claim your prize</GlassyButton>
@@ -74,7 +74,7 @@ function HeadlineWord({ text, delay }: { text: string; delay: number }) {
       className="block text-center font-bold leading-[0.95] tracking-tight"
       // Scales with both viewport width AND height so it fills tall windows
       // (e.g. 1920×1080) instead of capping at the previous 7.5rem.
-      style={{ fontSize: "min(19vw, 14vh)" }}
+      style={{ fontSize: "min(26vw, 14vh)" }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
@@ -112,7 +112,7 @@ function GlassesMedia() {
       mp4Src="/loreal/glasses-idle.mp4"
       webmSrc="/loreal/glasses-idle.webm"
       // Glasses scale with both axes so they fill space on tall windows.
-      width="min(60vw, 40vh, 540px)"
+      width="min(75vw, 36vh)"
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
