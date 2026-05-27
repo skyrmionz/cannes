@@ -124,7 +124,7 @@ function LorealContent() {
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             style={{ transformOrigin: "center" }}
           >
-            <LorealHydrationQuestionScreen onNext={goToNext} />
+            <LorealHydrationQuestionScreen onNext={goToNext} onBack={goToSun} />
           </motion.div>
         )}
       </AnimatePresence>

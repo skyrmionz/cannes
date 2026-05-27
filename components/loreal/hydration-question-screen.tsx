@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, Plus, Minus } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Minus } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import {
   HydrationDroplet,
@@ -13,9 +13,10 @@ import { RoundIconButton } from "./round-icon-button";
 
 interface Props {
   onNext: () => void;
+  onBack: () => void;
 }
 
-export function LorealHydrationQuestionScreen({ onNext }: Props) {
+export function LorealHydrationQuestionScreen({ onNext, onBack }: Props) {
   const [level, setLevel] = useState<DropletLevel>(0);
   const [phase, setPhase] = useState<DropletPhase>("idle");
   const [fromLevel, setFromLevel] = useState<DropletLevel>(0);
@@ -43,14 +44,13 @@ export function LorealHydrationQuestionScreen({ onNext }: Props) {
   }, [toLevel]);
 
   return (
-    // Same outer wrapper as sun screen — clipped to glass card.
     <div className="absolute inset-3 overflow-hidden rounded-[40px]">
       {/* Header: progress + title + subtitle */}
       <div className="relative z-30 px-7 pt-7">
         <LorealProgressBar percent={40} label="40% to glow" />
 
         <motion.h1
-          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          className="mt-10 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -75,26 +75,18 @@ export function LorealHydrationQuestionScreen({ onNext }: Props) {
         </motion.p>
       </div>
 
-      {/* Center stage — droplet + side controls */}
-      <div className="absolute inset-x-0 top-[44%] -translate-y-1/2 flex items-center justify-center gap-5 px-6">
-        <div className="shrink-0">
-          <HydrationDroplet
-            width="min(60vw, 50vh)"
-            level={level}
-            phase={phase}
-            fromLevel={fromLevel}
-            toLevel={toLevel}
-            onTransitionEnd={onTransitionEnd}
-          />
-        </div>
-        <div className="flex flex-col items-center gap-4">
-          <RoundIconButton
-            onClick={onPlus}
-            disabled={phase !== "idle" || level >= 2}
-            ariaLabel="Increase hydration"
-          >
-            <Plus className="h-6 w-6" strokeWidth={3} />
-          </RoundIconButton>
+      {/* Center stage — large droplet, +/− horizontal below it. */}
+      <div className="absolute inset-x-0 top-[52%] -translate-y-1/2 flex flex-col items-center px-6">
+        <HydrationDroplet
+          width="min(82vw, 56vh)"
+          level={level}
+          phase={phase}
+          fromLevel={fromLevel}
+          toLevel={toLevel}
+          onTransitionEnd={onTransitionEnd}
+        />
+
+        <div className="mt-2 flex items-center gap-8">
           <RoundIconButton
             onClick={onMinus}
             disabled={phase !== "idle" || level <= 0}
@@ -102,10 +94,42 @@ export function LorealHydrationQuestionScreen({ onNext }: Props) {
           >
             <Minus className="h-6 w-6" strokeWidth={3} />
           </RoundIconButton>
+          <RoundIconButton
+            onClick={onPlus}
+            disabled={phase !== "idle" || level >= 2}
+            ariaLabel="Increase hydration"
+          >
+            <Plus className="h-6 w-6" strokeWidth={3} />
+          </RoundIconButton>
         </div>
       </div>
 
-      {/* Next button */}
+      {/* Back button — bottom-left, mirrors the next button */}
+      <motion.button
+        type="button"
+        onClick={onBack}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        className="absolute bottom-8 left-6 z-30 grid h-14 w-14 place-items-center rounded-full"
+        style={{
+          background: "rgba(255,255,255,0.55)",
+          boxShadow: [
+            "0 0 0 1px rgba(255,255,255,0.7) inset",
+            "0 1px 0 rgba(255,255,255,0.85) inset",
+            "0 8px 18px rgba(120,160,220,0.25)",
+          ].join(", "),
+          WebkitBackdropFilter: "blur(10px) saturate(140%)",
+          backdropFilter: "blur(10px) saturate(140%)",
+        }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        aria-label="Back"
+      >
+        <ChevronLeft className="h-6 w-6 text-[#001050]" strokeWidth={3} />
+      </motion.button>
+
+      {/* Next button — bottom-right */}
       <motion.button
         type="button"
         onClick={onNext}

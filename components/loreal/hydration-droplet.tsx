@@ -22,11 +22,10 @@ interface Props {
   onTransitionEnd?: () => void;
 }
 
-// The droplet is two stacked layers:
-//   - idle layer: always mounted, plays the *current* level's seamless loop.
-//   - transition layer: only mounted while phase === "transitioning", plays
-//     a one-shot fill (forward) or drain (reverse) clip on top of the idle
-//     layer, then unmounts via onTransitionEnd.
+// While transitioning, only the transition clip is visible — the idle layer
+// is hidden so the previous water level doesn't ghost through. The transition
+// clip's last frame matches the next idle level (Higgsfield --end-image
+// pinning), so the handoff is seamless.
 export function HydrationDroplet({
   width,
   level,
@@ -43,16 +42,20 @@ export function HydrationDroplet({
       ? `/loreal/droplet-${LEVEL_NAME[fromLevel]}-to-${LEVEL_NAME[toLevel]}`
       : null;
 
+  const isTransitioning = phase === "transitioning";
+
   return (
     <div className="relative" style={{ width }}>
-      {/* Idle layer (always mounted; key bumps to force a reload on level change) */}
-      <TransparentVideoLoop
-        key={`idle-${idleName}`}
-        mp4Src={`${idleSrc}.mp4`}
-        webmSrc={`${idleSrc}.webm`}
-        width="100%"
-        className="block"
-      />
+      {/* Idle layer — hidden during transition (no ghost of previous level). */}
+      <div style={{ visibility: isTransitioning ? "hidden" : "visible" }}>
+        <TransparentVideoLoop
+          key={`idle-${idleName}`}
+          mp4Src={`${idleSrc}.mp4`}
+          webmSrc={`${idleSrc}.webm`}
+          width="100%"
+          className="block"
+        />
+      </div>
 
       {/* Transition overlay — absolute on top, exact same size, plays once. */}
       {transitionSrc && (
