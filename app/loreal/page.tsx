@@ -29,21 +29,31 @@ function LorealContent() {
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ background: LOREAL_GRADIENT }}
     >
-      {/* Persistent glass card — stays static while content transitions */}
-      <div
-        className="pointer-events-none absolute inset-3 rounded-[40px]"
-        style={{
-          WebkitBackdropFilter: "blur(10px) saturate(120%)",
-          backdropFilter: "blur(10px) saturate(120%)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.16) 100%)",
-          boxShadow: [
-            "0 0 0 1px rgba(255,255,255,0.45) inset",
-            "0 1px 0 rgba(255,255,255,0.65) inset",
-            "0 18px 50px rgba(120,160,220,0.18)",
-          ].join(", "),
-        }}
-      />
+      {/* Persistent glass card — stays static while content transitions.
+          Hidden on the vibing buffer screen so the carousels read full-bleed. */}
+      <AnimatePresence>
+        {step !== "vibing" && (
+          <motion.div
+            key="glass-card"
+            className="pointer-events-none absolute inset-3 rounded-[40px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            style={{
+              WebkitBackdropFilter: "blur(10px) saturate(120%)",
+              backdropFilter: "blur(10px) saturate(120%)",
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.16) 100%)",
+              boxShadow: [
+                "0 0 0 1px rgba(255,255,255,0.45) inset",
+                "0 1px 0 rgba(255,255,255,0.65) inset",
+                "0 18px 50px rgba(120,160,220,0.18)",
+              ].join(", "),
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Persistent corner-tap → /f1 */}
       <CornerTap to="/f1" />
