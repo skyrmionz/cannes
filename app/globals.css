@@ -174,3 +174,52 @@
   }
 }
 
+/* L'Oreal glassy CTA — shimmer + sheen effects ported from
+   codepen.io/loganliffick/pen/WNdZQZQ, recolored to our blue palette. */
+@keyframes glassyShimmer {
+  to {
+    background-size: 100% 100%;
+    box-shadow:
+      -2px -2px 8px rgba(170, 220, 255, 0.45),
+      2px 2px 8px rgba(15, 84, 200, 0.55),
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -1px 0 rgba(0, 16, 80, 0.25) inset,
+      0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+  }
+}
+.glassy-cta {
+  background: linear-gradient(
+    90deg,
+    #aacdff 0%,
+    #4e90f7 35%,
+    #1a6cf0 70%,
+    #0f54c8 100%
+  );
+  background-size: 220% 100%;
+  animation: 1.5s ease infinite alternate running glassyShimmer;
+  box-shadow:
+    -2px -2px 12px rgba(170, 220, 255, 0.55),
+    2px 2px 12px rgba(15, 84, 200, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 -1px 0 rgba(0, 16, 80, 0.25) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+  transition: transform 0.2s ease;
+}
+.glassy-cta .sheen {
+  left: -28px;
+  opacity: 0.55;
+  position: absolute;
+  top: -4px;
+  pointer-events: none;
+  transition: 0.5s cubic-bezier(0.5, -0.5, 0.5, 1.5);
+}
+.glassy-cta:hover {
+  transform: rotate(-3deg);
+}
+.glassy-cta:hover .sheen {
+  opacity: 0.9;
+  transform: translateX(170px) scale(1.4);
+}
+.glassy-cta:active {
+  transform: scale(0.95) rotate(-3deg);
+}

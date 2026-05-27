@@ -8,7 +8,7 @@ interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 2500;
+const HOLD_MS = 3000;
 
 // 4 horizontal strips of repeating 3D icons, each row alternating direction.
 // Centered headline "You're glowing!" sits on its own band so the carousels
