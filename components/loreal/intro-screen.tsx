@@ -16,11 +16,11 @@ interface IntroScreenProps {
 // typography + the Astro icon scale up on tall windows like the vibing screen.
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-8 py-10">
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-8 pt-10 pb-16">
       <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-around gap-2 text-center text-[#001050]">
         <motion.h1
           className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "min(8vw, 6vh, 3.5rem)" }}
+          style={{ fontSize: "min(9vw, 8vh, 5rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
@@ -36,7 +36,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
           className="px-2"
-          style={{ width: "min(60vw, 320px)" }}
+          style={{ width: "min(70vw, 30vh, 420px)" }}
         >
           <Image
             src="/loreal/divider-line.png"
@@ -50,7 +50,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         {/* Tagline */}
         <motion.p
           className="font-semibold leading-snug tracking-tight"
-          style={{ fontSize: "min(4.6vw, 3.2vh, 1.75rem)" }}
+          style={{ fontSize: "min(5.5vw, 4vh, 2.5rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
@@ -72,7 +72,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             priority
             className="h-auto select-none"
             style={{
-              width: "min(58vw, 38vh, 380px)",
+              width: "min(64vw, 44vh, 480px)",
               filter: "drop-shadow(0 18px 40px rgba(60,120,240,0.3))",
             }}
           />
@@ -82,8 +82,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         <motion.p
           className="text-[#001050]/85 leading-snug"
           style={{
-            fontSize: "min(3.8vw, 2.4vh, 1.25rem)",
-            maxWidth: "min(80vw, 28rem)",
+            fontSize: "min(4.4vw, 3vh, 1.75rem)",
+            maxWidth: "min(80vw, 36rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,

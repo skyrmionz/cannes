@@ -180,10 +180,16 @@
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
+/* Wipe sweeps right→left over the first ~43% of the cycle (1.5s),
+   then holds at the resting position for ~57% (2s) before looping. */
 @keyframes glassyWipe {
   0% {
     -webkit-mask-position: 200% center;
             mask-position: 200% center;
+  }
+  43% {
+    -webkit-mask-position: 0% center;
+            mask-position: 0% center;
   }
   100% {
     -webkit-mask-position: 0% center;
@@ -250,8 +256,8 @@
           mask-size: 200% 200%;
   -webkit-mask-position: center;
           mask-position: center;
-  -webkit-animation: glassyWipe 1.5s linear infinite both;
-          animation: glassyWipe 1.5s linear infinite both;
+  -webkit-animation: glassyWipe 3.5s linear infinite both;
+          animation: glassyWipe 3.5s linear infinite both;
 }
 
 .glassy-shimmer::before,

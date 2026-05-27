@@ -18,7 +18,7 @@ interface StartScreenProps {
 // on tall/wide windows instead of capping at a small px maximum.
 export function LorealStartScreen({ onStart }: StartScreenProps) {
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 py-8">
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 pt-8 pb-14">
       {/* Top — L'Oreal wordmark */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -33,7 +33,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           height={160}
           priority
           className="h-auto select-none"
-          style={{ width: "min(42vw, 18vh, 220px)" }}
+          style={{ width: "min(42vw, 22vh, 280px)" }}
         />
       </motion.div>
 
@@ -59,7 +59,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             height={120}
             priority
             className="h-auto select-none"
-            style={{ width: "min(80vw, 36vh, 360px)" }}
+            style={{ width: "min(80vw, 38vh, 420px)" }}
           />
         </motion.div>
         <GlassyButton onClick={onStart}>Claim your prize</GlassyButton>
@@ -74,7 +74,7 @@ function HeadlineWord({ text, delay }: { text: string; delay: number }) {
       className="block text-center font-bold leading-[0.95] tracking-tight"
       // Scales with both viewport width AND height so it fills tall windows
       // (e.g. 1920×1080) instead of capping at the previous 7.5rem.
-      style={{ fontSize: "min(19vw, 13vh, 9rem)" }}
+      style={{ fontSize: "min(19vw, 16vh, 11rem)" }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
@@ -112,7 +112,7 @@ function GlassesMedia() {
       mp4Src="/loreal/glasses-idle.mp4"
       webmSrc="/loreal/glasses-idle.webm"
       // Glasses scale with both axes so they fill space on tall windows.
-      width="min(60vw, 38vh, 380px)"
+      width="min(60vw, 44vh, 460px)"
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
