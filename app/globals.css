@@ -174,16 +174,11 @@
   }
 }
 
-/* L'Oreal glassy CTA — wipe shimmer effect ported from
-   buttons.cool/button/BaeZJqd (simeydotme), recolored to our blue palette.
-   Structure:
-     .glassy-cta            — the button: blue gradient + soft glow
-       .glassy-shimmer      — overlay with blend-mode plus-lighter
-                              ::before  outer glow rings
-                              ::after   inner edge highlight
-                              mask animates via @keyframes wipe
-       .glassy-cta-text     — text with background-clip: text gradient sweep on hover
-   On hover the inner overlays light up; on idle the wipe mask sweeps right→left. */
+/* L'Oreal glassy CTA — three-state interaction model:
+     idle    : no shimmer, no glow (just the gradient base + small drop shadow)
+     hover   : wipe shimmer sweeps right→left across the button face
+     active  : the entire button glows (outer halo + inner edge highlight)
+   Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
 @keyframes glassyWipe {
   0% {
@@ -225,18 +220,51 @@
   transition-duration: 0.15s;
 }
 .glassy-cta:active {
-  scale: 1.02;
+  scale: 1.04;
   transition-duration: 0.15s;
 }
 
-/* Outer shimmer overlay — sits 40px outside the button bounds so the glow
-   ::before bleeds beyond the button edge, then `mask-image` clips it back. */
+/* Shimmer overlay — sits 40px outside the button bounds so the inner ::before
+   and ::after pseudo-elements (which are inset: 40px, snapping back to the
+   button's exact rect) can host the glow box-shadows that bleed outward.
+   The wipe mask is OFF by default and only switched on during :hover. */
 .glassy-shimmer {
   position: absolute;
   inset: -40px;
   border-radius: inherit;
   mix-blend-mode: plus-lighter;
   pointer-events: none;
+}
+
+.glassy-shimmer::before,
+.glassy-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 40px;
+  border-radius: inherit;
+  transition: opacity 0.35s ease;
+  opacity: 0;
+}
+/* Outer multi-layer glow ring — only visible on :active */
+.glassy-shimmer::before {
+  box-shadow:
+    0 0 4px 2px hsl(210 30% 95%),
+    0 0 9px 5px hsl(215 80% 80%),
+    0 0 18px 10px hsl(220 90% 60%),
+    0 0 28px 8px hsl(220 70% 40%);
+  z-index: -1;
+}
+/* Inner edge highlight — only visible on :active */
+.glassy-shimmer::after {
+  box-shadow:
+    inset 0 0 0 1px hsl(210 80% 95%),
+    inset 0 0 4px 1px hsl(215 100% 85%),
+    inset 0 0 12px 2px hsl(220 100% 75%);
+  z-index: 2;
+}
+
+/* HOVER — turn ON the wipe mask animation. Glow rings stay hidden. */
+.glassy-cta:hover:not(:active) .glassy-shimmer {
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent 20%,
@@ -253,46 +281,26 @@
           mask-size: 200% 200%;
   -webkit-mask-position: center;
           mask-position: center;
-  -webkit-animation: glassyWipe 1.5s linear infinite both -0.5s;
-          animation: glassyWipe 1.5s linear infinite both -0.5s;
+  -webkit-animation: glassyWipe 1.5s linear infinite both;
+          animation: glassyWipe 1.5s linear infinite both;
 }
-
-.glassy-shimmer::before,
-.glassy-shimmer::after {
-  content: "";
-  position: absolute;
-  inset: 40px;
-  border-radius: inherit;
-  transition: opacity 0.4s ease;
-  opacity: 0;
-}
-/* Outer multi-layer glow ring */
-.glassy-shimmer::before {
-  box-shadow:
-    0 0 3px 2px hsl(210 30% 95%),
-    0 0 7px 4px hsl(215 60% 80%),
-    0 0 13px 8px hsl(220 80% 60%),
-    0 0 22px 6px hsl(220 60% 40%);
-  z-index: -1;
-}
-/* Inner edge highlight */
-.glassy-shimmer::after {
-  box-shadow:
-    inset 0 0 0 1px hsl(210 70% 95%),
-    inset 0 0 3px 1px hsl(215 100% 85%),
-    inset 0 0 9px 1px hsl(220 100% 75%);
-  z-index: 2;
-}
-.glassy-cta:hover .glassy-shimmer::before,
-.glassy-cta:hover .glassy-shimmer::after {
+/* During the wipe, briefly reveal the inner edge highlight so the moving
+   wipe band has something to clip into — gives the streak a visible edge. */
+.glassy-cta:hover:not(:active) .glassy-shimmer::after {
   opacity: 1;
 }
-.glassy-cta:active .glassy-shimmer,
-.glassy-cta:focus-visible .glassy-shimmer {
-  -webkit-animation-play-state: paused !important;
-          animation-play-state: paused !important;
-  -webkit-mask-image: none !important;
-          mask-image: none !important;
+
+/* ACTIVE — kill the mask, light up BOTH glow rings full opacity. */
+.glassy-cta:active .glassy-shimmer {
+  -webkit-mask-image: none;
+          mask-image: none;
+  -webkit-animation: none;
+          animation: none;
+}
+.glassy-cta:active .glassy-shimmer::before,
+.glassy-cta:active .glassy-shimmer::after {
+  opacity: 1;
+  transition-duration: 0.15s;
 }
 
 /* Button label — gradient sweep across the text on hover */
