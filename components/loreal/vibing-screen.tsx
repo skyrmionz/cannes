@@ -11,7 +11,8 @@ interface Props {
 const HOLD_MS = 2500;
 
 // 4 horizontal strips of repeating 3D icons, each row alternating direction.
-// Centered headline "You're glowing!" sits on top.
+// Centered headline "You're glowing!" sits on its own band so the carousels
+// never overlap the words.
 export function LorealVibingScreen({ onComplete }: Props) {
   useEffect(() => {
     const t = setTimeout(onComplete, HOLD_MS);
@@ -19,32 +20,48 @@ export function LorealVibingScreen({ onComplete }: Props) {
   }, [onComplete]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {/* Carousel rows — fill the column with even vertical distribution */}
-      <div className="absolute inset-0 flex flex-col justify-around py-12">
+    <div className="relative flex h-full w-full flex-col">
+      {/* Top two rows */}
+      <div className="flex flex-1 flex-col justify-around pt-8">
         <CarouselRow src="/loreal/persona-sunglasses.png" direction="left" speed={20} />
         <CarouselRow src="/loreal/persona-watermelon.png" direction="right" speed={24} />
-        <CarouselRow src="/loreal/persona-dewy.png" direction="left" speed={22} />
-        <CarouselRow src="/loreal/persona-palm-sun.png" direction="right" speed={26} />
       </div>
 
-      {/* Centered headline */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-6"
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <h1
+      {/* Headline band — own row in the flex column, never overlapped */}
+      <div className="flex shrink-0 items-center justify-center px-6 py-6">
+        <motion.h1
           className="text-center font-bold leading-[0.95] tracking-tight text-[#001050]"
           style={{
             fontSize: "clamp(3.25rem, 14vw, 5.25rem)",
             textShadow: "0 4px 24px rgba(255,255,255,0.6)",
           }}
+          initial={{ opacity: 0, scale: 0.9, y: 12 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            y: [12, -6, 4, -3, 0],
+          }}
+          transition={{
+            opacity: { duration: 0.55, ease: "easeOut" },
+            scale: { duration: 0.55, ease: "easeOut" },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatType: "mirror",
+              delay: 0.55,
+            },
+          }}
         >
           You&apos;re glowing!
-        </h1>
-      </motion.div>
+        </motion.h1>
+      </div>
+
+      {/* Bottom two rows */}
+      <div className="flex flex-1 flex-col justify-around pb-8">
+        <CarouselRow src="/loreal/persona-dewy.png" direction="left" speed={22} />
+        <CarouselRow src="/loreal/persona-palm-sun.png" direction="right" speed={26} />
+      </div>
     </div>
   );
 }
@@ -58,18 +75,19 @@ function CarouselRow({
   direction: "left" | "right";
   speed: number;
 }) {
-  // Render 8 copies; animate the strip by exactly one icon-cycle width so the
-  // wrap is invisible.
   const COUNT = 8;
-  const ICON = 96; // visual icon size in px
+  const ICON = 96;
   const GAP = 56;
   const STRIDE = ICON + GAP;
   const TRAVEL = COUNT * STRIDE;
 
   return (
-    <div className="relative h-[120px] overflow-hidden">
+    // overflow-x-clip lets the strip scroll horizontally without revealing
+    // off-screen copies, while leaving the vertical axis free so the bob
+    // animation isn't cut off at the row edges.
+    <div className="relative h-[140px] overflow-x-clip">
       <motion.div
-        className="absolute top-0 left-0 flex items-center"
+        className="absolute top-1/2 left-0 flex -translate-y-1/2 items-center"
         style={{ gap: `${GAP}px` }}
         animate={{
           x: direction === "left" ? [0, -TRAVEL] : [-TRAVEL, 0],
@@ -80,8 +98,6 @@ function CarouselRow({
           repeat: Infinity,
         }}
       >
-        {/* 2x duplicate count so the strip can scroll TRAVEL pixels and still
-            look full at the wrap point. */}
         {Array.from({ length: COUNT * 2 }).map((_, i) => (
           <FloatingIcon
             key={i}
