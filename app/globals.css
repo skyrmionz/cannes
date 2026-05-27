@@ -180,21 +180,27 @@
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
-/* Wipe: highlight band travels left→right and fully off the button over
-   2.5s, then holds invisible (parked off-right) for 2s before looping.
-   Total cycle 4.5s. */
+/* Wipe: highlight band travels left→right across the button over 2.5s,
+   then holds invisible (parked off-left) for 2s before looping.
+   Total cycle 4.5s.
+   With mask-size 300% the visible window is 1/3 of the mask. Starting at
+   mask-position 220% means the visible window shows past the right edge of
+   the mask (transparent); ending at -120% means the visible window shows
+   past the left edge (also transparent). As the mask-position shrinks, the
+   visible window slides leftward over the mask — equivalently, the band
+   appears to travel rightward through the visible window. */
 @keyframes glassyWipe {
   0% {
+    -webkit-mask-position: 220% center;
+            mask-position: 220% center;
+  }
+  56% {
     -webkit-mask-position: -120% center;
             mask-position: -120% center;
   }
-  56% {
-    -webkit-mask-position: 220% center;
-            mask-position: 220% center;
-  }
   100% {
-    -webkit-mask-position: 220% center;
-            mask-position: 220% center;
+    -webkit-mask-position: -120% center;
+            mask-position: -120% center;
   }
 }
 
