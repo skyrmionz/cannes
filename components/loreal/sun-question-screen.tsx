@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type PanInfo, useMotionValue } from "motion/react";
+import { motion, useMotionValue } from "motion/react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
@@ -13,13 +13,12 @@ interface Props {
 // Sun stops as `bottom` offsets in px. Stop 0 = sun mostly hidden behind hills.
 // Stop 2 = sun high in the sky, just below the subtitle.
 // We use a single anchor (`SUN_ANCHOR_BOTTOM`) and offset relative to it via
-// `y` so drag and snap share the same coordinate system — avoids the prior
-// "sun escapes the range" bug where bottom + transform fought each other.
-const SUN_ANCHOR_BOTTOM = 110; // matches the lowest stop's actual rest
+// `y` so drag and snap share the same coordinate system.
+const SUN_ANCHOR_BOTTOM = 110;
 const STOPS = [
-  { y: 0, label: "Just a peek" },        // bottom: 110
-  { y: -240, label: "A healthy dose" },   // bottom: 350
-  { y: -440, label: "Bake me" },          // bottom: 550 (under subtitle)
+  { y: 0, label: "Just a Peek" },
+  { y: -240, label: "A Healthy Dose" },
+  { y: -440, label: "Bake Me" },
 ] as const;
 type StopIndex = 0 | 1 | 2;
 
@@ -33,8 +32,6 @@ const SKY_TINTS = [
 
 export function LorealSunQuestionScreen({ onNext }: Props) {
   const [stopIndex, setStopIndex] = useState<StopIndex>(0);
-  // Use a motion value so drag updates and snap-to-stop both write to the
-  // same value — no transform/style conflicts.
   const y = useMotionValue<number>(STOPS[0].y);
 
   const handleDragEnd = () => {
@@ -51,21 +48,21 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
     setStopIndex(closest);
   };
 
-  // Drag bounds are absolute in motion-value space because we use `y` directly:
-  // y range is [STOPS[2].y, STOPS[0].y] = [-440, 0]
   const dragBounds = {
-    top: STOPS[STOPS.length - 1].y, // most negative (highest)
-    bottom: STOPS[0].y, // least negative (lowest)
+    top: STOPS[STOPS.length - 1].y,
+    bottom: STOPS[0].y,
   };
 
   const goToStop = (i: StopIndex) => {
     setStopIndex(i);
-    // animate the motion value to the new stop
     y.set(STOPS[i].y);
   };
 
   return (
-    <div className="relative h-full w-full">
+    // Outer wrapper: matches the persistent shell's glass card inset (inset-3)
+    // and rounded radius so anything painted inside is CLIPPED to the card —
+    // hills, sun, sky tint can't bleed past the card edge.
+    <div className="absolute inset-3 overflow-hidden rounded-[40px]">
       {/* Sky tint */}
       <div
         className="pointer-events-none absolute inset-0 z-0"
@@ -75,12 +72,13 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         }}
       />
 
-      {/* Header — progress bar + title + subtitle */}
-      <div className="relative z-30 px-7 pt-6">
+      {/* Header — progress bar + title + subtitle.
+          Extra top padding so the title has breathing room from the bar. */}
+      <div className="relative z-30 px-7 pt-7">
         <LorealProgressBar percent={20} label="20% to glow" />
 
         <motion.h1
-          className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,21 +103,29 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         </motion.p>
       </div>
 
-      {/* Notch labels — positioned on the LEFT, vertically aligned with each
-          sun stop. Their bottom values stay below the subtitle so they sit
-          inside the glass card next to the sun, not above the progress bar. */}
-      {STOPS.map((stop, i) => (
-        <NotchLabel
-          key={stop.label}
-          label={stop.label}
-          // sun's actual visual bottom = SUN_ANCHOR_BOTTOM + |y|
-          bottomPx={SUN_ANCHOR_BOTTOM + Math.abs(stop.y) + 40}
-          active={i === stopIndex}
-          onClick={() => goToStop(i as StopIndex)}
-        />
-      ))}
+      {/* Notch labels — sit ABOVE the hill silhouette in their own band
+          between the hill top and the subtitle. Vertical positions are
+          fixed so they stay visible regardless of where the sun is. */}
+      <NotchLabel
+        label="Bake Me"
+        bottomPx={580}
+        active={stopIndex === 2}
+        onClick={() => goToStop(2)}
+      />
+      <NotchLabel
+        label="A Healthy Dose"
+        bottomPx={510}
+        active={stopIndex === 1}
+        onClick={() => goToStop(1)}
+      />
+      <NotchLabel
+        label="Just a Peek"
+        bottomPx={440}
+        active={stopIndex === 0}
+        onClick={() => goToStop(0)}
+      />
 
-      {/* Sun — z-10, draggable, sits BEHIND the hill so the low stop peeks. */}
+      {/* Sun — z-10, draggable. */}
       <motion.div
         className="absolute left-1/2 z-10 -translate-x-1/2"
         drag="y"
@@ -148,7 +154,8 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         />
       </motion.div>
 
-      {/* Hill — z-20, ALWAYS painted on top so the sun hides behind it at low. */}
+      {/* Hill — z-20, painted on top so the sun hides behind it at low.
+          Width capped at 100% of the card so it never bleeds past edges. */}
       <Image
         src="/loreal/hill-scene-v5.png"
         alt=""
@@ -160,7 +167,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
           bottom: `${HILL_BOTTOM_PX}px`,
           left: "50%",
           transform: "translateX(-50%)",
-          width: "min(110vw, 92vh)",
+          width: "min(100%, 92vh)",
         }}
       />
 
@@ -170,7 +177,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         onClick={onNext}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
-        className="absolute bottom-10 right-8 z-30 grid h-14 w-14 place-items-center rounded-full"
+        className="absolute bottom-8 right-6 z-30 grid h-14 w-14 place-items-center rounded-full"
         style={{
           background:
             "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)",
