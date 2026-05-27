@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type PanInfo } from "motion/react";
+import { motion, type PanInfo, useMotionValue } from "motion/react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
@@ -10,12 +10,16 @@ interface Props {
   onNext: () => void;
 }
 
-// Sun stops, bottom: in px. The hill silhouette sits between bottom: 80px
-// and ~360px, so stop 0 puts the sun mostly hidden behind the hill.
+// Sun stops as `bottom` offsets in px. Stop 0 = sun mostly hidden behind hills.
+// Stop 2 = sun high in the sky, just below the subtitle.
+// We use a single anchor (`SUN_ANCHOR_BOTTOM`) and offset relative to it via
+// `y` so drag and snap share the same coordinate system — avoids the prior
+// "sun escapes the range" bug where bottom + transform fought each other.
+const SUN_ANCHOR_BOTTOM = 110; // matches the lowest stop's actual rest
 const STOPS = [
-  { bottom: 110, label: "Just a peek" },
-  { bottom: 360, label: "A healthy dose" },
-  { bottom: 560, label: "Bake me" },
+  { y: 0, label: "Just a peek" },        // bottom: 110
+  { y: -240, label: "A healthy dose" },   // bottom: 350
+  { y: -440, label: "Bake me" },          // bottom: 550 (under subtitle)
 ] as const;
 type StopIndex = 0 | 1 | 2;
 
@@ -29,14 +33,16 @@ const SKY_TINTS = [
 
 export function LorealSunQuestionScreen({ onNext }: Props) {
   const [stopIndex, setStopIndex] = useState<StopIndex>(0);
+  // Use a motion value so drag updates and snap-to-stop both write to the
+  // same value — no transform/style conflicts.
+  const y = useMotionValue<number>(STOPS[0].y);
 
-  const handleDragEnd = (_: PointerEvent, info: PanInfo) => {
-    // info.offset.y: negative = dragged up, positive = dragged down.
-    const visualBottom = STOPS[stopIndex].bottom - info.offset.y;
+  const handleDragEnd = () => {
+    const current = y.get();
     let closest: StopIndex = 0;
     let bestDist = Infinity;
     for (let i = 0; i < STOPS.length; i++) {
-      const d = Math.abs(STOPS[i].bottom - visualBottom);
+      const d = Math.abs(STOPS[i].y - current);
       if (d < bestDist) {
         bestDist = d;
         closest = i as StopIndex;
@@ -45,19 +51,22 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
     setStopIndex(closest);
   };
 
-  // dragConstraints are RELATIVE to the element's CURRENT animated position
-  // (which uses `bottom: STOPS[stopIndex].bottom`). Framer applies offsets in
-  // CSS-y terms: positive `info.offset.y` means dragged DOWN (towards stop 0,
-  // which has lower bottom-px), negative means dragged UP (towards stop 2).
-  const currentBottom = STOPS[stopIndex].bottom;
-  // Most negative offset = drag up to stop 2 (highest)
-  const dragTop = -(STOPS[2].bottom - currentBottom);
-  // Most positive offset = drag down to stop 0 (lowest)
-  const dragBottom = currentBottom - STOPS[0].bottom;
+  // Drag bounds are absolute in motion-value space because we use `y` directly:
+  // y range is [STOPS[2].y, STOPS[0].y] = [-440, 0]
+  const dragBounds = {
+    top: STOPS[STOPS.length - 1].y, // most negative (highest)
+    bottom: STOPS[0].y, // least negative (lowest)
+  };
+
+  const goToStop = (i: StopIndex) => {
+    setStopIndex(i);
+    // animate the motion value to the new stop
+    y.set(STOPS[i].y);
+  };
 
   return (
     <div className="relative h-full w-full">
-      {/* Sky tint — sits behind everything, warms up as the sun rises */}
+      {/* Sky tint */}
       <div
         className="pointer-events-none absolute inset-0 z-0"
         style={{
@@ -96,30 +105,31 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
         </motion.p>
       </div>
 
-      {/* Notch labels — vertically aligned with each sun stop, on the left */}
-      <div className="pointer-events-none absolute left-6 z-30 flex flex-col items-start">
-        {STOPS.map((stop, i) => (
-          <NotchLabel
-            key={stop.label}
-            label={stop.label}
-            bottomPx={stop.bottom}
-            active={i === stopIndex}
-            onClick={() => setStopIndex(i as StopIndex)}
-          />
-        ))}
-      </div>
+      {/* Notch labels — positioned on the LEFT, vertically aligned with each
+          sun stop. Their bottom values stay below the subtitle so they sit
+          inside the glass card next to the sun, not above the progress bar. */}
+      {STOPS.map((stop, i) => (
+        <NotchLabel
+          key={stop.label}
+          label={stop.label}
+          // sun's actual visual bottom = SUN_ANCHOR_BOTTOM + |y|
+          bottomPx={SUN_ANCHOR_BOTTOM + Math.abs(stop.y) + 40}
+          active={i === stopIndex}
+          onClick={() => goToStop(i as StopIndex)}
+        />
+      ))}
 
       {/* Sun — z-10, draggable, sits BEHIND the hill so the low stop peeks. */}
       <motion.div
         className="absolute left-1/2 z-10 -translate-x-1/2"
         drag="y"
-        dragConstraints={{ top: dragTop, bottom: dragBottom }}
+        dragConstraints={dragBounds}
         dragElastic={0}
         dragMomentum={false}
         onDragEnd={handleDragEnd}
-        animate={{ y: 0 }}
+        animate={{ y: STOPS[stopIndex].y }}
         transition={{ type: "spring", stiffness: 420, damping: 32 }}
-        style={{ bottom: STOPS[stopIndex].bottom, cursor: "grab" }}
+        style={{ bottom: SUN_ANCHOR_BOTTOM, y, cursor: "grab" }}
         whileTap={{ cursor: "grabbing" }}
       >
         <Image
@@ -140,21 +150,21 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
 
       {/* Hill — z-20, ALWAYS painted on top so the sun hides behind it at low. */}
       <Image
-        src="/loreal/hill-scene-v3.png"
+        src="/loreal/hill-scene-v5.png"
         alt=""
-        width={893}
-        height={419}
+        width={1247}
+        height={350}
         priority
         className="pointer-events-none absolute z-20 h-auto select-none"
         style={{
           bottom: `${HILL_BOTTOM_PX}px`,
           left: "50%",
           transform: "translateX(-50%)",
-          width: "min(94vw, 56vh)",
+          width: "min(110vw, 92vh)",
         }}
       />
 
-      {/* Next button — bottom-right of glass card */}
+      {/* Next button */}
       <motion.button
         type="button"
         onClick={onNext}
@@ -197,13 +207,12 @@ function NotchLabel({
     <button
       type="button"
       onClick={onClick}
-      className="pointer-events-auto absolute flex items-center gap-2 transition-all duration-300"
+      className="pointer-events-auto absolute left-7 z-30 flex items-center gap-2 transition-all duration-300"
       style={{
-        bottom: `${bottomPx + 30}px`, // align label vertically with the sun's center
-        opacity: active ? 1 : 0.45,
+        bottom: `${bottomPx}px`,
+        opacity: active ? 1 : 0.55,
       }}
     >
-      {/* Notch dot */}
       <span
         className="block rounded-full transition-all duration-300"
         style={{
@@ -217,9 +226,7 @@ function NotchLabel({
       />
       <span
         className="text-sm font-bold tracking-tight transition-colors duration-300"
-        style={{
-          color: active ? "#001050" : "rgba(0,16,80,0.55)",
-        }}
+        style={{ color: active ? "#001050" : "rgba(0,16,80,0.55)" }}
       >
         {label}
       </span>
