@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, animate } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
@@ -386,26 +387,26 @@ function SparkleIcon() {
 
 function WavesIcon() {
   return (
-    <svg
-      viewBox="0 0 64 40"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-full w-full"
-    >
-      <path d="M2 8 Q10 0 18 8 T34 8 T50 8 T62 8" />
-      <path d="M2 20 Q10 12 18 20 T34 20 T50 20 T62 20" />
-      <path d="M2 32 Q10 24 18 32 T34 32 T50 32 T62 32" />
-    </svg>
+    <Image
+      src="/loreal/icon-spontaneous.png"
+      alt=""
+      width={400}
+      height={250}
+      className="h-full w-full select-none object-contain object-left-bottom"
+      draggable={false}
+    />
   );
 }
 
 function CloudIcon() {
   return (
-    <svg viewBox="0 0 72 48" fill="currentColor" className="h-full w-full">
-      <path d="M50 12 a14 14 0 0 0 -23 -2 a11 11 0 0 0 -16 9 a10 10 0 0 0 -3 19 a13 13 0 0 0 18 4 a12 12 0 0 0 18 -2 a13 13 0 0 0 6 -28 z" />
-    </svg>
+    <Image
+      src="/loreal/icon-salesforce.png"
+      alt=""
+      width={400}
+      height={300}
+      className="h-full w-full select-none object-contain object-left-bottom"
+      draggable={false}
+    />
   );
 }

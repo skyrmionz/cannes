@@ -13,8 +13,20 @@ import {
   LorealAgendaQuestionScreen,
   type AgendaIndex,
 } from "@/components/loreal/agenda-question-screen";
+import { LorealAgentforceBufferScreen } from "@/components/loreal/agentforce-buffer-screen";
+import { LorealPersonaScreen } from "@/components/loreal/persona-screen";
 
-type Step = "start" | "intro" | "vibing" | "sun" | "hydration" | "agenda";
+type Step =
+  | "start"
+  | "intro"
+  | "vibing"
+  | "sun"
+  | "hydration"
+  | "agenda"
+  | "agentforce"
+  | "persona";
+
+const FULL_BLEED_STEPS: ReadonlyArray<Step> = ["vibing", "agentforce", "persona"];
 
 const LOREAL_GRADIENT =
   "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";
@@ -49,8 +61,13 @@ function LorealContent() {
   const goToSun = useCallback(() => setStep("sun"), []);
   const goToHydration = useCallback(() => setStep("hydration"), []);
   const goToAgenda = useCallback(() => setStep("agenda"), []);
-  const goToNext = useCallback(() => {
-    // Downstream not built yet — Next button is a no-op.
+  const goToAgentforce = useCallback(() => setStep("agentforce"), []);
+  const goToPersona = useCallback(() => setStep("persona"), []);
+  const finishAndReset = useCallback(() => {
+    setSunStop(0);
+    setHydrationLevel(0);
+    setAgendaIndex(null);
+    setStep("start");
   }, []);
 
   // Active tint = current sun selection while on the sun question; otherwise
@@ -78,9 +95,10 @@ function LorealContent() {
       ))}
 
       {/* Persistent glass card — stays static while content transitions.
-          Hidden on the vibing buffer screen so the carousels read full-bleed. */}
+          Hidden on full-bleed screens (vibing buffer, agentforce buffer,
+          persona reveal) so they read against the gradient directly. */}
       <AnimatePresence>
-        {step !== "vibing" && (
+        {!FULL_BLEED_STEPS.includes(step) && (
           <motion.div
             key="glass-card"
             className="pointer-events-none absolute inset-3 z-10 rounded-[40px]"
@@ -193,10 +211,40 @@ function LorealContent() {
             style={{ transformOrigin: "center" }}
           >
             <LorealAgendaQuestionScreen
-              onNext={goToNext}
+              onNext={goToAgentforce}
               onBack={goToHydration}
               value={agendaIndex}
               onChange={setAgendaIndex}
+            />
+          </motion.div>
+        )}
+        {step === "agentforce" && (
+          <motion.div
+            key="agentforce"
+            className="absolute inset-0 z-20"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+            style={{ transformOrigin: "center" }}
+          >
+            <LorealAgentforceBufferScreen onComplete={goToPersona} />
+          </motion.div>
+        )}
+        {step === "persona" && agendaIndex !== null && (
+          <motion.div
+            key="persona"
+            className="absolute inset-0 z-20"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.08 }}
+            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+          >
+            <LorealPersonaScreen
+              sunStop={sunStop}
+              hydrationLevel={hydrationLevel}
+              agendaIndex={agendaIndex}
+              onFinish={finishAndReset}
             />
           </motion.div>
         )}
