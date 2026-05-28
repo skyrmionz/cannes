@@ -8,7 +8,7 @@ interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 3000;
+const HOLD_MS = 5000;
 const RING_COUNT = 3;
 const RING_DURATION_S = 1.8;
 
@@ -23,7 +23,7 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
   }, [onComplete]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between px-6 py-12">
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-8 sm:px-6 sm:py-12">
       {/* Title block — three lines, each on its own row, centered. */}
       <div className="flex shrink-0 flex-col items-center gap-1 text-center text-[#001050]">
         <TitleLine text="You answered." delay={0.05} />
@@ -32,10 +32,10 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
       </div>
 
       {/* Astro framed by pulsating outward gold rings. */}
-      <div className="relative flex flex-1 items-center justify-center">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center">
         <div
           className="relative flex items-center justify-center"
-          style={{ width: "min(60vw, 36vh)", aspectRatio: "1 / 1" }}
+          style={{ width: "min(55vw, 32vh)", aspectRatio: "1 / 1" }}
         >
           {Array.from({ length: RING_COUNT }).map((_, i) => (
             <motion.div
@@ -80,9 +80,9 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
 
       {/* Subtitle — three short lines. */}
       <motion.p
-        className="shrink-0 max-w-2xl text-center leading-snug text-[#001050]/80"
+        className="w-full max-w-2xl shrink-0 px-2 text-center leading-snug text-[#001050]/80"
         style={{
-          fontSize: "clamp(0.95rem, min(3.4vw, 2.2vh), 1.15rem)",
+          fontSize: "clamp(0.85rem, min(3vw, 2vh), 1.1rem)",
           fontFamily:
             'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           fontWeight: 500,
@@ -104,7 +104,7 @@ function TitleLine({ text, delay }: { text: string; delay: number }) {
   return (
     <motion.span
       className="block font-bold leading-[1.05] tracking-tight"
-      style={{ fontSize: "clamp(1.6rem, min(8vw, 6vh), 3.2rem)" }}
+      style={{ fontSize: "clamp(1.4rem, min(7.5vw, 5.5vh), 3rem)" }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}

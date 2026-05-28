@@ -47,10 +47,28 @@ export function LorealPersonaScreen({
   }, [sunStop, hydrationLevel, agendaIndex]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center px-6 pt-8 pb-8 text-[#001050]">
+    <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-5 pt-5 pb-5 text-[#001050] sm:px-6 sm:pt-7 sm:pb-7">
+      <motion.div
+        className="shrink-0"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <Image
+          src="/loreal/loreal-logo.png"
+          alt="L'Oréal"
+          width={600}
+          height={160}
+          priority
+          draggable={false}
+          className="h-auto select-none"
+          style={{ width: "min(38vw, 14vh)" }}
+        />
+      </motion.div>
+
       <motion.h1
-        className="text-center font-bold leading-[1.05] tracking-tight"
-        style={{ fontSize: "clamp(1.5rem, min(7vw, 5vh), 2.8rem)" }}
+        className="mt-4 text-center font-bold leading-[1.05] tracking-tight"
+        style={{ fontSize: "clamp(1.25rem, min(6vw, 4.5vh), 2.6rem)" }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
@@ -60,9 +78,9 @@ export function LorealPersonaScreen({
       </motion.h1>
 
       <motion.p
-        className="mt-3 max-w-2xl text-center leading-snug text-[#001050]/80"
+        className="mt-2 w-full max-w-2xl text-center leading-snug text-[#001050]/80"
         style={{
-          fontSize: "clamp(0.85rem, min(3vw, 2vh), 1.05rem)",
+          fontSize: "clamp(0.8rem, min(2.8vw, 1.9vh), 1.05rem)",
           fontFamily:
             'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
         }}
@@ -73,9 +91,9 @@ export function LorealPersonaScreen({
         {persona.description}
       </motion.p>
 
-      {/* Sunscreen tube hero — flex-1 so it absorbs the middle slack. */}
+      {/* Sunscreen tube hero — flex-1 absorbs slack and shrinks first on small screens. */}
       <motion.div
-        className="relative my-3 flex flex-1 items-center justify-center"
+        className="relative my-2 flex min-h-0 flex-1 items-center justify-center"
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
@@ -87,25 +105,29 @@ export function LorealPersonaScreen({
           height={720}
           priority
           draggable={false}
-          className="h-auto select-none"
+          className="max-h-full select-none object-contain"
           style={{
-            width: "min(60vw, 38vh)",
+            width: "min(52vw, 32vh)",
             filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
           }}
         />
       </motion.div>
 
-      {/* QR row — left text, right QR card. shrink-0 so it never gets squeezed. */}
+      {/* QR card — left message + QR live inside a single white container. */}
       <motion.div
-        className="mt-2 flex w-full max-w-3xl shrink-0 items-center justify-between gap-5"
+        className="flex w-full max-w-xl shrink-0 items-center justify-between gap-4 rounded-3xl bg-white p-4"
+        style={{
+          boxShadow:
+            "0 0 0 1px rgba(0,16,80,0.08), 0 12px 30px rgba(120,160,220,0.22)",
+        }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
       >
         <p
-          className="leading-snug text-[#001050]"
+          className="min-w-0 leading-snug text-[#001050]"
           style={{
-            fontSize: "clamp(0.85rem, min(3vw, 2vh), 1.1rem)",
+            fontSize: "clamp(0.78rem, min(2.6vw, 1.8vh), 1rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 500,
@@ -114,16 +136,10 @@ export function LorealPersonaScreen({
           Scan this QR code and show it to one of our Brand Ambassadors for
           your L&rsquo;Oréal gift!
         </p>
-        <div
-          className="grid shrink-0 place-items-center rounded-2xl bg-white p-3"
-          style={{
-            boxShadow:
-              "0 0 0 1px rgba(0,16,80,0.08), 0 8px 24px rgba(120,160,220,0.18)",
-          }}
-        >
+        <div className="grid shrink-0 place-items-center">
           <QRCodeSVG
             value={qrUrl}
-            size={120}
+            size={104}
             bgColor="#FFFFFF"
             fgColor="#001050"
             level="M"
@@ -132,7 +148,7 @@ export function LorealPersonaScreen({
       </motion.div>
 
       <motion.div
-        className="mt-5 shrink-0"
+        className="mt-4 shrink-0"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.4 }}

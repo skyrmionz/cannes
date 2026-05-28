@@ -30,23 +30,23 @@ export default function ResultPage({
 
   return (
     <div
-      className="min-h-screen w-full"
+      className="min-h-screen w-full overflow-x-hidden"
       style={{ background: LOREAL_GRADIENT }}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-6 pt-10 pb-10 text-[#001050]">
+      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-5 pt-8 pb-8 text-[#001050] sm:px-6 sm:pt-10 sm:pb-10">
         <Image
           src="/loreal/loreal-logo.png"
           alt="L'Oréal"
           width={600}
           height={160}
           priority
-          className="h-auto select-none"
-          style={{ width: "min(40vw, 18vh)" }}
+          className="h-auto shrink-0 select-none"
+          style={{ width: "min(38vw, 14vh)" }}
         />
 
         <motion.h1
-          className="mt-8 text-center font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(1.6rem, 7vw, 2.6rem)" }}
+          className="mt-6 text-center font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "clamp(1.4rem, 6.4vw, 2.4rem)" }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
@@ -56,9 +56,9 @@ export default function ResultPage({
         </motion.h1>
 
         <motion.p
-          className="mt-3 max-w-xl text-center leading-snug text-[#001050]/80"
+          className="mt-3 w-full max-w-xl text-center leading-snug text-[#001050]/80"
           style={{
-            fontSize: "clamp(0.9rem, 3.4vw, 1.05rem)",
+            fontSize: "clamp(0.85rem, 3.2vw, 1.05rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -84,63 +84,41 @@ export default function ResultPage({
             draggable={false}
             className="h-auto select-none"
             style={{
-              width: "min(60vw, 36vh)",
+              width: "min(56vw, 34vh)",
               filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
             }}
           />
         </motion.div>
 
-        {/* Confirmation code card — replaces the QR slot in the kiosk view. */}
+        {/* Spacer pushes the confirmation code block to the bottom. */}
+        <div className="flex-1" />
+
+        {/* Confirmation code — centered at the bottom, no container, no left text. */}
         <motion.div
-          className="mt-6 flex w-full max-w-xl items-center justify-between gap-5 rounded-3xl bg-white/65 p-5"
-          style={{
-            boxShadow:
-              "0 0 0 1px rgba(0,16,80,0.08), 0 12px 30px rgba(120,160,220,0.18)",
-            WebkitBackdropFilter: "blur(12px) saturate(140%)",
-            backdropFilter: "blur(12px) saturate(140%)",
-          }}
+          className="mt-6 flex w-full flex-col items-center text-center"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
         >
-          <p
-            className="leading-snug"
+          <span
+            className="block font-bold tracking-[0.22em] text-[#001050]"
+            style={{ fontSize: "clamp(2rem, 9vw, 3.2rem)" }}
+          >
+            {data.code}
+          </span>
+          <span
+            className="mt-2 block text-[11px] uppercase tracking-[0.22em] text-[#001050]/55"
             style={{
-              fontSize: "clamp(0.9rem, 3.2vw, 1.05rem)",
               fontFamily:
                 'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-              fontWeight: 500,
             }}
           >
-            Show this code to one of our Brand Ambassadors at the L&rsquo;Oréal
-            booth to claim your gift.
-          </p>
-          <div
-            className="shrink-0 rounded-2xl bg-white px-4 py-3 text-center"
-            style={{
-              boxShadow: "0 0 0 1px rgba(0,16,80,0.1)",
-            }}
-          >
-            <span
-              className="block font-bold tracking-[0.18em] text-[#001050]"
-              style={{ fontSize: "clamp(1.4rem, 5vw, 2rem)" }}
-            >
-              {data.code}
-            </span>
-            <span
-              className="mt-1 block text-[10px] uppercase tracking-[0.22em] text-[#001050]/55"
-              style={{
-                fontFamily:
-                  'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-              }}
-            >
-              Confirmation
-            </span>
-          </div>
+            Your Confirmation Code
+          </span>
         </motion.div>
 
         <p
-          className="mt-6 text-center text-[11px] uppercase tracking-[0.22em] text-[#001050]/45"
+          className="mt-6 shrink-0 text-center text-[10px] uppercase tracking-[0.22em] text-[#001050]/45"
           style={{
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
