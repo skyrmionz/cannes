@@ -21,7 +21,8 @@ interface Props {
 // computed as fractions of the body height; all hard-coded pixel
 // offsets have been removed.
 const STOP_FRACS: readonly [number, number, number] = [0, 0.32, 0.62];
-const NOTCH_FRACS: readonly [number, number, number] = [0.86, 0.66, 0.46];
+// bottomPx fraction per stop. "Just a Peek" sits low, "Bake Me" high.
+const NOTCH_FRACS: readonly [number, number, number] = [0.36, 0.6, 0.84];
 const STOP_LABELS: readonly [string, string, string] = [
   "Just a Peek",
   "A Healthy Dose",
