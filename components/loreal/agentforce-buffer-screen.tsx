@@ -9,8 +9,8 @@ interface Props {
 }
 
 const HOLD_MS = 5000;
-const RING_COUNT = 3;
-const RING_DURATION_S = 1.8;
+const RING_COUNT = 4;
+const RING_DURATION_S = 2.6;
 
 // Buffer screen between agenda question and persona reveal. Holds for 3s,
 // then `onComplete` advances. The exit upward-fade is handled by the parent
@@ -37,21 +37,34 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
           className="relative flex items-center justify-center"
           style={{ width: "min(55vw, 32vh)", aspectRatio: "1 / 1" }}
         >
+          {/* Soft static glow — anchors the rings so the halo never reads empty. */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(245,220,161,0.35) 0%, rgba(226,183,116,0.18) 45%, rgba(226,183,116,0) 75%)",
+              filter: "blur(8px)",
+            }}
+          />
           {Array.from({ length: RING_COUNT }).map((_, i) => (
             <motion.div
               key={i}
               className="pointer-events-none absolute inset-0 rounded-full"
               style={{
-                border: "3px solid rgba(226, 183, 116, 0.85)",
+                border: "2px solid rgba(232, 195, 130, 0.7)",
                 boxShadow:
-                  "0 0 24px rgba(226,183,116,0.45), 0 0 0 1px rgba(245,220,161,0.55) inset",
+                  "0 0 18px rgba(232,195,130,0.35), 0 0 0 1px rgba(245,220,161,0.4) inset",
               }}
               initial={{ scale: 1, opacity: 0 }}
-              animate={{ scale: [1, 1.7], opacity: [0.65, 0] }}
+              animate={{
+                scale: [1, 1.7],
+                opacity: [0, 0.55, 0.55, 0],
+              }}
               transition={{
                 duration: RING_DURATION_S,
+                times: [0, 0.18, 0.7, 1],
                 repeat: Infinity,
-                ease: "easeOut",
+                ease: "linear",
                 delay: (i * RING_DURATION_S) / RING_COUNT,
               }}
             />

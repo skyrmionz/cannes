@@ -75,19 +75,24 @@ export default function ResultPage({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
         >
-          <Image
-            src="/loreal/sunscreen-tube.png"
-            alt="L'Oréal sunscreen"
-            width={720}
-            height={720}
-            priority
-            draggable={false}
-            className="h-auto select-none"
-            style={{
-              width: "min(56vw, 34vh)",
-              filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
-            }}
-          />
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Image
+              src="/loreal/sunscreen-tube.png"
+              alt="L'Oréal sunscreen"
+              width={720}
+              height={720}
+              priority
+              draggable={false}
+              className="h-auto select-none"
+              style={{
+                width: "min(56vw, 34vh)",
+                filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
+              }}
+            />
+          </motion.div>
         </motion.div>
 
         {/* Spacer pushes the confirmation code block to the bottom. */}
@@ -117,15 +122,6 @@ export default function ResultPage({
           </span>
         </motion.div>
 
-        <p
-          className="mt-6 shrink-0 text-center text-[10px] uppercase tracking-[0.22em] text-[#001050]/45"
-          style={{
-            fontFamily:
-              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-          }}
-        >
-          Powered by Agentforce on Salesforce · Valid for 24 hours
-        </p>
       </div>
     </div>
   );

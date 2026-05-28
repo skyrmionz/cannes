@@ -3,7 +3,7 @@
 import { motion, useMotionValue, animate } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -345,6 +345,28 @@ function AgendaCard({
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
           style={{ boxShadow: "0 0 0 8px rgba(26,108,240,0.18) inset" }}
         />
+      )}
+
+      {/* Confirmation check mark — top right corner of the selected card. */}
+      {confirmed && (
+        <motion.div
+          className="pointer-events-none absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 420,
+            damping: 22,
+          }}
+          style={{
+            background:
+              "linear-gradient(180deg, #4E90F7 0%, #1A6CF0 60%, #0F54C8 100%)",
+            boxShadow:
+              "0 0 0 2px #FFFFFF, 0 6px 14px rgba(15,84,200,0.45)",
+          }}
+        >
+          <Check className="h-5 w-5 text-white" strokeWidth={3.5} />
+        </motion.div>
       )}
     </motion.button>
   );
