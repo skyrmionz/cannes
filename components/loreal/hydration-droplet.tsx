@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, useAnimation } from "motion/react";
 import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 
 export type DropletLevel = 0 | 1 | 2;
@@ -19,42 +20,45 @@ interface Props {
 }
 
 // Permanent-mount model:
-// - All 3 idle videos are mounted continuously and play in the background.
-// - Visibility toggling decides which one shows (visible vs hidden).
-// - During a transition, ALL idles are hidden — only the fill overlay is
-//   visible. Nothing leaks through the fill's transparent glass top.
-// - The fill overlay is mounted dynamically; we keep it visible for one extra
-//   rAF after `onEnded` so the destination idle has time to flip to visible
-//   and paint a frame before the fill disappears. No paint gap, no flash.
+// - All 3 idle videos are mounted continuously. Visibility decides which shows.
+// - During transition, all idles are hidden; the fill overlay is on top.
+// - The fill src is computed synchronously from props (no useEffect lag),
+//   so there's no blank frame between click and overlay mount.
+// - After fill ends, the overlay lingers for 2 rAFs while the destination
+//   idle paints its first frame underneath.
+// - A "pop" scale keyframe fires at the transitioning→idle handoff to mask
+//   any residual handoff jitter.
 export function HydrationDroplet({
   width,
   level,
   phase,
-  fromLevel: _fromLevel,
+  fromLevel,
   toLevel,
   onTransitionEnd,
 }: Props) {
   const isTransitioning = phase === "transitioning";
 
-  const [overlaySrc, setOverlaySrc] = useState<string | null>(null);
-  const [overlayVisible, setOverlayVisible] = useState(false);
+  // Sync src derivation from props — overlay can mount in the same render
+  // tick as the click that flipped phase to "transitioning".
+  const computedSrc =
+    isTransitioning && fromLevel != null && toLevel != null
+      ? `/loreal/droplet-${LEVEL_NAME[fromLevel]}-to-${LEVEL_NAME[toLevel]}`
+      : null;
+
+  // After the parent flips phase to idle, we keep the fill mounted for a
+  // brief linger so the destination idle can paint underneath before the
+  // fill unmounts.
+  const [lingeringSrc, setLingeringSrc] = useState<string | null>(null);
+  const [lingerVisible, setLingerVisible] = useState(false);
   const overlayRef = useRef<HTMLVideoElement>(null);
 
-  // When a new transition starts, mount the overlay with the fill clip and
-  // start playback. Overlay stays mounted past the parent's phase=idle flip
-  // (driven by the rAF below) so the transition video covers the destination
-  // idle's first paint.
-  useEffect(() => {
-    if (isTransitioning && _fromLevel != null && toLevel != null) {
-      const src = `/loreal/droplet-${LEVEL_NAME[_fromLevel]}-to-${LEVEL_NAME[toLevel]}`;
-      setOverlaySrc(src);
-      setOverlayVisible(true);
-    }
-  }, [isTransitioning, _fromLevel, toLevel]);
+  const activeSrc = computedSrc ?? lingeringSrc;
+  const overlayMounted = activeSrc != null;
+  const overlayVisible = computedSrc != null || lingerVisible;
 
   // Restart the overlay video whenever its src changes.
   useEffect(() => {
-    if (!overlaySrc) return;
+    if (!activeSrc) return;
     const v = overlayRef.current;
     if (!v) return;
     v.load();
@@ -62,26 +66,47 @@ export function HydrationDroplet({
     tryPlay();
     v.addEventListener("canplay", tryPlay);
     return () => v.removeEventListener("canplay", tryPlay);
-  }, [overlaySrc]);
+  }, [activeSrc]);
+
+  // Pop animation when transitioning → idle.
+  const controls = useAnimation();
+  const prevPhase = useRef(phase);
+  useEffect(() => {
+    if (prevPhase.current === "transitioning" && phase === "idle") {
+      controls.start({
+        scale: [1, 1.06, 0.97, 1.02, 1],
+        transition: {
+          duration: 0.42,
+          times: [0, 0.25, 0.55, 0.8, 1],
+          ease: "easeOut",
+        },
+      });
+    }
+    prevPhase.current = phase;
+  }, [phase, controls]);
 
   const handleEnded = () => {
-    // Tell parent the transition is done — they'll set level=toLevel and
-    // phase=idle, which makes the destination idle visible. We hold the
-    // overlay visible for one extra animation frame so the new idle's
-    // first paint lands while the fill is still on top, then unmount.
+    // Snapshot current src into linger state so the overlay stays mounted
+    // and visible while the parent flips phase=idle and the destination
+    // idle paints.
+    if (computedSrc) setLingeringSrc(computedSrc);
+    setLingerVisible(true);
     onTransitionEnd?.();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setOverlayVisible(false);
-        // Tiny extra delay before unmounting so the freshly-painted idle
-        // has been composited.
-        setTimeout(() => setOverlaySrc(null), 60);
+        setLingerVisible(false);
+        setTimeout(() => setLingeringSrc(null), 60);
       });
     });
   };
 
   return (
-    <div className="relative" style={{ width }}>
+    <motion.div
+      className="relative"
+      style={{ width }}
+      animate={controls}
+      initial={{ scale: 1 }}
+    >
       {LEVELS.map((lv) => {
         const name = LEVEL_NAME[lv];
         const src = `/loreal/droplet-${name}-idle`;
@@ -93,6 +118,11 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
+              // Idle videos read darker/duller than the fill overlay due to a
+              // gamma shift introduced by the boomerang concat path through
+              // yuva420p. Bump brightness/saturation slightly at paint time
+              // so static state matches mid-transition state.
+              filter: "brightness(1.08) saturate(1.06)",
             }}
           >
             <TransparentVideoLoop
@@ -105,7 +135,7 @@ export function HydrationDroplet({
         );
       })}
 
-      {overlaySrc && (
+      {overlayMounted && (
         <div
           className="absolute inset-0"
           style={{
@@ -122,11 +152,11 @@ export function HydrationDroplet({
             className="block"
             style={{ width: "100%", height: "auto" }}
           >
-            <source src={`${overlaySrc}.mp4`} type='video/mp4; codecs="hvc1"' />
-            <source src={`${overlaySrc}.webm`} type="video/webm" />
+            <source src={`${activeSrc}.mp4`} type='video/mp4; codecs="hvc1"' />
+            <source src={`${activeSrc}.webm`} type="video/webm" />
           </video>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
