@@ -95,12 +95,9 @@ export default function ResultPage({
           </motion.div>
         </motion.div>
 
-        {/* Spacer pushes the confirmation code block to the bottom. */}
-        <div className="flex-1" />
-
-        {/* Confirmation code — centered at the bottom, no container, no left text. */}
+        {/* Confirmation code — sits just below the icon. */}
         <motion.div
-          className="mt-6 flex w-full flex-col items-center text-center"
+          className="mt-4 flex w-full flex-col items-center text-center"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}

@@ -47,12 +47,13 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const stopIndex = value;
   const y = useMotionValue<number>(0);
 
-  // Sync the motion value when stops or selection change (e.g. on first
-  // measurement, on returning to the screen with a saved selection, on
-  // viewport resize).
+  // Snap (no animation) on geometry shifts only — first measurement and
+  // viewport resize. This must NOT depend on stopIndex, otherwise it would
+  // fight the imperative tweens started by drag-end / notch tap.
   useEffect(() => {
     y.set(stops[stopIndex]);
-  }, [stops, stopIndex, y]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodyH]);
 
   const handleDragEnd = () => {
     const current = y.get();
@@ -80,9 +81,8 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const goToStop = (i: StopIndex) => {
     onChange(i);
     animate(y, stops[i], {
-      type: "spring",
-      stiffness: 420,
-      damping: 32,
+      duration: 0.55,
+      ease: [0.32, 0.72, 0, 1],
     });
   };
 
@@ -137,8 +137,6 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           dragElastic={0}
           dragMomentum={false}
           onDragEnd={handleDragEnd}
-          animate={{ y: stops[stopIndex] }}
-          transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
           style={{ bottom: sunAnchorBottom, y, cursor: "grab" }}
           whileTap={{ cursor: "grabbing" }}
         >
