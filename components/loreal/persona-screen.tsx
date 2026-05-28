@@ -53,7 +53,7 @@ export function LorealPersonaScreen({
   } as const;
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-5 pt-5 pb-5 text-[#001050] sm:px-6 sm:pt-7 sm:pb-7">
+    <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-5 pt-5 pb-10 text-[#001050] sm:px-6 sm:pt-7 sm:pb-14">
       <motion.div
         className="shrink-0"
         initial={{ opacity: 0, y: -8 }}
@@ -72,8 +72,12 @@ export function LorealPersonaScreen({
         />
       </motion.div>
 
+      {/* Top spacer — pushes the persona text away from the logo so the
+          title + description sit closer to the icon. */}
+      <div className="min-h-0 flex-1" />
+
       <motion.h1
-        className="mt-4 shrink-0 text-center font-bold leading-[1.05] tracking-tight"
+        className="shrink-0 text-center font-bold leading-[1.05] tracking-tight"
         style={{ fontSize: "clamp(1.25rem, min(6vw, 4.5vh), 2.6rem)" }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,11 +87,8 @@ export function LorealPersonaScreen({
         <span className="whitespace-nowrap">{persona.name}.</span>
       </motion.h1>
 
-      {/* Spacer pushes the description down so it sits closer to the icon. */}
-      <div className="min-h-0 flex-1" />
-
       <motion.p
-        className="w-full max-w-2xl shrink-0 text-center leading-snug text-[#001050]/80"
+        className="mt-2 w-full max-w-2xl shrink-0 text-center leading-snug text-[#001050]/80"
         style={subtitleStyle}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,6 +97,7 @@ export function LorealPersonaScreen({
         {persona.description}
       </motion.p>
 
+      {/* Icon — anchored in the visual center via balanced flex-1 spacers. */}
       <motion.div
         className="relative mt-3 flex shrink-0 items-center justify-center"
         initial={{ opacity: 0, scale: 0.92 }}
@@ -137,10 +139,10 @@ export function LorealPersonaScreen({
           Scan this QR code and show it to one of our Brand Ambassadors for
           your L&rsquo;Oréal gift!
         </p>
-        <div className="mt-3 grid place-items-center rounded-2xl bg-white p-2">
+        <div className="mt-3 grid place-items-center rounded-2xl bg-white p-3">
           <QRCodeSVG
             value={qrUrl}
-            size={96}
+            size={144}
             bgColor="#FFFFFF"
             fgColor="#001050"
             level="M"
@@ -148,8 +150,11 @@ export function LorealPersonaScreen({
         </div>
       </motion.div>
 
+      {/* Bottom spacer — mirrors the top so the icon stays vertically centered. */}
+      <div className="min-h-0 flex-1" />
+
       <motion.div
-        className="mt-3 shrink-0"
+        className="mt-4 shrink-0"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.4 }}

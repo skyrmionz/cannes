@@ -23,7 +23,7 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
   }, [onComplete]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-8 sm:px-6 sm:py-12">
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-5 py-16 sm:px-6 sm:py-24">
       {/* Title block — three lines, each on its own row, centered. */}
       <div className="flex shrink-0 flex-col items-center gap-1 text-center text-[#001050]">
         <TitleLine text="You answered." delay={0.05} />

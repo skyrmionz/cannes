@@ -105,6 +105,10 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
+              // Idle encode is a touch dimmer than the fill encode (denoise
+              // preserves less highlight detail). Lift just the idles so the
+              // brightness matches when the water comes to rest.
+              filter: "brightness(1.05)",
             }}
           >
             <TransparentVideoLoop

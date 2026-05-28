@@ -94,6 +94,10 @@ function LorealContent() {
         />
       ))}
 
+      {/* Droplet warm-up — preloads all 3 idles once the L'Oréal flow opens
+          so the hydration screen is paint-ready by the time the user lands. */}
+      <DropletPreload />
+
       {/* Persistent glass card — stays static while content transitions.
           Hidden on full-bleed screens (vibing buffer, agentforce buffer,
           persona reveal) so they read against the gradient directly. */}
@@ -249,6 +253,35 @@ function LorealContent() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// Hidden video tags that preload (but do not render) the 3 hydration idle
+// loops so by the time the user advances to the hydration screen the videos
+// are already decoded and play instantly.
+function DropletPreload() {
+  const sources: ReadonlyArray<string> = [
+    "/loreal/droplet-low-idle",
+    "/loreal/droplet-mid-idle",
+    "/loreal/droplet-full-idle",
+    "/loreal/droplet-low-to-mid",
+    "/loreal/droplet-mid-to-full",
+    "/loreal/droplet-mid-to-low",
+    "/loreal/droplet-full-to-mid",
+  ];
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0"
+      style={{ left: -9999, top: -9999 }}
+    >
+      {sources.map((s) => (
+        <video key={s} muted playsInline preload="auto" tabIndex={-1}>
+          <source src={`${s}.mp4`} type='video/mp4; codecs="hvc1"' />
+          <source src={`${s}.webm`} type="video/webm" />
+        </video>
+      ))}
     </div>
   );
 }

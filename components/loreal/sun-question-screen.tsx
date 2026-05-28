@@ -66,9 +66,8 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
       }
     }
     animate(y, stops[closest], {
-      type: "spring",
-      stiffness: 420,
-      damping: 32,
+      duration: 0.55,
+      ease: [0.32, 0.72, 0, 1],
     });
     onChange(closest);
   };
@@ -139,7 +138,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           dragMomentum={false}
           onDragEnd={handleDragEnd}
           animate={{ y: stops[stopIndex] }}
-          transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          transition={{ duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
           style={{ bottom: sunAnchorBottom, y, cursor: "grab" }}
           whileTap={{ cursor: "grabbing" }}
         >
