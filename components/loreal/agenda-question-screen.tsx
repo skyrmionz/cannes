@@ -119,7 +119,7 @@ export function LorealAgendaQuestionScreen({
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
       <div className="relative z-30 shrink-0 px-7 pt-7">
-        <LorealProgressBar percent={60} label="60% to glow" />
+        <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
           className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.25rem, min(6vw, 4.2vh), 2.4rem)" }}

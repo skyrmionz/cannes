@@ -100,7 +100,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header — shrink-0 so it never compresses. */}
       <div className="relative z-30 shrink-0 px-7 pt-7">
-        <LorealProgressBar percent={20} label="20% to glow" />
+        <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
           className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.25rem, min(6vw, 4.2vh), 2.4rem)" }}
