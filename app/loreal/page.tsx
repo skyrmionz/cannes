@@ -9,8 +9,12 @@ import { LorealIntroScreen } from "@/components/loreal/intro-screen";
 import { LorealVibingScreen } from "@/components/loreal/vibing-screen";
 import { LorealSunQuestionScreen } from "@/components/loreal/sun-question-screen";
 import { LorealHydrationQuestionScreen } from "@/components/loreal/hydration-question-screen";
+import {
+  LorealAgendaQuestionScreen,
+  type AgendaIndex,
+} from "@/components/loreal/agenda-question-screen";
 
-type Step = "start" | "intro" | "vibing" | "sun" | "hydration";
+type Step = "start" | "intro" | "vibing" | "sun" | "hydration" | "agenda";
 
 const LOREAL_GRADIENT =
   "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";
@@ -38,11 +42,13 @@ function LorealContent() {
   // to 0; once the user touches them, the value sticks across remounts.
   const [sunStop, setSunStop] = useState<0 | 1 | 2>(0);
   const [hydrationLevel, setHydrationLevel] = useState<0 | 1 | 2>(0);
+  const [agendaIndex, setAgendaIndex] = useState<AgendaIndex | null>(null);
 
   const goToIntro = useCallback(() => setStep("intro"), []);
   const goToVibing = useCallback(() => setStep("vibing"), []);
   const goToSun = useCallback(() => setStep("sun"), []);
   const goToHydration = useCallback(() => setStep("hydration"), []);
+  const goToAgenda = useCallback(() => setStep("agenda"), []);
   const goToNext = useCallback(() => {
     // Downstream not built yet — Next button is a no-op.
   }, []);
@@ -169,10 +175,28 @@ function LorealContent() {
             style={{ transformOrigin: "center" }}
           >
             <LorealHydrationQuestionScreen
-              onNext={goToNext}
+              onNext={goToAgenda}
               onBack={goToSun}
               value={hydrationLevel}
               onChange={setHydrationLevel}
+            />
+          </motion.div>
+        )}
+        {step === "agenda" && (
+          <motion.div
+            key="agenda"
+            className="absolute inset-0 z-20"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.18 }}
+            transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+            style={{ transformOrigin: "center" }}
+          >
+            <LorealAgendaQuestionScreen
+              onNext={goToNext}
+              onBack={goToHydration}
+              value={agendaIndex}
+              onChange={setAgendaIndex}
             />
           </motion.div>
         )}
