@@ -31,12 +31,12 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-  // Reserve ~80px for the +/- buttons row + spacer below the droplet so the
-  // droplet itself never overflows. Then take the smaller of 80% body height
-  // and 70vw so the droplet shrinks gracefully on tall narrow phones too.
+  // Reserve ~120px for the +/- buttons row + spacer + breathing room. The
+  // 80px reserve underestimated the +/- button height + label gap on narrow
+  // viewports and pushed the buttons outside the glass card.
   const dropletPx = Math.max(
     140,
-    Math.min(bodySize.h - 80, bodySize.w * 0.78, 520),
+    Math.min(bodySize.h - 120, bodySize.w * 0.7, 480),
   );
 
   const onPlus = useCallback(() => {
@@ -90,22 +90,25 @@ export function LorealHydrationQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — droplet sits at the top of the body region; +/- hangs
-          immediately below. Body is flex-1 so it absorbs leftover slack
-          between header and footer. */}
+      {/* Body — droplet shrink-fits the available space, +/- row is shrink-0
+          and never compacted. Wrapping the droplet in a min-h-0 flex-1 cell
+          lets it shrink to its computed pixel target without forcing the
+          parent to overflow on short viewports. */}
       <div
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 flex-col items-center pt-2"
       >
-        <HydrationDroplet
-          width={`${dropletPx}px`}
-          level={level}
-          phase={phase}
-          fromLevel={fromLevel}
-          toLevel={toLevel}
-          onTransitionEnd={onTransitionEnd}
-        />
-        <div className="mt-3 flex items-center gap-6">
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <HydrationDroplet
+            width={`${dropletPx}px`}
+            level={level}
+            phase={phase}
+            fromLevel={fromLevel}
+            toLevel={toLevel}
+            onTransitionEnd={onTransitionEnd}
+          />
+        </div>
+        <div className="mt-3 flex shrink-0 items-center gap-6">
           <RoundIconButton
             onClick={onMinus}
             disabled={phase !== "idle" || level <= 0}

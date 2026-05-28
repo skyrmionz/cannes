@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 type StopIndex = 0 | 1 | 2;
 
@@ -33,16 +33,26 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyH = bodySize.h;
 
-  // Stops are negative offsets (sun moves up) measured from the sun's
-  // anchored position at the bottom of the body region. Stop 0 = anchor,
-  // stop 2 = highest. All distances scale with body height.
-  const stops = [
-    0,
-    -bodyH * STOP_FRACS[1],
-    -bodyH * STOP_FRACS[2],
-  ] as const;
+  // Quantize bodyH so the sun's pixel width doesn't recompute on every
+  // ResizeObserver tick — sub-pixel size churn is what produces the
+  // mid-tween flicker. Bucket size of 8px is invisible but stops the churn.
+  const quantBodyH = Math.round(bodyH / 8) * 8;
+  const sunPx = useMemo(
+    () => Math.max(120, Math.min(quantBodyH * 0.42, 360)),
+    [quantBodyH],
+  );
+
   const sunAnchorBottom = Math.max(24, bodyH * 0.06);
   const hillBottomPx = Math.max(0, bodyH * 0.02);
+
+  // The highest stop must never let the sun's top edge enter the header.
+  // sunPx is the sun's rendered height; reserve 16px buffer below the header.
+  const maxStopUp = Math.max(0, bodyH - sunPx - sunAnchorBottom - 16);
+  const rawStop2 = bodyH * STOP_FRACS[2];
+  const rawStop1 = bodyH * STOP_FRACS[1];
+  const stop2 = Math.min(rawStop2, maxStopUp);
+  const stop1 = Math.min(rawStop1, stop2);
+  const stops = [0, -stop1, -stop2] as const;
 
   const stopIndex = value;
   const y = useMotionValue<number>(0);
@@ -149,26 +159,31 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
             draggable={false}
             className="select-none"
             style={{
-              width: `${Math.max(120, Math.min(bodyH * 0.42, 360))}px`,
+              width: `${sunPx}px`,
               height: "auto",
-              filter: "drop-shadow(0 8px 24px rgba(255,170,40,0.45))",
             }}
           />
         </motion.div>
 
-        {/* Hill — clamped to body width, painted over the sun at low stops. */}
+        {/* Hill — clamped to body width AND height, painted over the sun at
+            low stops. Without the height cap the hill PNG can dominate the
+            scene at non-1920×1080 resolutions and visually swallow the sun. */}
         <Image
           src="/loreal/hill-scene-v5.png"
           alt=""
           width={1247}
           height={350}
           priority
-          className="pointer-events-none absolute z-50 h-auto select-none"
+          className="pointer-events-none absolute z-50 select-none"
           style={{
             bottom: `${hillBottomPx}px`,
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
+            maxHeight: `${bodyH * 0.32}px`,
+            height: "auto",
+            objectFit: "contain",
+            objectPosition: "bottom",
           }}
         />
       </div>

@@ -116,10 +116,7 @@ export function LorealPersonaScreen({
             priority
             draggable={false}
             className="h-auto select-none"
-            style={{
-              width: "min(48vw, 28vh)",
-              filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
-            }}
+            style={{ width: "min(48vw, 28vh)" }}
           />
         </motion.div>
       </motion.div>
@@ -142,7 +139,7 @@ export function LorealPersonaScreen({
         <div className="mt-3 grid place-items-center rounded-2xl bg-white p-3">
           <QRCodeSVG
             value={qrUrl}
-            size={144}
+            size={120}
             bgColor="#FFFFFF"
             fgColor="#001050"
             level="M"

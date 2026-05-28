@@ -122,7 +122,6 @@ function GlassesMedia() {
       fallbackSrc="/loreal/holographic-glasses.png"
       fallbackAlt="Holographic sunglasses"
       className="select-none"
-      filter="drop-shadow(0 18px 40px rgba(180,140,255,0.35))"
     />
   );
 }

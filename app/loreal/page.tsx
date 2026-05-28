@@ -42,8 +42,8 @@ const LOREAL_GRADIENT =
 // Returning to the sun question with a saved selection re-tints smoothly.
 const SUN_TINTS: Record<0 | 1 | 2, string> = {
   0: "linear-gradient(180deg, rgba(255,200,140,0) 0%, rgba(255,200,140,0) 100%)",
-  1: "linear-gradient(180deg, rgba(255,180,120,0.55) 0%, rgba(255,210,150,0.18) 45%, rgba(255,220,160,0) 75%)",
-  2: "linear-gradient(180deg, rgba(255,150,70,0.78) 0%, rgba(255,190,110,0.4) 35%, rgba(255,220,150,0.12) 65%, rgba(255,235,180,0) 90%)",
+  1: "linear-gradient(180deg, rgba(255,180,120,0.55) 0%, rgba(255,210,150,0.18) 45%, rgba(255,220,160,0) 75%, rgba(255,220,160,0) 100%)",
+  2: "linear-gradient(180deg, rgba(255,150,70,0.78) 0%, rgba(255,190,110,0.4) 35%, rgba(255,220,150,0.12) 65%, rgba(255,235,180,0) 90%, rgba(255,235,180,0) 100%)",
 };
 
 function LorealContent() {
@@ -90,6 +90,7 @@ function LorealContent() {
             background: SUN_TINTS[lv],
             opacity: activeTint === lv ? 1 : 0,
             transition: "opacity 900ms cubic-bezier(0.32,0.72,0,1)",
+            willChange: "opacity",
           }}
         />
       ))}

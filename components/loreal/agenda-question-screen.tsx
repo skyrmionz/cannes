@@ -57,11 +57,16 @@ export function LorealAgendaQuestionScreen({
   const [centerIdx, setCenterIdx] = useState<AgendaIndex>(value ?? 0);
 
   // Card geometry — width is a fraction of body width so the next card peeks
-  // ~10% from each side.
-  const cardW = Math.max(220, bodySize.w * 0.78);
+  // ~10% from each side. Cap at 480px so cards stay reasonably sized on large
+  // monitors (without the cap, 1920px viewport produced 1500px cards that
+  // misproportioned the icon/text and clipped against the body height).
+  const cardW = Math.min(Math.max(220, bodySize.w * 0.78), 480);
   const gap = Math.max(16, bodySize.w * 0.04);
   const stride = cardW + gap;
-  const cardH = Math.max(280, Math.min(bodySize.h - 80, cardW * 1.15));
+  const cardH = Math.min(
+    Math.max(280, cardW * 1.25),
+    Math.max(280, bodySize.h - 80),
+  );
 
   // Carousel x — negative offsets shift cards left. Stop i sits at -stride * i,
   // with a centering shift so the active card is centered in the body.
@@ -170,6 +175,7 @@ export function LorealAgendaQuestionScreen({
                   title={opt.title}
                   body={opt.body}
                   Icon={opt.Icon}
+                  cardW={cardW}
                   onClick={() => {
                     if (i === centerIdx) {
                       // Tap on the centered card commits the selection.
@@ -276,6 +282,7 @@ function AgendaCard({
   title,
   body,
   Icon,
+  cardW,
   onClick,
 }: {
   width: number;
@@ -285,8 +292,16 @@ function AgendaCard({
   title: string;
   body: string;
   Icon: () => ReactNode;
+  cardW: number;
   onClick: () => void;
 }) {
+  // Inner sizing scales with the card itself, not the viewport. With viewport-
+  // relative clamps, large monitors made the inside of small (capped) cards
+  // misproportioned and clipped. Anchor padding/typography/icon to cardW.
+  const padPx = Math.max(20, Math.min(cardW * 0.07, 36));
+  const titleFs = Math.max(20, Math.min(cardW * 0.11, 42));
+  const bodyFs = Math.max(14, Math.min(cardW * 0.065, 24));
+  const iconW = Math.max(60, cardW * 0.4);
   return (
     <motion.button
       type="button"
@@ -312,24 +327,24 @@ function AgendaCard({
     >
       <div
         className="flex h-full flex-col"
-        style={{ padding: "clamp(20px, 6vw, 32px)" }}
+        style={{ padding: `${padPx}px` }}
       >
         <h2
           className="font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.6rem, 7vw, 2.6rem)" }}
+          style={{ fontSize: `${titleFs}px` }}
         >
           {title}
         </h2>
         <p
           className="mt-4 font-bold leading-[1.2] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1rem, 4.4vw, 1.4rem)" }}
+          style={{ fontSize: `${bodyFs}px` }}
         >
           {body}
         </p>
         <div className="mt-auto flex items-end">
           <div
             className="text-[#001050]"
-            style={{ width: "44%", aspectRatio: "1 / 1" }}
+            style={{ width: `${iconW}px`, aspectRatio: "1 / 1" }}
           >
             <Icon />
           </div>

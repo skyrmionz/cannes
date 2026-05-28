@@ -83,9 +83,6 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
               priority
               draggable={false}
               className="select-none object-contain"
-              style={{
-                filter: "drop-shadow(0 18px 40px rgba(60,120,240,0.3))",
-              }}
             />
           </motion.div>
         </div>

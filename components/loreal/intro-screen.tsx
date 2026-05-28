@@ -17,16 +17,24 @@ interface IntroScreenProps {
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-8"
+      className="relative flex h-full w-full flex-col items-center overflow-hidden px-8"
       style={{
-        paddingTop: "clamp(2.5rem, 8vh, 5rem)",
-        paddingBottom: "clamp(2.5rem, 9vh, 6rem)",
+        paddingTop: "clamp(1.25rem, 5vh, 4rem)",
+        paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
       }}
     >
-      <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-around gap-2 text-center text-[#001050]">
+      {/* Grid layout — only the Astro row absorbs slack, everything else is
+          shrink-0 so the bottom CTA is always visible inside the glass card. */}
+      <div
+        className="grid w-full max-w-2xl flex-1 min-h-0 items-center text-center text-[#001050]"
+        style={{
+          gridTemplateRows: "auto auto auto minmax(0, 1fr) auto",
+          rowGap: "clamp(0.5rem, 1.5vh, 1rem)",
+        }}
+      >
         <motion.h1
-          className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "min(12vw, 7vh)" }}
+          className="shrink-0 font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "min(10vw, 6vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
@@ -41,7 +49,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="px-2"
+          className="shrink-0 justify-self-center px-2"
           style={{ width: "min(80vw, 36vh)" }}
         >
           <Image
@@ -55,8 +63,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
 
         {/* Tagline */}
         <motion.p
-          className="font-semibold leading-snug tracking-tight"
-          style={{ fontSize: "min(7vw, 3.6vh)" }}
+          className="shrink-0 font-semibold leading-snug tracking-tight"
+          style={{ fontSize: "min(6vw, 3.2vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
@@ -64,8 +72,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           I&apos;ll be your La Croisette vibe analyzer!
         </motion.p>
 
-        {/* Astro icon */}
+        {/* Astro icon — only shrinkable row in the grid. */}
         <motion.div
+          className="flex min-h-0 items-center justify-center"
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
@@ -78,17 +87,18 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             priority
             className="h-auto select-none"
             style={{
-              width: "min(80vw, 38vh)",
-              filter: "drop-shadow(0 18px 40px rgba(60,120,240,0.3))",
+              width: "min(60vw, 32vh)",
+              maxHeight: "32vh",
+              objectFit: "contain",
             }}
           />
         </motion.div>
 
         {/* Body copy — Salesforce Sans */}
         <motion.p
-          className="text-[#001050]/85 leading-snug"
+          className="shrink-0 text-[#001050]/85 leading-snug justify-self-center"
           style={{
-            fontSize: "min(5.5vw, 2.6vh)",
+            fontSize: "min(5vw, 2.4vh)",
             maxWidth: "min(85vw, 42rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',

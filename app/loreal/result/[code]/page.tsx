@@ -87,10 +87,7 @@ export default function ResultPage({
               priority
               draggable={false}
               className="h-auto select-none"
-              style={{
-                width: "min(56vw, 34vh)",
-                filter: "drop-shadow(0 20px 40px rgba(60,120,240,0.22))",
-              }}
+              style={{ width: "min(56vw, 34vh)" }}
             />
           </motion.div>
         </motion.div>

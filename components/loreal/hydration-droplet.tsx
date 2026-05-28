@@ -84,13 +84,7 @@ export function HydrationDroplet({
   return (
     <motion.div
       className="relative"
-      style={{
-        width,
-        // Brightness now baked into the encode (eq=brightness=0.04 in
-        // reencode-hq.sh). Wrapper-level filter is a small saturation lift
-        // only, applied uniformly to idles and fills.
-        filter: "saturate(1.05)",
-      }}
+      style={{ width }}
       animate={controls}
       initial={{ scale: 1 }}
     >
@@ -105,10 +99,6 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
-              // Idle encode is a touch dimmer than the fill encode (denoise
-              // preserves less highlight detail). Lift just the idles so the
-              // brightness matches when the water comes to rest.
-              filter: "brightness(1.05)",
             }}
           >
             <TransparentVideoLoop
