@@ -84,7 +84,16 @@ export function HydrationDroplet({
   return (
     <motion.div
       className="relative"
-      style={{ width }}
+      style={{
+        width,
+        // Wrapper-level rendering polish — applies to both idles and fills:
+        //   contrast(1.04) deepens the blues so the water reads premium,
+        //   brightness(1.05) lifts the static state to feel less flat,
+        //   saturate(1.05) closes the slight VP9/HEVC chroma desaturation.
+        // This also masks the visible compression blockiness because higher
+        // contrast on smooth chroma actually reads softer than uncorrected.
+        filter: "contrast(1.04) brightness(1.05) saturate(1.05)",
+      }}
       animate={controls}
       initial={{ scale: 1 }}
     >
@@ -99,11 +108,6 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
-              // Idle videos read very slightly duller than the fill overlay
-              // due to a gamma shift introduced by the boomerang concat path
-              // through yuva420p. A small saturation lift closes the gap
-              // without making static brighter than mid-transition.
-              filter: "saturate(1.04)",
             }}
           >
             <TransparentVideoLoop

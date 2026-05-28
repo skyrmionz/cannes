@@ -85,10 +85,11 @@ export function LorealHydrationQuestionScreen({
           </motion.p>
         </div>
 
-        {/* Droplet + buttons region — flex-1 with justify-between leaves
-            equal slack above the droplet and below it (above the buttons). */}
-        <div className="flex flex-1 flex-col items-center justify-between">
-          <div aria-hidden />
+        {/* Droplet sits at the top of the flex-1 region so its vertical
+            position matches the prior layout. The +/- buttons hang directly
+            below the droplet with a small gap; the rest of the region is
+            empty slack toward the back/next buttons. */}
+        <div className="flex flex-1 flex-col items-center">
           <HydrationDroplet
             width="min(82vw, 56vh)"
             level={level}
@@ -97,11 +98,12 @@ export function LorealHydrationQuestionScreen({
             toLevel={toLevel}
             onTransitionEnd={onTransitionEnd}
           />
-          <div className="flex items-center gap-8">
+          <div className="mt-6 flex items-center gap-8">
             <RoundIconButton
               onClick={onMinus}
               disabled={phase !== "idle" || level <= 0}
               ariaLabel="Decrease hydration"
+              variant="glass"
             >
               <Minus className="h-6 w-6" strokeWidth={3} />
             </RoundIconButton>
@@ -109,6 +111,7 @@ export function LorealHydrationQuestionScreen({
               onClick={onPlus}
               disabled={phase !== "idle" || level >= 2}
               ariaLabel="Increase hydration"
+              variant="glass"
             >
               <Plus className="h-6 w-6" strokeWidth={3} />
             </RoundIconButton>

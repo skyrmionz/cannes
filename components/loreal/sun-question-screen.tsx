@@ -25,12 +25,6 @@ type StopIndex = 0 | 1 | 2;
 
 const HILL_BOTTOM_PX = 80;
 
-const SKY_TINTS = [
-  "radial-gradient(80% 60% at 50% 80%, rgba(255,210,160,0) 0%, rgba(255,210,160,0) 100%)",
-  "radial-gradient(80% 60% at 50% 80%, rgba(255,180,120,0.55) 0%, rgba(255,210,140,0) 70%)",
-  "radial-gradient(95% 75% at 50% 70%, rgba(255,170,80,0.7) 0%, rgba(255,210,120,0.2) 60%, rgba(255,230,150,0) 100%)",
-] as const;
-
 export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const stopIndex = value;
   const y = useMotionValue<number>(STOPS[value].y);
@@ -72,18 +66,10 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
 
   return (
     // Outer wrapper: matches the persistent shell's glass card inset (inset-3)
-    // and rounded radius so anything painted inside is CLIPPED to the card —
-    // hills, sun, sky tint can't bleed past the card edge.
+    // and rounded radius so anything painted inside is CLIPPED to the card.
+    // Sky tint lives at the page level (app/loreal/page.tsx) so warmth
+    // bleeds across the whole page background, not just inside the card.
     <div className="absolute inset-3 overflow-hidden rounded-[40px]">
-      {/* Sky tint */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background: SKY_TINTS[stopIndex],
-          transition: "background 700ms ease",
-        }}
-      />
-
       {/* Header — progress bar + title + subtitle.
           Extra top padding so the title has breathing room from the bar. */}
       <div className="relative z-30 px-7 pt-7">

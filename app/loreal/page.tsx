@@ -15,6 +15,21 @@ type Step = "start" | "intro" | "vibing" | "sun" | "hydration";
 const LOREAL_GRADIENT =
   "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";
 
+// Full-viewport sky tints applied by the sun question. Each is a layered
+// gradient that paints warm light from the top of the page down. Stop 0
+// is "no tint" — keeps the base gradient pristine. Stops 1 and 2 push the
+// upper sky toward warm orange/amber as the sun rises.
+//
+// We crossfade these as opacity-transitioned layers behind everything else,
+// so the gradient itself appears to morph smoothly. When the user leaves
+// the sun question, the active tint fades out, leaving the base gradient.
+// Returning to the sun question with a saved selection re-tints smoothly.
+const SUN_TINTS: Record<0 | 1 | 2, string> = {
+  0: "linear-gradient(180deg, rgba(255,200,140,0) 0%, rgba(255,200,140,0) 100%)",
+  1: "linear-gradient(180deg, rgba(255,180,120,0.55) 0%, rgba(255,210,150,0.18) 45%, rgba(255,220,160,0) 75%)",
+  2: "linear-gradient(180deg, rgba(255,150,70,0.78) 0%, rgba(255,190,110,0.4) 35%, rgba(255,220,150,0.12) 65%, rgba(255,235,180,0) 90%)",
+};
+
 function LorealContent() {
   const [step, setStep] = useState<Step>("start");
 
@@ -32,18 +47,37 @@ function LorealContent() {
     // Downstream not built yet — Next button is a no-op.
   }, []);
 
+  // Active tint = current sun selection while on the sun question; otherwise
+  // 0 (no tint), so leaving the question fades the warmth back out smoothly.
+  const activeTint: 0 | 1 | 2 = step === "sun" ? sunStop : 0;
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-hidden"
       style={{ background: LOREAL_GRADIENT }}
     >
+      {/* Sun tint — full-viewport layer crossfaded between the three sky
+          intensities. Lives behind every screen so the gradient appears to
+          morph across the whole page, not just the sun screen's glass card. */}
+      {([0, 1, 2] as const).map((lv) => (
+        <div
+          key={`tint-${lv}`}
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background: SUN_TINTS[lv],
+            opacity: activeTint === lv ? 1 : 0,
+            transition: "opacity 900ms cubic-bezier(0.32,0.72,0,1)",
+          }}
+        />
+      ))}
+
       {/* Persistent glass card — stays static while content transitions.
           Hidden on the vibing buffer screen so the carousels read full-bleed. */}
       <AnimatePresence>
         {step !== "vibing" && (
           <motion.div
             key="glass-card"
-            className="pointer-events-none absolute inset-3 rounded-[40px]"
+            className="pointer-events-none absolute inset-3 z-10 rounded-[40px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
