@@ -16,7 +16,7 @@ interface IntroScreenProps {
 // typography + the Astro icon scale up on tall windows like the vibing screen.
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-8 pt-10 pb-16">
+    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-8 pt-20 pb-24">
       <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-around gap-2 text-center text-[#001050]">
         <motion.h1
           className="font-bold leading-[1.05] tracking-tight"

@@ -18,6 +18,12 @@ const LOREAL_GRADIENT =
 function LorealContent() {
   const [step, setStep] = useState<Step>("start");
 
+  // User selections live here so going forward/back through screens preserves
+  // what the user already picked. Sun stop and hydration level both default
+  // to 0; once the user touches them, the value sticks across remounts.
+  const [sunStop, setSunStop] = useState<0 | 1 | 2>(0);
+  const [hydrationLevel, setHydrationLevel] = useState<0 | 1 | 2>(0);
+
   const goToIntro = useCallback(() => setStep("intro"), []);
   const goToVibing = useCallback(() => setStep("vibing"), []);
   const goToSun = useCallback(() => setStep("sun"), []);
@@ -111,7 +117,11 @@ function LorealContent() {
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             style={{ transformOrigin: "center" }}
           >
-            <LorealSunQuestionScreen onNext={goToHydration} />
+            <LorealSunQuestionScreen
+              onNext={goToHydration}
+              value={sunStop}
+              onChange={setSunStop}
+            />
           </motion.div>
         )}
         {step === "hydration" && (
@@ -124,7 +134,12 @@ function LorealContent() {
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             style={{ transformOrigin: "center" }}
           >
-            <LorealHydrationQuestionScreen onNext={goToNext} onBack={goToSun} />
+            <LorealHydrationQuestionScreen
+              onNext={goToNext}
+              onBack={goToSun}
+              value={hydrationLevel}
+              onChange={setHydrationLevel}
+            />
           </motion.div>
         )}
       </AnimatePresence>

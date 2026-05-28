@@ -28,7 +28,7 @@ export function GlassyButton({ onClick, children, delay = 1.4 }: Props) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="glassy-cta pointer-events-auto relative overflow-visible rounded-full px-14 py-4 text-base font-semibold tracking-tight"
+      className="glassy-cta pointer-events-auto relative overflow-visible rounded-full px-16 py-6 text-xl font-semibold tracking-tight"
     >
       <span aria-hidden className="glassy-shimmer" />
       <span className="glassy-cta-text">{children}</span>

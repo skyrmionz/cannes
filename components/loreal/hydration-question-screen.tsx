@@ -14,13 +14,20 @@ import { RoundIconButton } from "./round-icon-button";
 interface Props {
   onNext: () => void;
   onBack: () => void;
+  value: DropletLevel;
+  onChange: (next: DropletLevel) => void;
 }
 
-export function LorealHydrationQuestionScreen({ onNext, onBack }: Props) {
-  const [level, setLevel] = useState<DropletLevel>(0);
+export function LorealHydrationQuestionScreen({
+  onNext,
+  onBack,
+  value,
+  onChange,
+}: Props) {
+  const level = value;
   const [phase, setPhase] = useState<DropletPhase>("idle");
-  const [fromLevel, setFromLevel] = useState<DropletLevel>(0);
-  const [toLevel, setToLevel] = useState<DropletLevel>(0);
+  const [fromLevel, setFromLevel] = useState<DropletLevel>(value);
+  const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const onPlus = useCallback(() => {
     if (phase !== "idle" || level >= 2) return;
@@ -39,68 +46,73 @@ export function LorealHydrationQuestionScreen({ onNext, onBack }: Props) {
   }, [level, phase]);
 
   const onTransitionEnd = useCallback(() => {
-    setLevel(toLevel);
+    onChange(toLevel);
     setPhase("idle");
-  }, [toLevel]);
+  }, [toLevel, onChange]);
 
   return (
     <div className="absolute inset-3 overflow-hidden rounded-[40px]">
-      {/* Header: progress + title + subtitle */}
-      <div className="relative z-30 px-7 pt-7">
-        <LorealProgressBar percent={40} label="40% to glow" />
+      {/* Stack: header / droplet / buttons. The droplet sits in a flex-1
+          region whose vertical gap is split equally above and below by
+          flex-col + justify-between, so text→droplet ≡ droplet→buttons. */}
+      <div className="relative z-30 flex h-full flex-col px-7 pt-7 pb-28">
+        <div className="shrink-0">
+          <LorealProgressBar percent={40} label="40% to glow" />
 
-        <motion.h1
-          className="mt-10 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
-        >
-          Be honest: how hydrated are you?
-        </motion.h1>
-
-        <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
-          style={{
-            fontSize: "clamp(0.85rem, 3.4vw, 0.95rem)",
-            fontFamily:
-              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-          }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
-        >
-          L&apos;Oréal labs say dehydration encourages fine lines. I&apos;ll
-          calculate your bounce-back time.
-        </motion.p>
-      </div>
-
-      {/* Center stage — large droplet, +/− horizontal below it. */}
-      <div className="absolute inset-x-0 top-[52%] -translate-y-1/2 flex flex-col items-center px-6">
-        <HydrationDroplet
-          width="min(82vw, 56vh)"
-          level={level}
-          phase={phase}
-          fromLevel={fromLevel}
-          toLevel={toLevel}
-          onTransitionEnd={onTransitionEnd}
-        />
-
-        <div className="mt-2 flex items-center gap-8">
-          <RoundIconButton
-            onClick={onMinus}
-            disabled={phase !== "idle" || level <= 0}
-            ariaLabel="Decrease hydration"
+          <motion.h1
+            className="mt-10 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+            style={{ fontSize: "clamp(1.75rem, 6.5vw, 2.4rem)" }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
           >
-            <Minus className="h-6 w-6" strokeWidth={3} />
-          </RoundIconButton>
-          <RoundIconButton
-            onClick={onPlus}
-            disabled={phase !== "idle" || level >= 2}
-            ariaLabel="Increase hydration"
+            Be honest: how hydrated are you?
+          </motion.h1>
+
+          <motion.p
+            className="mt-2 text-center leading-snug text-[#001050]/75"
+            style={{
+              fontSize: "clamp(0.85rem, 3.4vw, 0.95rem)",
+              fontFamily:
+                'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
           >
-            <Plus className="h-6 w-6" strokeWidth={3} />
-          </RoundIconButton>
+            L&apos;Oréal labs say dehydration encourages fine lines. I&apos;ll
+            calculate your bounce-back time.
+          </motion.p>
+        </div>
+
+        {/* Droplet + buttons region — flex-1 with justify-between leaves
+            equal slack above the droplet and below it (above the buttons). */}
+        <div className="flex flex-1 flex-col items-center justify-between">
+          <div aria-hidden />
+          <HydrationDroplet
+            width="min(82vw, 56vh)"
+            level={level}
+            phase={phase}
+            fromLevel={fromLevel}
+            toLevel={toLevel}
+            onTransitionEnd={onTransitionEnd}
+          />
+          <div className="flex items-center gap-8">
+            <RoundIconButton
+              onClick={onMinus}
+              disabled={phase !== "idle" || level <= 0}
+              ariaLabel="Decrease hydration"
+            >
+              <Minus className="h-6 w-6" strokeWidth={3} />
+            </RoundIconButton>
+            <RoundIconButton
+              onClick={onPlus}
+              disabled={phase !== "idle" || level >= 2}
+              ariaLabel="Increase hydration"
+            >
+              <Plus className="h-6 w-6" strokeWidth={3} />
+            </RoundIconButton>
+          </div>
         </div>
       </div>
 

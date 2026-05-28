@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion, useMotionValue, animate } from "motion/react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
@@ -8,6 +7,8 @@ import { LorealProgressBar } from "./progress-bar";
 
 interface Props {
   onNext: () => void;
+  value: StopIndex;
+  onChange: (next: StopIndex) => void;
 }
 
 // Sun stops as `bottom` offsets in px. Stop 0 = sun mostly hidden behind hills.
@@ -30,9 +31,9 @@ const SKY_TINTS = [
   "radial-gradient(95% 75% at 50% 70%, rgba(255,170,80,0.7) 0%, rgba(255,210,120,0.2) 60%, rgba(255,230,150,0) 100%)",
 ] as const;
 
-export function LorealSunQuestionScreen({ onNext }: Props) {
-  const [stopIndex, setStopIndex] = useState<StopIndex>(0);
-  const y = useMotionValue<number>(STOPS[0].y);
+export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
+  const stopIndex = value;
+  const y = useMotionValue<number>(STOPS[value].y);
 
   const handleDragEnd = () => {
     const current = y.get();
@@ -52,7 +53,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
       stiffness: 420,
       damping: 32,
     });
-    setStopIndex(closest);
+    onChange(closest);
   };
 
   const dragBounds = {
@@ -61,7 +62,7 @@ export function LorealSunQuestionScreen({ onNext }: Props) {
   };
 
   const goToStop = (i: StopIndex) => {
-    setStopIndex(i);
+    onChange(i);
     animate(y, STOPS[i].y, {
       type: "spring",
       stiffness: 420,

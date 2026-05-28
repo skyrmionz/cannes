@@ -10,6 +10,21 @@ export type DropletPhase = "idle" | "transitioning";
 const LEVELS: DropletLevel[] = [0, 1, 2];
 const LEVEL_NAME: Record<DropletLevel, string> = { 0: "low", 1: "mid", 2: "full" };
 
+// All four directional fills. Each gets its own permanently-mounted video so
+// we never have to call .load() (which resets readyState and produces the
+// blank-frame flicker the user sees on click).
+const FILLS: Array<{
+  key: string;
+  from: DropletLevel;
+  to: DropletLevel;
+  src: string;
+}> = [
+  { key: "low-to-mid", from: 0, to: 1, src: "/loreal/droplet-low-to-mid" },
+  { key: "mid-to-full", from: 1, to: 2, src: "/loreal/droplet-mid-to-full" },
+  { key: "full-to-mid", from: 2, to: 1, src: "/loreal/droplet-full-to-mid" },
+  { key: "mid-to-low", from: 1, to: 0, src: "/loreal/droplet-mid-to-low" },
+];
+
 interface Props {
   width: string | number;
   level: DropletLevel;
@@ -20,14 +35,14 @@ interface Props {
 }
 
 // Permanent-mount model:
-// - All 3 idle videos are mounted continuously. Visibility decides which shows.
-// - During transition, all idles are hidden; the fill overlay is on top.
-// - The fill src is computed synchronously from props (no useEffect lag),
-//   so there's no blank frame between click and overlay mount.
-// - After fill ends, the overlay lingers for 2 rAFs while the destination
-//   idle paints its first frame underneath.
-// - A "pop" scale keyframe fires at the transitioning→idle handoff to mask
-//   any residual handoff jitter.
+// - All 3 idle videos AND all 4 directional fill videos are mounted continuously.
+//   Visibility decides which shows. No element ever has its src reassigned.
+// - During transition, all idles are hidden; the matching fill overlay plays.
+// - The active fill is identified synchronously from props (no useEffect lag),
+//   so its visibility flips on the same render that flips phase=transitioning.
+// - After the fill ends, the destination idle gets one rAF to paint underneath
+//   before the fill is hidden — masks any handoff seam.
+// - A "pop" scale keyframe fires at transitioning→idle to mask residual jitter.
 export function HydrationDroplet({
   width,
   level,
@@ -38,35 +53,16 @@ export function HydrationDroplet({
 }: Props) {
   const isTransitioning = phase === "transitioning";
 
-  // Sync src derivation from props — overlay can mount in the same render
-  // tick as the click that flipped phase to "transitioning".
-  const computedSrc =
+  const activeFillKey =
     isTransitioning && fromLevel != null && toLevel != null
-      ? `/loreal/droplet-${LEVEL_NAME[fromLevel]}-to-${LEVEL_NAME[toLevel]}`
+      ? `${LEVEL_NAME[fromLevel]}-to-${LEVEL_NAME[toLevel]}`
       : null;
 
-  // After the parent flips phase to idle, we keep the fill mounted for a
-  // brief linger so the destination idle can paint underneath before the
-  // fill unmounts.
-  const [lingeringSrc, setLingeringSrc] = useState<string | null>(null);
-  const [lingerVisible, setLingerVisible] = useState(false);
-  const overlayRef = useRef<HTMLVideoElement>(null);
-
-  const activeSrc = computedSrc ?? lingeringSrc;
-  const overlayMounted = activeSrc != null;
-  const overlayVisible = computedSrc != null || lingerVisible;
-
-  // Restart the overlay video whenever its src changes.
-  useEffect(() => {
-    if (!activeSrc) return;
-    const v = overlayRef.current;
-    if (!v) return;
-    v.load();
-    const tryPlay = () => v.play().catch(() => {});
-    tryPlay();
-    v.addEventListener("canplay", tryPlay);
-    return () => v.removeEventListener("canplay", tryPlay);
-  }, [activeSrc]);
+  // Linger keeps the just-finished fill visible for one rAF after the parent
+  // flips to idle so the destination idle paints underneath first.
+  const [lingeringKey, setLingeringKey] = useState<string | null>(null);
+  const lingeringKeyRef = useRef<string | null>(null);
+  lingeringKeyRef.current = lingeringKey;
 
   // Pop animation when transitioning → idle.
   const controls = useAnimation();
@@ -84,21 +80,6 @@ export function HydrationDroplet({
     }
     prevPhase.current = phase;
   }, [phase, controls]);
-
-  const handleEnded = () => {
-    // Snapshot current src into linger state so the overlay stays mounted
-    // and visible while the parent flips phase=idle and the destination
-    // idle paints.
-    if (computedSrc) setLingeringSrc(computedSrc);
-    setLingerVisible(true);
-    onTransitionEnd?.();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setLingerVisible(false);
-        setTimeout(() => setLingeringSrc(null), 60);
-      });
-    });
-  };
 
   return (
     <motion.div
@@ -118,11 +99,11 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
-              // Idle videos read darker/duller than the fill overlay due to a
-              // gamma shift introduced by the boomerang concat path through
-              // yuva420p. Bump brightness/saturation slightly at paint time
-              // so static state matches mid-transition state.
-              filter: "brightness(1.08) saturate(1.06)",
+              // Idle videos read very slightly duller than the fill overlay
+              // due to a gamma shift introduced by the boomerang concat path
+              // through yuva420p. A small saturation lift closes the gap
+              // without making static brighter than mid-transition.
+              filter: "saturate(1.04)",
             }}
           >
             <TransparentVideoLoop
@@ -135,28 +116,73 @@ export function HydrationDroplet({
         );
       })}
 
-      {overlayMounted && (
-        <div
-          className="absolute inset-0"
-          style={{
-            visibility: overlayVisible ? "visible" : "hidden",
-            pointerEvents: "none",
+      {FILLS.map((f) => (
+        <FillVideo
+          key={f.key}
+          src={f.src}
+          active={activeFillKey === f.key}
+          lingering={lingeringKey === f.key}
+          onEnded={() => {
+            // Snapshot active key into linger so the fill stays visible while
+            // parent flips phase=idle and the destination idle paints.
+            setLingeringKey(f.key);
+            onTransitionEnd?.();
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setLingeringKey((prev) => (prev === f.key ? null : prev));
+              });
+            });
           }}
-        >
-          <video
-            ref={overlayRef}
-            muted
-            playsInline
-            preload="auto"
-            onEnded={handleEnded}
-            className="block"
-            style={{ width: "100%", height: "auto" }}
-          >
-            <source src={`${activeSrc}.mp4`} type='video/mp4; codecs="hvc1"' />
-            <source src={`${activeSrc}.webm`} type="video/webm" />
-          </video>
-        </div>
-      )}
+        />
+      ))}
     </motion.div>
+  );
+}
+
+interface FillVideoProps {
+  src: string;
+  active: boolean;
+  lingering: boolean;
+  onEnded: () => void;
+}
+
+// Permanently-mounted fill video. Plays from frame 0 each time it becomes
+// active. Stays hidden otherwise. Never has its src reassigned, so there's
+// no load() reset → no blank frame on click.
+function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const wasActive = useRef(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (active && !wasActive.current) {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    }
+    wasActive.current = active;
+  }, [active]);
+
+  return (
+    <div
+      className="absolute inset-0"
+      style={{
+        visibility: active || lingering ? "visible" : "hidden",
+        pointerEvents: "none",
+      }}
+    >
+      <video
+        ref={ref}
+        muted
+        playsInline
+        preload="auto"
+        onEnded={onEnded}
+        className="block"
+        style={{ width: "100%", height: "auto" }}
+      >
+        <source src={`${src}.mp4`} type='video/mp4; codecs="hvc1"' />
+        <source src={`${src}.webm`} type="video/webm" />
+      </video>
+    </div>
   );
 }
