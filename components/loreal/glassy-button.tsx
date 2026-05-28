@@ -28,7 +28,15 @@ export function GlassyButton({ onClick, children, delay = 1.4 }: Props) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="glassy-cta pointer-events-auto relative overflow-visible rounded-full px-16 py-6 text-xl font-semibold tracking-tight"
+      className="glassy-cta pointer-events-auto relative overflow-visible rounded-full font-semibold tracking-tight"
+      style={{
+        // Padding + font scale gracefully on short viewports so the bigger
+        // desktop look doesn't blow out at 360h or push the button outside
+        // the glass card.
+        paddingInline: "clamp(2.4rem, 6vw, 4rem)",
+        paddingBlock: "clamp(0.85rem, 2vh, 1.5rem)",
+        fontSize: "clamp(1rem, min(3.6vw, 2.6vh), 1.25rem)",
+      }}
     >
       <span aria-hidden className="glassy-shimmer" />
       <span className="glassy-cta-text">{children}</span>

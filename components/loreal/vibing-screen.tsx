@@ -121,8 +121,12 @@ function CarouselRow({
   return (
     // overflow-x-clip lets the strip scroll horizontally without revealing
     // off-screen copies, while leaving the vertical axis free so the bob
-    // animation isn't cut off at the row edges.
-    <div className="relative h-[120px] overflow-x-clip">
+    // animation isn't cut off at the row edges. Height scales with viewport
+    // height so 4 rows + headline always fit at 720h and phone portrait.
+    <div
+      className="relative overflow-x-clip"
+      style={{ height: "clamp(72px, 16vh, 120px)" }}
+    >
       <motion.div
         className="absolute top-1/2 left-0 flex -translate-y-1/2 items-center"
         style={{ gap: `${GAP}px` }}

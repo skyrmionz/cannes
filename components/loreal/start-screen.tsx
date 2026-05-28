@@ -18,7 +18,13 @@ interface StartScreenProps {
 // on tall/wide windows instead of capping at a small px maximum.
 export function LorealStartScreen({ onStart }: StartScreenProps) {
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6 pt-16 pb-20">
+    <div
+      className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6"
+      style={{
+        paddingTop: "clamp(2rem, 6vh, 4rem)",
+        paddingBottom: "clamp(2rem, 7vh, 5rem)",
+      }}
+    >
       {/* Top — L'Oreal wordmark */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
