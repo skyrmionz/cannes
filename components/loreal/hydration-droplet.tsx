@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 import { TransparentVideoOnce } from "@/components/ui/transparent-video-once";
 
@@ -22,11 +21,15 @@ interface Props {
   onTransitionEnd?: () => void;
 }
 
-// Smooth handoff: the IDLE layer is always rendered at the destination level
-// (`toLevel` while transitioning, `level` when idle), so the new level is
-// already playing underneath the transition clip. The transition clip plays
-// on top and fades out at the end, revealing the already-running idle —
-// no blank frame, no flash of the underlying buttons.
+// Handoff strategy:
+// - During a transition, the idle layer underneath plays the OLD level
+//   (`fromLevel`). The fill clip on top is fully opaque, but if it ever
+//   loads slowly the user sees the old level — never the new one. So no
+//   "ghost of the next state" before/during the animation.
+// - The fill's last frame is anchor-pinned to the new idle's first frame
+//   (Higgsfield --end-image), so when the fill ends and we swap the idle
+//   source from fromLevel → toLevel, the visible pixels are identical.
+//   No flash, no jump.
 export function HydrationDroplet({
   width,
   level,
@@ -36,8 +39,11 @@ export function HydrationDroplet({
   onTransitionEnd,
 }: Props) {
   const isTransitioning = phase === "transitioning";
+  // Idle plays the OLD level during transition so the destination never
+  // ghosts through. Only swaps to `level` (== toLevel) once parent flips
+  // phase back to idle.
   const idleLevel: DropletLevel =
-    isTransitioning && toLevel != null ? toLevel : level;
+    isTransitioning && fromLevel != null ? fromLevel : level;
   const idleName = LEVEL_NAME[idleLevel];
   const idleSrc = `/loreal/droplet-${idleName}-idle`;
 
@@ -45,27 +51,6 @@ export function HydrationDroplet({
     isTransitioning && fromLevel != null && toLevel != null
       ? `/loreal/droplet-${LEVEL_NAME[fromLevel]}-to-${LEVEL_NAME[toLevel]}`
       : null;
-
-  // Keep transition mounted briefly after `ended` so we can fade it out
-  // smoothly while the idle (already at the new level) plays underneath.
-  const [overlayVisible, setOverlayVisible] = useState(false);
-  const [overlayKey, setOverlayKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (transitionSrc) {
-      setOverlayKey(transitionSrc);
-      setOverlayVisible(true);
-    }
-  }, [transitionSrc]);
-
-  const handleEnded = () => {
-    // Start fading the transition overlay out. The idle underneath is
-    // already running at toLevel, so the user sees a clean handoff.
-    setOverlayVisible(false);
-    // Tell the parent the transition is done. Match the fade duration
-    // below so phase flips to "idle" right as the overlay finishes fading.
-    setTimeout(() => onTransitionEnd?.(), 220);
-  };
 
   return (
     <div className="relative" style={{ width }}>
@@ -76,21 +61,15 @@ export function HydrationDroplet({
         width="100%"
         className="block"
       />
-      {overlayKey && (
-        <div
-          className="absolute inset-0"
-          style={{
-            opacity: overlayVisible ? 1 : 0,
-            transition: "opacity 220ms ease-out",
-          }}
-        >
+      {transitionSrc && (
+        <div className="absolute inset-0">
           <TransparentVideoOnce
-            key={overlayKey}
-            restartKey={overlayKey}
-            mp4Src={`${overlayKey}.mp4`}
-            webmSrc={`${overlayKey}.webm`}
+            key={transitionSrc}
+            restartKey={transitionSrc}
+            mp4Src={`${transitionSrc}.mp4`}
+            webmSrc={`${transitionSrc}.webm`}
             width="100%"
-            onEnded={handleEnded}
+            onEnded={onTransitionEnd}
             className="block"
           />
         </div>
