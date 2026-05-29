@@ -15,18 +15,18 @@ interface IntroScreenProps {
 // ~25% extending above the visible area (clipped by overflow-hidden). The
 // rest of the content sits below in a padded column.
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
-  // Astro is sized to span the full glass card. The card has inset-3 (12px)
-  // around the viewport, so its width is effectively 100vw - 24px on phones.
-  // Cap by viewport height so it doesn't dominate landscape monitors.
-  const astroSize = "min(100vw, 60vh)";
+  // Astro is sized larger than the glass card so a chunk of the top is
+  // clipped by the container's overflow-hidden — the visible silhouette
+  // sits inside the card and "doesn't overlap" the top edge.
+  const astroSize = "min(120vw, 78vh)";
 
   return (
     <div className="relative flex h-full w-full flex-col items-center overflow-hidden">
-      {/* Astro icon — full glass card width, 25% clipped above by overflow */}
+      {/* Astro icon — oversized so the top ~40% is clipped by the container. */}
       <motion.div
         className="relative flex w-full shrink-0 justify-center"
         style={{
-          marginTop: `calc(${astroSize} * -0.25)`,
+          marginTop: `calc(${astroSize} * -0.4)`,
         }}
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -48,7 +48,6 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         className="flex w-full max-w-2xl flex-1 min-h-0 flex-col items-center px-8 text-center text-[#001050]"
         style={{
           paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
-          rowGap: "clamp(0.5rem, 1.5vh, 1rem)",
         }}
       >
         <motion.h1
@@ -91,9 +90,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           I&apos;ll be your La Croisette vibe analyzer!
         </motion.p>
 
-        {/* Body copy — Salesforce Sans */}
+        {/* Body copy — pushed to the bottom so it sits right above the CTA. */}
         <motion.p
-          className="mt-4 shrink-0 leading-snug text-[#001050]/85"
+          className="mt-auto shrink-0 leading-snug text-[#001050]/85"
           style={{
             fontSize: "min(5vw, 2.4vh)",
             maxWidth: "min(85vw, 42rem)",
@@ -109,8 +108,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           vibe.
         </motion.p>
 
-        {/* CTA — bottom of the column */}
-        <div className="mt-auto flex shrink-0 justify-center pt-4">
+        {/* CTA — directly below the body copy. */}
+        <div className="mt-4 flex shrink-0 justify-center">
           <GlassyButton onClick={onStart} delay={0.9}>
             Get started
           </GlassyButton>
