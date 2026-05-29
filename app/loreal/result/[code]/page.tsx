@@ -34,16 +34,6 @@ export default function ResultPage({
       style={{ background: LOREAL_GRADIENT }}
     >
       <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-5 pt-8 pb-8 text-[#001050] sm:px-6 sm:pt-10 sm:pb-10">
-        <Image
-          src="/loreal/loreal-logo.png"
-          alt="L'Oréal"
-          width={600}
-          height={160}
-          priority
-          className="h-auto shrink-0 select-none"
-          style={{ width: "min(38vw, 14vh)" }}
-        />
-
         <motion.h1
           className="mt-6 text-center font-bold leading-[1.05] tracking-tight"
           style={{ fontSize: "clamp(1.4rem, 6.4vw, 2.4rem)" }}
@@ -127,15 +117,6 @@ function Fallback({ message }: { message: string }) {
       className="flex min-h-screen w-full flex-col items-center justify-center px-6"
       style={{ background: LOREAL_GRADIENT }}
     >
-      <Image
-        src="/loreal/loreal-logo.png"
-        alt="L'Oréal"
-        width={600}
-        height={160}
-        priority
-        className="mb-8 h-auto select-none"
-        style={{ width: "min(40vw, 18vh)" }}
-      />
       <p
         className="max-w-md text-center leading-snug text-[#001050]/80"
         style={{

@@ -25,23 +25,17 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         paddingBottom: "clamp(2rem, 7vh, 5rem)",
       }}
     >
-      {/* Top — L'Oreal wordmark */}
-      <motion.div
+      {/* Top — tagline copy replacing the L'Oréal wordmark. */}
+      <motion.p
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="flex shrink-0 justify-center"
+        className="shrink-0 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
+        style={{ fontSize: "min(5vw, 2.6vh)" }}
       >
-        <Image
-          src="/loreal/loreal-logo.png"
-          alt="L'Oréal"
-          width={600}
-          height={160}
-          priority
-          className="h-auto select-none"
-          style={{ width: "min(50vw, 24vh)" }}
-        />
-      </motion.div>
+        We&rsquo;ll crunch the beauty data. You win a prize. Because
+        you&rsquo;re worth it.
+      </motion.p>
 
       {/* Middle — headline + inline glasses, fills the available middle space */}
       <div className="flex flex-1 flex-col items-center justify-center text-[#001050]">
@@ -68,7 +62,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             style={{ width: "min(85vw, 36vh)" }}
           />
         </motion.div>
-        <GlassyButton onClick={onStart}>Claim your prize</GlassyButton>
+        <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
       </div>
     </div>
   );

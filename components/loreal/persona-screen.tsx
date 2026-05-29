@@ -54,25 +54,7 @@ export function LorealPersonaScreen({
 
   return (
     <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-5 pt-5 pb-10 text-[#001050] sm:px-6 sm:pt-7 sm:pb-14">
-      <motion.div
-        className="shrink-0"
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      >
-        <Image
-          src="/loreal/loreal-logo.png"
-          alt="L'Oréal"
-          width={600}
-          height={160}
-          priority
-          draggable={false}
-          className="h-auto select-none"
-          style={{ width: "min(38vw, 14vh)" }}
-        />
-      </motion.div>
-
-      {/* Top spacer — pushes the persona text away from the logo so the
+      {/* Top spacer — pushes the persona text down so the
           title + description sit closer to the icon. */}
       <div className="min-h-0 flex-1" />
 

@@ -11,24 +11,43 @@ interface IntroScreenProps {
 // NOTE: background, glass card, and CornerTap live in app/loreal/page.tsx
 // as a persistent shell so they stay still while step content cross-zooms.
 //
-// Layout uses a flex column with justify-between so the content distributes
-// proportionally on any viewport height. All sizes use min(vw, vh, px) so
-// typography + the Astro icon scale up on tall windows like the vibing screen.
+// Layout: Astro icon spans the full glass card width at the very top with
+// ~25% extending above the visible area (clipped by overflow-hidden). The
+// rest of the content sits below in a padded column.
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
+  // Astro is sized to span the full glass card. The card has inset-3 (12px)
+  // around the viewport, so its width is effectively 100vw - 24px on phones.
+  // Cap by viewport height so it doesn't dominate landscape monitors.
+  const astroSize = "min(100vw, 60vh)";
+
   return (
-    <div
-      className="relative flex h-full w-full flex-col items-center overflow-hidden px-8"
-      style={{
-        paddingTop: "clamp(1.25rem, 5vh, 4rem)",
-        paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
-      }}
-    >
-      {/* Grid layout — only the Astro row absorbs slack, everything else is
-          shrink-0 so the bottom CTA is always visible inside the glass card. */}
-      <div
-        className="grid w-full max-w-2xl flex-1 min-h-0 items-center text-center text-[#001050]"
+    <div className="relative flex h-full w-full flex-col items-center overflow-hidden">
+      {/* Astro icon — full glass card width, 25% clipped above by overflow */}
+      <motion.div
+        className="relative flex w-full shrink-0 justify-center"
         style={{
-          gridTemplateRows: "auto auto auto minmax(0, 1fr) auto",
+          marginTop: `calc(${astroSize} * -0.25)`,
+        }}
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.15, duration: 0.6, ease: "easeOut" }}
+      >
+        <Image
+          src="/loreal/agent-astro.png"
+          alt="Agent Astro"
+          width={720}
+          height={720}
+          priority
+          className="h-auto select-none"
+          style={{ width: astroSize }}
+        />
+      </motion.div>
+
+      {/* Content column — padded, fills remaining space */}
+      <div
+        className="flex w-full max-w-2xl flex-1 min-h-0 flex-col items-center px-8 text-center text-[#001050]"
+        style={{
+          paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
           rowGap: "clamp(0.5rem, 1.5vh, 1rem)",
         }}
       >
@@ -37,7 +56,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           style={{ fontSize: "min(10vw, 6vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
         >
           Coucou,
           <br />
@@ -48,8 +67,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="shrink-0 justify-self-center px-2"
+          transition={{ delay: 0.45, duration: 0.5 }}
+          className="mt-3 shrink-0 px-2"
           style={{ width: "min(80vw, 36vh)" }}
         >
           <Image
@@ -63,40 +82,18 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
 
         {/* Tagline */}
         <motion.p
-          className="shrink-0 font-semibold leading-snug tracking-tight"
+          className="mt-3 shrink-0 font-semibold leading-snug tracking-tight"
           style={{ fontSize: "min(6vw, 3.2vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
         >
           I&apos;ll be your La Croisette vibe analyzer!
         </motion.p>
 
-        {/* Astro icon — only shrinkable row in the grid. */}
-        <motion.div
-          className="flex min-h-0 items-center justify-center"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-        >
-          <Image
-            src="/loreal/agent-astro.png"
-            alt="Agent Astro"
-            width={720}
-            height={720}
-            priority
-            className="h-auto select-none"
-            style={{
-              width: "min(60vw, 32vh)",
-              maxHeight: "32vh",
-              objectFit: "contain",
-            }}
-          />
-        </motion.div>
-
         {/* Body copy — Salesforce Sans */}
         <motion.p
-          className="shrink-0 text-[#001050]/85 leading-snug justify-self-center"
+          className="mt-4 shrink-0 leading-snug text-[#001050]/85"
           style={{
             fontSize: "min(5vw, 2.4vh)",
             maxWidth: "min(85vw, 42rem)",
@@ -106,18 +103,18 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.75, duration: 0.5, ease: "easeOut" }}
         >
-          We&apos;ll use L&apos;Oréal beauty data and Salesforce intelligence
-          to find your vibe.
+          We&apos;ll use beauty data and Salesforce intelligence to find your
+          vibe.
         </motion.p>
-      </div>
 
-      {/* CTA pinned to bottom of the screen content */}
-      <div className="flex shrink-0 justify-center pt-4">
-        <GlassyButton onClick={onStart} delay={0.95}>
-          Let&apos;s glow
-        </GlassyButton>
+        {/* CTA — bottom of the column */}
+        <div className="mt-auto flex shrink-0 justify-center pt-4">
+          <GlassyButton onClick={onStart} delay={0.9}>
+            Get started
+          </GlassyButton>
+        </div>
       </div>
     </div>
   );
