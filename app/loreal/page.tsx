@@ -257,17 +257,21 @@ function LorealContent() {
   );
 }
 
-// Hidden video tags that preload (but do not render) the 3 hydration idle
-// loops so by the time the user advances to the hydration screen the videos
-// are already decoded and play instantly. Only idles are preloaded — the 4
-// directional fills are permanently mounted inside HydrationDroplet, so they
-// load lazily once the user lands on the screen and don't waste bandwidth on
-// screens that never reach hydration.
+// Hidden video tags that preload (but do not render) all hydration assets
+// (3 idles + 4 directional fills) so by the time the user lands on the
+// screen and taps a level button, the matching fill plays without buffering.
+// Without this, the first fill the user triggers (typically low → mid)
+// stutters because preload="auto" inside HydrationDroplet only kicks in
+// once the screen mounts.
 function DropletPreload() {
   const sources: ReadonlyArray<string> = [
     "/loreal/droplet-low-idle",
     "/loreal/droplet-mid-idle",
     "/loreal/droplet-full-idle",
+    "/loreal/droplet-low-to-mid",
+    "/loreal/droplet-mid-to-full",
+    "/loreal/droplet-mid-to-low",
+    "/loreal/droplet-full-to-mid",
   ];
   return (
     <div

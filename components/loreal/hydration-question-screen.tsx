@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, useMotionValue, animate } from "motion/react";
+import { motion } from "motion/react";
 import { LorealProgressBar } from "./progress-bar";
 import {
   HydrationDroplet,
@@ -31,12 +31,8 @@ export function LorealHydrationQuestionScreen({
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const dropletPx = Math.max(
     140,
-    Math.min(bodySize.h - 40, bodySize.w * 0.85, 640),
+    Math.min(bodySize.h - 40, bodySize.w * 0.75, 640),
   );
-
-  const barH = Math.max(100, dropletPx * 0.85);
-  const stopPositions = [0, barH * 0.5, barH] as const;
-  const y = useMotionValue<number>(-stopPositions[value]);
 
   const goToLevel = useCallback(
     (next: DropletLevel) => {
@@ -44,46 +40,17 @@ export function LorealHydrationQuestionScreen({
       setFromLevel(level);
       setToLevel(next);
       setPhase("transitioning");
-      animate(y, -stopPositions[next], {
-        duration: 0.55,
-        ease: [0.32, 0.72, 0, 1],
-      });
     },
-    [level, phase, y, stopPositions],
+    [level, phase],
   );
-
-  const handleDragEnd = useCallback(() => {
-    if (phase !== "idle") return;
-    const current = y.get();
-    let closest: DropletLevel = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < stopPositions.length; i++) {
-      const d = Math.abs(-stopPositions[i] - current);
-      if (d < bestDist) {
-        bestDist = d;
-        closest = i as DropletLevel;
-      }
-    }
-    if (closest !== level) {
-      setFromLevel(level);
-      setToLevel(closest);
-      setPhase("transitioning");
-    }
-    animate(y, -stopPositions[closest], {
-      duration: 0.4,
-      ease: [0.32, 0.72, 0, 1],
-    });
-  }, [level, phase, y, stopPositions]);
 
   const onTransitionEnd = useCallback(() => {
     onChange(toLevel);
     setPhase("idle");
   }, [toLevel, onChange]);
 
-  const dragBounds = {
-    top: -stopPositions[2],
-    bottom: -stopPositions[0],
-  };
+  const canGoUp = phase === "idle" && level < 2;
+  const canGoDown = phase === "idle" && level > 0;
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -116,61 +83,23 @@ export function LorealHydrationQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — vertical bar on left + droplet on right */}
+      {/* Body — stacked up/down glass buttons on the left, droplet on the right */}
       <div
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 items-center justify-center gap-6 px-8"
       >
-        {/* Vertical progress bar with single draggable notch */}
-        <div className="relative flex flex-col items-center" style={{ height: barH }}>
-          <div
-            className="relative rounded-full"
-            style={{
-              width: 28,
-              height: barH,
-              background: "rgba(255, 255, 255, 0.7)",
-              boxShadow:
-                "0 0 0 1px rgba(255,255,255,0.8) inset, 0 4px 16px rgba(120,160,220,0.15)",
-            }}
-          >
-            {/* Fill from bottom */}
-            <div
-              className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-500 ease-out"
-              style={{
-                height: `${(level / 2) * 100}%`,
-                background:
-                  "linear-gradient(180deg, rgba(80,200,255,0.8) 0%, rgba(140,220,255,0.4) 100%)",
-              }}
-            />
-          </div>
-
-          {/* Draggable notch — white-to-blue gradient circle */}
-          <motion.div
-            className="absolute left-1/2 z-10"
-            style={{
-              y,
-              bottom: 0,
-              marginLeft: -20,
-              cursor: "grab",
-            }}
-            drag="y"
-            dragConstraints={dragBounds}
-            dragElastic={0}
-            dragMomentum={false}
-            onDragEnd={handleDragEnd}
-            whileTap={{ cursor: "grabbing", scale: 1.15 }}
-          >
-            <div
-              className="rounded-full"
-              style={{
-                width: 40,
-                height: 40,
-                background: "linear-gradient(180deg, #ffffff 0%, #4ec8f7 100%)",
-                boxShadow:
-                  "0 0 10px 3px rgba(78,200,247,0.35), 0 2px 8px rgba(0,0,0,0.12)",
-              }}
-            />
-          </motion.div>
+        {/* Stacked level buttons */}
+        <div className="flex shrink-0 flex-col items-center gap-3">
+          <LevelButton
+            direction="up"
+            disabled={!canGoUp}
+            onClick={() => goToLevel((level + 1) as DropletLevel)}
+          />
+          <LevelButton
+            direction="down"
+            disabled={!canGoDown}
+            onClick={() => goToLevel((level - 1) as DropletLevel)}
+          />
         </div>
 
         {/* Droplet */}
@@ -240,5 +169,74 @@ export function LorealHydrationQuestionScreen({
         </motion.button>
       </div>
     </div>
+  );
+}
+
+function LevelButton({
+  direction,
+  disabled,
+  onClick,
+}: {
+  direction: "up" | "down";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const path = direction === "up" ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6";
+  const gradientId = `hydration-arrow-${direction}`;
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      whileHover={!disabled ? { scale: 1.06 } : undefined}
+      whileTap={!disabled ? { scale: 0.94 } : undefined}
+      className="relative grid place-items-center rounded-3xl disabled:cursor-not-allowed"
+      style={{
+        width: 72,
+        height: 72,
+        background: "rgba(255,255,255,0.45)",
+        boxShadow: [
+          "0 0 0 1px rgba(255,255,255,0.7) inset",
+          "0 1px 0 rgba(255,255,255,0.85) inset",
+          "0 10px 26px rgba(120,160,220,0.22)",
+        ].join(", "),
+        WebkitBackdropFilter: "blur(14px) saturate(150%)",
+        backdropFilter: "blur(14px) saturate(150%)",
+        opacity: disabled ? 0.4 : 1,
+        transition: "opacity 0.25s ease",
+      }}
+      aria-label={direction === "up" ? "Increase hydration" : "Decrease hydration"}
+    >
+      {/* SVG with linear blue gradient stroke */}
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient
+            id={gradientId}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="24"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%" stopColor="#7FC4FF" />
+            <stop offset="55%" stopColor="#1A6CF0" />
+            <stop offset="100%" stopColor="#0F3B8C" />
+          </linearGradient>
+        </defs>
+        <path
+          d={path}
+          stroke={`url(#${gradientId})`}
+          strokeWidth={3.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </motion.button>
   );
 }
