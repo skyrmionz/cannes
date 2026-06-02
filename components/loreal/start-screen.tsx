@@ -22,7 +22,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       className="relative flex h-full w-full flex-col items-center justify-between overflow-hidden px-6"
       style={{
         paddingTop: "clamp(2rem, 6vh, 4rem)",
-        paddingBottom: "clamp(2rem, 7vh, 5rem)",
+        paddingBottom: "clamp(1rem, 3vh, 2rem)",
       }}
     >
       {/* Umbrella — anchored to the top-right, leans further left so the
@@ -32,7 +32,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         className="pointer-events-none absolute z-20 select-none"
         style={{
           top: "calc(-1 * min(10vw, 5vh))",
-          right: "calc(-1 * min(22vw, 12vh))",
+          right: "calc(-1 * min(34vw, 20vh))",
           width: "min(118vw, 100vh)",
           transformOrigin: "100% 100%",
         }}
@@ -74,29 +74,34 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         style={{ height: "min(40vw, 32vh)" }}
       />
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord text="Find" delay={0.7} />
-        <HeadlineWord text="your" delay={0.85} />
-        <HeadlineWord text="Cannes" delay={1.0} />
-        <HeadlineWord text="Vibe" delay={1.15} />
+        <HeadlineWord
+          text="Find your"
+          delay={0.7}
+          fontSize="min(18vw, 10vh)"
+        />
+        <HeadlineWord text="Cannes" delay={0.85} />
+        <HeadlineWord text="Vibe" delay={1.0} />
       </div>
 
-      {/* Bottom — tagline → CTA → Powered-by, stacked. */}
-      <div className="relative z-10 flex shrink-0 flex-col items-center gap-3">
+      {/* Bottom — tagline + CTA group, then Powered-by anchored at bottom. */}
+      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.3, duration: 0.5 }}
+          transition={{ delay: 1.2, duration: 0.5 }}
           className="max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
           Protect your OOO time.
         </motion.p>
-        <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
+        <div className="mt-7">
+          <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
+        </div>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.55, duration: 0.5 }}
-          className="mt-2"
+          className="mt-10"
         >
           <Image
             src="/loreal/powered-by-astro.png"
@@ -113,13 +118,23 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
   );
 }
 
-function HeadlineWord({ text, delay }: { text: string; delay: number }) {
+function HeadlineWord({
+  text,
+  delay,
+  fontSize = "min(26vw, 14vh)",
+}: {
+  text: string;
+  delay: number;
+  fontSize?: string;
+}) {
   return (
     <motion.span
-      className="block text-center font-bold leading-[0.95] tracking-tight"
+      className="block whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight"
       // Scales with both viewport width AND height so it fills tall windows
-      // (e.g. 1920×1080) instead of capping at the previous 7.5rem.
-      style={{ fontSize: "min(26vw, 14vh)" }}
+      // (e.g. 1920×1080) instead of capping at the previous 7.5rem. Multi-word
+      // lines (like "Find your") pass a smaller fontSize override so the
+      // whole line fits without wrapping.
+      style={{ fontSize }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
