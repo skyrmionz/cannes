@@ -85,7 +85,9 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
         >
-          How much sun is fun for you?
+          Sun worshipper or
+          <br />
+          shade seeker?
         </motion.h1>
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/75"
@@ -98,7 +100,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
         >
-          UV exposure and stress contribute to tired skin.
+          Your threshold just became my first data point.
         </motion.p>
       </div>
 
@@ -176,6 +178,21 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           </button>
         ))}
       </div>
+
+      {/* Hint text */}
+      <motion.p
+        className="relative z-30 shrink-0 text-center text-[#001050]/60"
+        style={{
+          fontSize: "clamp(0.8rem, min(3.2vw, 2vh), 0.95rem)",
+          fontFamily:
+            'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.4 }}
+      >
+        Slide the sun and click Next
+      </motion.p>
 
       {/* Footer */}
       <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-6 pt-2">

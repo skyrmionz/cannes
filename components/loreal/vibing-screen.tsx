@@ -10,9 +10,9 @@ interface Props {
 
 const HOLD_MS = 5000;
 
-const SUN_COUNT = 8;
-const WATER_COUNT = 6;
-const TREE_COUNT = 8;
+const SUN_COUNT = 10;
+const WATER_COUNT = 10;
+const TREE_COUNT = 10;
 
 export function LorealVibingScreen({ onComplete }: Props) {
   const [phase, setPhase] = useState<"spiral-in" | "spin" | "spiral-out">(
@@ -62,10 +62,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
       <OrbitalRing
         src="/loreal/icon-sun.png"
         count={SUN_COUNT}
-        radius="min(28vw, 19vh)"
-        iconSize="min(14vw, 9vh)"
+        radius="min(24vw, 16vh)"
+        iconSize="min(12vw, 8vh)"
         direction={1}
-        speed={12}
+        speed={10}
         phase={phase}
         delay={0.05}
         spiralTurns={0.6}
@@ -76,10 +76,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
       <OrbitalRing
         src="/loreal/icon-water.png"
         count={WATER_COUNT}
-        radius="min(48vw, 33vh)"
-        iconSize="min(20vw, 14vh)"
+        radius="min(40vw, 28vh)"
+        iconSize="min(18vw, 12vh)"
         direction={-1}
-        speed={16}
+        speed={14}
         phase={phase}
         delay={0.12}
         spiralTurns={0.8}
@@ -90,10 +90,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
       <OrbitalRing
         src="/loreal/icon-tree.png"
         count={TREE_COUNT}
-        radius="min(72vw, 48vh)"
-        iconSize="min(30vw, 20vh)"
+        radius="min(60vw, 42vh)"
+        iconSize="min(26vw, 18vh)"
         direction={1}
-        speed={20}
+        speed={18}
         phase={phase}
         delay={0.2}
         spiralTurns={1}
@@ -128,59 +128,51 @@ function OrbitalRing({
 }) {
   const spiralDeg = spiralTurns * 360 * direction;
 
+  // Use a counter that increments each spin cycle so the rotate target
+  // always increases — Framer Motion transitions smoothly to the next value.
   const getAnimate = () => {
-    switch (phase) {
-      case "spiral-in":
-        // Spiral out from center: scale 0 → 1, rotate from 0 to spiralDeg
-        return { scale: 1, opacity: 1, rotate: spiralDeg };
-      case "spin":
-        // Continuous rotation
-        return { scale: 1, opacity: 1, rotate: spiralDeg + direction * 360 };
-      case "spiral-out":
-        // Spiral back in: scale 1 → 0, rotate back
-        return { scale: 0, opacity: 0, rotate: 0 };
+    if (phase === "spiral-out") {
+      return { scale: 0, opacity: 0, rotate: 0 };
     }
+    // Both spiral-in and spin use the same target — the continuous spin.
+    // During spiral-in, the transition eases in; during spin, it's linear.
+    return {
+      scale: 1,
+      opacity: 1,
+      rotate: spiralDeg + direction * 3600,
+    };
   };
 
   const getTransition = (): Record<string, object> => {
-    switch (phase) {
-      case "spiral-in":
-        return {
-          scale: {
-            duration: 0.9,
-            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-            delay,
-          },
-          opacity: { duration: 0.4, delay },
-          rotate: {
-            duration: 0.9,
-            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-            delay,
-          },
-        };
-      case "spin":
-        return {
-          rotate: {
-            duration: speed,
-            ease: "linear",
-            repeat: Infinity,
-          },
-          scale: { duration: 0.01 },
-          opacity: { duration: 0.01 },
-        };
-      case "spiral-out":
-        return {
-          scale: {
-            duration: 0.7,
-            ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
-          },
-          opacity: { duration: 0.6 },
-          rotate: {
-            duration: 0.7,
-            ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
-          },
-        };
+    if (phase === "spiral-out") {
+      return {
+        scale: {
+          duration: 0.7,
+          ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
+        },
+        opacity: { duration: 0.6 },
+        rotate: {
+          duration: 0.7,
+          ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
+        },
+      };
     }
+    // Spiral-in + spin: one continuous animation from scale 0 to full spin.
+    // The large rotate target (3600°) at linear ease = continuous spinning.
+    // Scale/opacity use an ease-out curve for the initial expansion.
+    return {
+      scale: {
+        duration: 0.9,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+        delay,
+      },
+      opacity: { duration: 0.4, delay },
+      rotate: {
+        duration: speed * 10,
+        ease: "linear",
+        delay,
+      },
+    };
   };
 
   return (

@@ -91,7 +91,10 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       </div>
 
       {/* Bottom — CTA + Powered-by */}
-      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
+      <div
+        className="relative z-10 flex shrink-0 w-full flex-col items-center"
+        style={{ paddingBottom: "clamp(1.5rem, 4vh, 3rem)" }}
+      >
         <div>
           <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
         </div>
