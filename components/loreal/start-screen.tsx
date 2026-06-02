@@ -25,22 +25,22 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         paddingBottom: "clamp(2rem, 7vh, 5rem)",
       }}
     >
-      {/* Umbrella — anchored to the top-right, leans in over the headline.
-          Subtle continuous sway via rotate keyframes; transformOrigin at
-          top-right so the canopy stays in place while the pole arc swings. */}
+      {/* Umbrella — anchored to the top-right, leans further left so the
+          canopy reaches the left edge. Pivot at the bottom-right so only
+          the top-left tip of the canopy visibly sways. */}
       <motion.div
         className="pointer-events-none absolute z-20 select-none"
         style={{
-          top: "calc(-1 * min(8vw, 4vh))",
-          right: "calc(-1 * min(6vw, 3vh))",
-          width: "min(95vw, 78vh)",
-          transformOrigin: "top right",
+          top: "calc(-1 * min(10vw, 5vh))",
+          right: "calc(-1 * min(22vw, 12vh))",
+          width: "min(118vw, 100vh)",
+          transformOrigin: "100% 100%",
         }}
-        initial={{ opacity: 0, rotate: -3, x: 30 }}
+        initial={{ opacity: 0, rotate: -10, x: 40 }}
         animate={{
           opacity: 1,
           x: 0,
-          rotate: [-1.6, 1.6, -1.6],
+          rotate: [-8, -6.4, -8],
         }}
         transition={{
           opacity: { duration: 0.7, delay: 0.1 },
@@ -64,35 +64,24 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Top — Powered-by Agentforce */}
-      <motion.div
-        className="relative z-10 shrink-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
-        <Image
-          src="/loreal/powered-by-astro.png"
-          alt="Powered by Agentforce from Salesforce"
-          width={1140}
-          height={120}
-          priority
-          className="h-auto select-none"
-          style={{ width: "min(85vw, 36vh)" }}
-        />
-      </motion.div>
-
-      {/* Middle — headline. Glasses removed for now (kept in code via the
-          GlassesGap helper below) in case we want to bring them back. */}
+      {/* Headline. Pushed below the umbrella canopy via a top spacer so the
+          words never sit under the umbrella's lower edge. Glasses removed
+          for now; helpers (GlassesGap / GlassesMedia) retained in case we
+          want to bring them back. */}
+      <div
+        aria-hidden
+        className="shrink-0"
+        style={{ height: "min(40vw, 32vh)" }}
+      />
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord text="Set" delay={0.7} />
+        <HeadlineWord text="Find" delay={0.7} />
         <HeadlineWord text="your" delay={0.85} />
         <HeadlineWord text="Cannes" delay={1.0} />
-        <HeadlineWord text="Status" delay={1.15} />
+        <HeadlineWord text="Vibe" delay={1.15} />
       </div>
 
-      {/* Bottom — tagline directly above CTA */}
-      <div className="relative z-10 flex shrink-0 flex-col items-center gap-4">
+      {/* Bottom — tagline → CTA → Powered-by, stacked. */}
+      <div className="relative z-10 flex shrink-0 flex-col items-center gap-3">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -100,9 +89,25 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           className="max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
-          Protect your OOO vibe.
+          Protect your OOO time.
         </motion.p>
         <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.55, duration: 0.5 }}
+          className="mt-2"
+        >
+          <Image
+            src="/loreal/powered-by-astro.png"
+            alt="Powered by Agentforce from Salesforce"
+            width={1140}
+            height={120}
+            priority
+            className="h-auto select-none"
+            style={{ width: "min(70vw, 28vh)" }}
+          />
+        </motion.div>
       </div>
     </div>
   );

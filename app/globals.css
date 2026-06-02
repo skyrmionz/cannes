@@ -240,19 +240,22 @@
   mix-blend-mode: plus-lighter;
   pointer-events: none;
   --glassy-angle: 0deg;
+  /* Conic mask: ~35% alpha all the way around (so the entire ring is always
+     glowing) with a bright peak that rises to full intensity in one wedge.
+     The wedge revolves as --glassy-angle is animated. */
   -webkit-mask-image: conic-gradient(
     from var(--glassy-angle),
-    transparent 0deg,
-    transparent 320deg,
-    black 350deg,
-    black 360deg
+    rgba(0, 0, 0, 0.4) 0deg,
+    rgba(0, 0, 0, 0.4) 220deg,
+    rgba(0, 0, 0, 1) 320deg,
+    rgba(0, 0, 0, 0.4) 360deg
   );
           mask-image: conic-gradient(
     from var(--glassy-angle),
-    transparent 0deg,
-    transparent 320deg,
-    black 350deg,
-    black 360deg
+    rgba(0, 0, 0, 0.4) 0deg,
+    rgba(0, 0, 0, 0.4) 220deg,
+    rgba(0, 0, 0, 1) 320deg,
+    rgba(0, 0, 0, 0.4) 360deg
   );
   -webkit-mask-repeat: no-repeat;
           mask-repeat: no-repeat;
