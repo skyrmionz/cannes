@@ -53,13 +53,15 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           },
         }}
       >
-        <Image
+        {/* Use a plain <img> so the original PNG bytes are served as-is.
+            Next/Image was converting to AVIF/WebP and softening the colors +
+            introducing perceptible compression artefacts on the canopy. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/loreal/umbrella.png"
           alt=""
-          width={2160}
-          height={3840}
-          priority
-          quality={95}
+          width={1080}
+          height={1920}
           draggable={false}
           className="h-auto w-full select-none"
           style={{ imageRendering: "auto" }}
