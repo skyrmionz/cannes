@@ -174,14 +174,17 @@
   }
 }
 
-/* Umbrella sway — CSS animation so no JS rAF loop runs. */
+/* Umbrella sway — CSS animation so no JS rAF loop runs.
+   The element has rotate(-7.2deg) set inline as its base; the sway
+   oscillates gently around that angle. */
 @keyframes umbrellaSway {
   0%, 100% { transform: rotate(-8deg); }
   50% { transform: rotate(-6.4deg); }
 }
 .umbrella-sway {
+  transform: rotate(-7.2deg);
   animation: umbrellaSway 6s ease-in-out infinite;
-  animation-delay: 1.8s;
+  animation-fill-mode: both;
 }
 
 /* L'Oreal glassy CTA — three-state interaction model:

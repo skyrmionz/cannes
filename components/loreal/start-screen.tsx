@@ -35,9 +35,9 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           width: "min(105vw, 88vh)",
           transformOrigin: "100% 100%",
         }}
-        initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, delay: 0.3 }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -91,7 +91,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       </div>
 
       {/* Bottom — CTA + Powered-by */}
-      <div className="relative z-10 flex shrink-0 w-full flex-col items-center mt-auto">
+      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
         <div>
           <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
         </div>
@@ -99,7 +99,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.55, duration: 0.5 }}
-          className="mt-6"
+          className="mt-4"
         >
           <Image
             src="/loreal/powered-by-astro.png"

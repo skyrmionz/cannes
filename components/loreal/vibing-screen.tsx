@@ -12,14 +12,16 @@ const HOLD_MS = 5000;
 
 const SUN_COUNT = 8;
 const WATER_COUNT = 6;
-const TREE_COUNT = 4;
+const TREE_COUNT = 8;
 
 export function LorealVibingScreen({ onComplete }: Props) {
-  const [phase, setPhase] = useState<"enter" | "spin" | "exit">("enter");
+  const [phase, setPhase] = useState<"spiral-in" | "spin" | "spiral-out">(
+    "spiral-in",
+  );
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("spin"), 900);
-    const t2 = setTimeout(() => setPhase("exit"), HOLD_MS - 700);
+    const t1 = setTimeout(() => setPhase("spin"), 1000);
+    const t2 = setTimeout(() => setPhase("spiral-out"), HOLD_MS - 800);
     const t3 = setTimeout(onComplete, HOLD_MS);
     return () => {
       clearTimeout(t1);
@@ -28,8 +30,6 @@ export function LorealVibingScreen({ onComplete }: Props) {
     };
   }, [onComplete]);
 
-  const isVisible = phase !== "exit";
-
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
       {/* Agent Astro — center */}
@@ -37,13 +37,13 @@ export function LorealVibingScreen({ onComplete }: Props) {
         className="absolute z-30"
         initial={{ scale: 0, opacity: 0 }}
         animate={
-          phase === "exit"
+          phase === "spiral-out"
             ? { scale: 0, opacity: 0 }
             : { scale: 1, opacity: 1 }
         }
         transition={
-          phase === "exit"
-            ? { duration: 0.6, ease: [0.6, 0, 0.7, 0.2] }
+          phase === "spiral-out"
+            ? { duration: 0.6, ease: [0.4, 0, 0.7, 0.2] as [number, number, number, number] }
             : { type: "spring", stiffness: 450, damping: 20, delay: 0.05 }
         }
       >
@@ -65,11 +65,11 @@ export function LorealVibingScreen({ onComplete }: Props) {
         radius="min(28vw, 19vh)"
         iconSize="min(14vw, 9vh)"
         direction={1}
-        speed={20}
+        speed={12}
         phase={phase}
-        delay={0.1}
-        spiralRotation={180}
-        iconRotation="outward"
+        delay={0.05}
+        spiralTurns={0.6}
+        iconRotation="none"
       />
 
       {/* Water ring — middle, counter-clockwise, droplets face outward */}
@@ -79,10 +79,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
         radius="min(48vw, 33vh)"
         iconSize="min(20vw, 14vh)"
         direction={-1}
-        speed={28}
+        speed={16}
         phase={phase}
-        delay={0.2}
-        spiralRotation={-240}
+        delay={0.12}
+        spiralTurns={0.8}
         iconRotation="outward"
       />
 
@@ -93,10 +93,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
         radius="min(72vw, 48vh)"
         iconSize="min(30vw, 20vh)"
         direction={1}
-        speed={36}
+        speed={20}
         phase={phase}
-        delay={0.3}
-        spiralRotation={300}
+        delay={0.2}
+        spiralTurns={1}
         iconRotation="inward"
       />
     </div>
@@ -112,7 +112,7 @@ function OrbitalRing({
   speed,
   phase,
   delay,
-  spiralRotation,
+  spiralTurns,
   iconRotation,
 }: {
   src: string;
@@ -121,48 +121,66 @@ function OrbitalRing({
   iconSize: string;
   direction: 1 | -1;
   speed: number;
-  phase: "enter" | "spin" | "exit";
+  phase: "spiral-in" | "spin" | "spiral-out";
   delay: number;
-  spiralRotation: number;
-  iconRotation: "outward" | "inward";
+  spiralTurns: number;
+  iconRotation: "outward" | "inward" | "none";
 }) {
+  const spiralDeg = spiralTurns * 360 * direction;
+
   const getAnimate = () => {
-    if (phase === "exit") {
-      return { scale: 0, opacity: 0, rotate: -spiralRotation };
+    switch (phase) {
+      case "spiral-in":
+        // Spiral out from center: scale 0 → 1, rotate from 0 to spiralDeg
+        return { scale: 1, opacity: 1, rotate: spiralDeg };
+      case "spin":
+        // Continuous rotation
+        return { scale: 1, opacity: 1, rotate: spiralDeg + direction * 360 };
+      case "spiral-out":
+        // Spiral back in: scale 1 → 0, rotate back
+        return { scale: 0, opacity: 0, rotate: 0 };
     }
-    return {
-      scale: 1,
-      opacity: 1,
-      rotate: direction * 360,
-    };
   };
 
   const getTransition = (): Record<string, object> => {
-    if (phase === "exit") {
-      return {
-        scale: { duration: 0.7, ease: [0.4, 0, 0.6, 0.1] as [number, number, number, number] },
-        opacity: { duration: 0.6 },
-        rotate: { duration: 0.7, ease: [0.4, 0, 0.6, 0.1] as [number, number, number, number] },
-      };
+    switch (phase) {
+      case "spiral-in":
+        return {
+          scale: {
+            duration: 0.9,
+            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+            delay,
+          },
+          opacity: { duration: 0.4, delay },
+          rotate: {
+            duration: 0.9,
+            ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+            delay,
+          },
+        };
+      case "spin":
+        return {
+          rotate: {
+            duration: speed,
+            ease: "linear",
+            repeat: Infinity,
+          },
+          scale: { duration: 0.01 },
+          opacity: { duration: 0.01 },
+        };
+      case "spiral-out":
+        return {
+          scale: {
+            duration: 0.7,
+            ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
+          },
+          opacity: { duration: 0.6 },
+          rotate: {
+            duration: 0.7,
+            ease: [0.4, 0, 0.7, 0.1] as [number, number, number, number],
+          },
+        };
     }
-    // Spiral in: ease out scale + rotate together, then continuous spin
-    return {
-      scale: {
-        duration: 0.8,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-        delay,
-      },
-      opacity: {
-        duration: 0.4,
-        delay,
-      },
-      rotate: {
-        duration: speed,
-        ease: "linear",
-        repeat: Infinity,
-        delay: delay + 0.8,
-      },
-    };
   };
 
   return (
@@ -172,7 +190,7 @@ function OrbitalRing({
         width: `calc(${radius} * 2)`,
         height: `calc(${radius} * 2)`,
       }}
-      initial={{ scale: 0, opacity: 0, rotate: spiralRotation }}
+      initial={{ scale: 0, opacity: 0, rotate: 0 }}
       animate={getAnimate()}
       transition={getTransition()}
     >
@@ -182,11 +200,13 @@ function OrbitalRing({
         const x = 50 + Math.sin(rad) * 50;
         const y = 50 - Math.cos(rad) * 50;
 
-        // Icons don't spin on their own axis. They have a fixed rotation
-        // so they point outward or inward relative to the center.
-        // "outward" = bottom of icon faces away from center (angle + 180)
-        // "inward" = bottom of icon faces toward center (angle)
-        const iconAngle = iconRotation === "outward" ? angle + 180 : angle;
+        // Fixed orientation relative to center:
+        // "outward" = tip/bottom points away from center
+        // "inward" = bottom faces center (trunk inward for trees)
+        // "none" = no rotation (default upright)
+        let iconAngle = 0;
+        if (iconRotation === "outward") iconAngle = angle + 180;
+        else if (iconRotation === "inward") iconAngle = angle;
 
         return (
           <div
