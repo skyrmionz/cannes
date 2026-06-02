@@ -15,18 +15,22 @@ interface IntroScreenProps {
 // ~25% extending above the visible area (clipped by overflow-hidden). The
 // rest of the content sits below in a padded column.
 export function LorealIntroScreen({ onStart }: IntroScreenProps) {
-  // Astro is sized larger than the glass card so a chunk of the top is
-  // clipped by the container's overflow-hidden — the visible silhouette
-  // sits inside the card and "doesn't overlap" the top edge.
-  const astroSize = "min(120vw, 78vh)";
+  // Astro is wider than the glass card so the face fills the glass card's
+  // interior width (cheeks reach both sides). The wrapper uses inset-3 +
+  // overflow-hidden + rounded-[40px] so the glass card's top edge becomes
+  // the clip line — Astro's top is cut off by the glass container itself.
+  const astroSize = "min(140vw, 92vh)";
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-hidden">
-      {/* Astro icon — oversized so the top ~40% is clipped by the container. */}
+    <div className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px]">
+      {/* Astro icon — oversized so the top portion is clipped by the glass
+          card's rounded top edge. The wrapper's overflow-hidden + rounded
+          radius is what enforces the clip; Astro itself stays as a normal
+          image. */}
       <motion.div
         className="relative flex w-full shrink-0 justify-center"
         style={{
-          marginTop: `calc(${astroSize} * -0.4)`,
+          marginTop: `calc(${astroSize} * -0.42)`,
         }}
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -51,8 +55,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         }}
       >
         <motion.h1
-          className="shrink-0 font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "min(10vw, 6vh)" }}
+          className="shrink-0 whitespace-nowrap font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "min(8vw, 5.2vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
@@ -79,18 +83,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Tagline */}
-        <motion.p
-          className="mt-3 shrink-0 font-semibold leading-snug tracking-tight"
-          style={{ fontSize: "min(6vw, 3.2vh)" }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
-        >
-          I&apos;ll be your La Croisette vibe analyzer!
-        </motion.p>
-
-        {/* Body copy — pushed to the bottom so it sits right above the CTA. */}
+        {/* Body copy — single paragraph that replaces the old tagline. Pushed
+            to the bottom so it sits right above the CTA. */}
         <motion.p
           className="mt-auto shrink-0 leading-snug text-[#001050]/85"
           style={{
@@ -102,15 +96,15 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.75, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
         >
-          We&apos;ll use beauty data and Salesforce intelligence to find your
-          vibe.
+          I&rsquo;ll ask about your OOO vibe, you&rsquo;ll dial it in, and
+          we&rsquo;ll create your away status together.
         </motion.p>
 
         {/* CTA — directly below the body copy. */}
         <div className="mt-4 flex shrink-0 justify-center">
-          <GlassyButton onClick={onStart} delay={0.9}>
+          <GlassyButton onClick={onStart} delay={0.85}>
             Get started
           </GlassyButton>
         </div>
