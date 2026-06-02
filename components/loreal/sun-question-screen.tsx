@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 type StopIndex = 0 | 1 | 2;
 
@@ -40,9 +40,10 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const stopPositions = [0, travelH * 0.5, travelH] as const;
   const y = useMotionValue<number>(0);
 
-  // Snap on first measure
-  useMemo(() => {
+  // Snap on geometry change
+  useEffect(() => {
     y.set(-stopPositions[value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bodyH]);
 
   const goToStop = (i: StopIndex) => {
