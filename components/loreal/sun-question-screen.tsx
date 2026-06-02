@@ -66,12 +66,37 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
-      {/* Header — progress bar with generous spacing below */}
+      {/* Header — progress bar + question text on TOP */}
       <div className="relative z-30 shrink-0 px-7 pt-10">
         <LorealProgressBar percent={25} label="25% to glow" />
+        <motion.h1
+          className="mt-10 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
+        >
+          Sun worshipper or
+          <br />
+          shade seeker?
+        </motion.h1>
+        <motion.p
+          className="mt-2 text-center leading-snug text-[#001050]/75"
+          style={{
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
+            fontFamily:
+              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+          }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
+        >
+          Your threshold just became my first data point.
+        </motion.p>
       </div>
 
-      {/* Body — vertical white bar with draggable sun */}
+      {/* Body — vertical white bar with draggable sun. The sun's center
+          is clamped to the bar's top and bottom edges. */}
       <div ref={bodyRef} className="relative min-h-0 flex-1 flex items-center justify-center">
         {/* White vertical progress bar */}
         <div
@@ -95,7 +120,8 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           />
         </div>
 
-        {/* Sun icon — draggable along the bar */}
+        {/* Sun icon — draggable along the bar. Anchored so its CENTER aligns
+            with the bar bottom at stop 0, bar middle at stop 1, bar top at stop 2. */}
         <motion.div
           className="absolute z-40"
           drag="y"
@@ -105,7 +131,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           onDragEnd={handleDragEnd}
           style={{
             y,
-            bottom: (bodyH - barH) / 2,
+            bottom: `calc(${(bodyH - barH) / 2}px - ${sunPx / 2}px)`,
             cursor: "grab",
           }}
           whileTap={{ cursor: "grabbing" }}
@@ -126,53 +152,29 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
         </motion.div>
       </div>
 
-      {/* Question text + hint — positioned below the bar, above the Next button */}
-      <div className="relative z-30 shrink-0 px-7 pb-2">
-        <motion.h1
-          className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
-        >
-          Sun worshipper or
-          <br />
-          shade seeker?
-        </motion.h1>
-        <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
-          style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
-            fontFamily:
-              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-          }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
-        >
-          Your threshold just became my first data point.
-        </motion.p>
-        <motion.p
-          className="mt-4 text-center font-bold tracking-tight text-[#001050]/60"
-          style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-        >
-          Slide the sun and click Next
-        </motion.p>
-      </div>
+      {/* Hint text below the bar */}
+      <motion.p
+        className="relative z-30 shrink-0 text-center font-bold tracking-tight text-[#001050]/60 px-7"
+        style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+      >
+        Slide the sun and click Next
+      </motion.p>
 
-      {/* Footer — glassy Next button */}
+      {/* Footer — large glassy Next button (same size as front-page CTA) */}
       <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-8 pt-4">
         <motion.button
           type="button"
           onClick={onNext}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="rounded-full px-8 py-3 font-semibold text-[#001050] tracking-tight"
+          className="rounded-full font-semibold text-[#001050] tracking-tight"
           style={{
-            fontSize: "clamp(1.1rem, min(4.5vw, 3vh), 1.4rem)",
+            paddingInline: "clamp(3rem, 9vw, 5.5rem)",
+            paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
+            fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
             background: "rgba(255,255,255,0.45)",
             boxShadow: [
               "0 0 0 1px rgba(255,255,255,0.6) inset",
