@@ -25,43 +25,44 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         paddingBottom: "clamp(2rem, 7vh, 5rem)",
       }}
     >
-      {/* Top — tagline copy replacing the L'Oréal wordmark. */}
-      <motion.p
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+      {/* Top — Powered-by Agentforce */}
+      <motion.div
+        className="shrink-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="shrink-0 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
-        style={{ fontSize: "min(5vw, 2.6vh)" }}
       >
-        We&rsquo;ll crunch the beauty data. You win a prize. Because
-        you&rsquo;re worth it.
-      </motion.p>
+        <Image
+          src="/loreal/powered-by-astro.png"
+          alt="Powered by Agentforce from Salesforce"
+          width={1140}
+          height={120}
+          priority
+          className="h-auto select-none"
+          style={{ width: "min(85vw, 36vh)" }}
+        />
+      </motion.div>
 
       {/* Middle — headline + inline glasses, fills the available middle space */}
       <div className="flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord text="Find" delay={0.7} />
+        <HeadlineWord text="Your" delay={0.7} />
         <GlassesGap />
-        <HeadlineWord text="your" delay={0.85} />
-        <HeadlineWord text="vibe" delay={1.0} />
+        <HeadlineWord text="Cannes" delay={0.85} />
+        <HeadlineWord text="Style" delay={1.0} />
       </div>
 
-      {/* Bottom — Powered-by + CTA */}
-      <div className="flex shrink-0 flex-col items-center gap-6">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+      {/* Bottom — tagline directly above CTA */}
+      <div className="flex shrink-0 flex-col items-center gap-4">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
+          className="max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
+          style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
-          <Image
-            src="/loreal/powered-by-astro.png"
-            alt="Powered by Agentforce from Salesforce"
-            width={1140}
-            height={120}
-            priority
-            className="h-auto select-none"
-            style={{ width: "min(85vw, 36vh)" }}
-          />
-        </motion.div>
+          It&rsquo;s hot out here, and so are you! We&rsquo;ll find your vibe
+          and get you some suncare too.
+        </motion.p>
         <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
       </div>
     </div>
