@@ -63,11 +63,11 @@ export function LorealHydrationQuestionScreen({
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-7">
+      <div className="relative z-30 shrink-0 px-7 pt-10">
         <LorealProgressBar percent={50} label="50% to glow" />
         <motion.h1
-          className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.25rem, min(6vw, 4.2vh), 2.4rem)" }}
+          className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -75,9 +75,9 @@ export function LorealHydrationQuestionScreen({
           Be honest: how hydrated are you?
         </motion.h1>
         <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
+          className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(0.75rem, min(3.2vw, 2vh), 0.95rem)",
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}

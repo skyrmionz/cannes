@@ -2,8 +2,8 @@
 
 import { motion, useMotionValue, animate } from "motion/react";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
+import { GlassyButton } from "./glassy-button";
 import { useElementSize } from "@/lib/use-element-size";
 import { useEffect, useMemo } from "react";
 
@@ -15,11 +15,6 @@ interface Props {
   onChange: (next: StopIndex) => void;
 }
 
-const STOP_LABELS: readonly [string, string, string] = [
-  "Just a Peek",
-  "A Healthy Dose",
-  "Bake Me",
-];
 
 export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
@@ -33,7 +28,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
 
   // Sun size scales with the body
   const sunPx = useMemo(
-    () => Math.max(80, Math.min(bodyH * 0.28, 200)),
+    () => Math.max(120, Math.min(bodyH * 0.42, 320)),
     [bodyH],
   );
 
@@ -76,11 +71,11 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-7">
+      <div className="relative z-30 shrink-0 px-7 pt-10">
         <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
           className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 3rem)" }}
+          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -92,7 +87,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(0.95rem, min(4vw, 2.6vh), 1.2rem)",
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -158,25 +153,6 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           />
         </motion.div>
 
-        {/* Stop labels — right side */}
-        {([0, 1, 2] as StopIndex[]).map((i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => goToStop(i)}
-            className="absolute right-8 z-30 transition-all duration-300"
-            style={{
-              bottom: `${barPad + (bodyH - barH) / 2 + stopPositions[i] - 10}px`,
-              opacity: value === i ? 1 : 0.5,
-              fontSize: "clamp(1rem, min(4.5vw, 3vh), 1.6rem)",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              color: value === i ? "#001050" : "rgba(0,16,80,0.5)",
-            }}
-          >
-            {STOP_LABELS[i]}
-          </button>
-        ))}
       </div>
 
       {/* Hint text */}
@@ -195,30 +171,10 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
       </motion.p>
 
       {/* Footer */}
-      <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-6 pt-2">
-        <motion.button
-          type="button"
-          onClick={onNext}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="grid h-14 w-14 place-items-center rounded-full"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)",
-            boxShadow: [
-              "0 1px 0 rgba(255,255,255,0.45) inset",
-              "0 -1px 0 rgba(0,16,80,0.25) inset",
-              "0 0 0 1px rgba(255,255,255,0.25) inset",
-              "0 12px 28px rgba(15,84,200,0.4)",
-            ].join(", "),
-          }}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-          aria-label="Next"
-        >
-          <ChevronRight className="h-6 w-6 text-white" strokeWidth={3} />
-        </motion.button>
+      <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-8 pt-2">
+        <GlassyButton onClick={onNext} delay={0.5}>
+          Next
+        </GlassyButton>
       </div>
     </div>
   );
