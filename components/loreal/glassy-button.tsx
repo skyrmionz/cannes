@@ -22,24 +22,26 @@ interface Props {
 // Styles live in app/globals.css under `.glassy-cta`.
 export function GlassyButton({ onClick, children, delay = 1.4 }: Props) {
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
+    <motion.div
+      className="relative inline-block"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="glassy-cta pointer-events-auto relative overflow-visible rounded-full font-semibold tracking-tight"
-      style={{
-        // Padding + font scale gracefully on short viewports so the bigger
-        // desktop look doesn't blow out at 360h or push the button outside
-        // the glass card.
-        paddingInline: "clamp(3rem, 9vw, 5.5rem)",
-        paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
-        fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
-      }}
     >
+      {/* Glow ring — lives behind the button as a sibling */}
       <span aria-hidden className="glassy-shimmer" />
-      <span className="glassy-cta-text">{children}</span>
-    </motion.button>
+      <button
+        type="button"
+        onClick={onClick}
+        className="glassy-cta pointer-events-auto relative rounded-full font-semibold tracking-tight"
+        style={{
+          paddingInline: "clamp(3rem, 9vw, 5.5rem)",
+          paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
+          fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
+        }}
+      >
+        <span className="glassy-cta-text">{children}</span>
+      </button>
+    </motion.div>
   );
 }
