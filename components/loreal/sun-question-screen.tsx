@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 type StopIndex = 0 | 1 | 2;
 
@@ -15,14 +15,6 @@ interface Props {
   onChange: (next: StopIndex) => void;
 }
 
-// Sun position math is derived from the body's measured height (via
-// ResizeObserver) so the scene works at every resolution — 1920x1080
-// down through phone portrait. The sun travels between three stops
-// computed as fractions of the body height; all hard-coded pixel
-// offsets have been removed.
-const STOP_FRACS: readonly [number, number, number] = [0, 0.32, 0.62];
-// bottomPx fraction per stop. "Just a Peek" sits low, "Bake Me" high.
-const NOTCH_FRACS: readonly [number, number, number] = [0.36, 0.6, 0.84];
 const STOP_LABELS: readonly [string, string, string] = [
   "Just a Peek",
   "A Healthy Dose",
@@ -33,77 +25,61 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyH = bodySize.h;
 
-  // Quantize bodyH so the sun's pixel width doesn't recompute on every
-  // ResizeObserver tick — sub-pixel size churn is what produces the
-  // mid-tween flicker. Bucket size of 8px is invisible but stops the churn.
-  const quantBodyH = Math.round(bodyH / 8) * 8;
+  // The sun travels along a vertical white bar. Three stops are spaced evenly.
+  // Stop 0 = bottom, stop 2 = top.
+  const barH = Math.max(100, bodyH * 0.6);
+  const barPad = 20; // internal padding so the sun doesn't touch bar edges
+  const travelH = barH - barPad * 2;
+
+  // Sun size scales with the body
   const sunPx = useMemo(
-    () => Math.max(120, Math.min(quantBodyH * 0.42, 360)),
-    [quantBodyH],
+    () => Math.max(80, Math.min(bodyH * 0.28, 200)),
+    [bodyH],
   );
 
-  const sunAnchorBottom = Math.max(24, bodyH * 0.06);
-  const hillBottomPx = Math.max(0, bodyH * 0.02);
-
-  // The highest stop must never let the sun's top edge enter the header.
-  // sunPx is the sun's rendered height; reserve 16px buffer below the header.
-  const maxStopUp = Math.max(0, bodyH - sunPx - sunAnchorBottom - 16);
-  const rawStop2 = bodyH * STOP_FRACS[2];
-  const rawStop1 = bodyH * STOP_FRACS[1];
-  const stop2 = Math.min(rawStop2, maxStopUp);
-  const stop1 = Math.min(rawStop1, stop2);
-  const stops = [0, -stop1, -stop2] as const;
-
-  const stopIndex = value;
+  const stopPositions = [0, travelH * 0.5, travelH] as const;
   const y = useMotionValue<number>(0);
 
-  // Snap (no animation) on geometry shifts only — first measurement and
-  // viewport resize. This must NOT depend on stopIndex, otherwise it would
-  // fight the imperative tweens started by drag-end / notch tap.
-  useEffect(() => {
-    y.set(stops[stopIndex]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Snap on first measure
+  useMemo(() => {
+    y.set(-stopPositions[value]);
   }, [bodyH]);
+
+  const goToStop = (i: StopIndex) => {
+    onChange(i);
+    animate(y, -stopPositions[i], {
+      duration: 0.55,
+      ease: [0.32, 0.72, 0, 1],
+    });
+  };
 
   const handleDragEnd = () => {
     const current = y.get();
     let closest: StopIndex = 0;
     let bestDist = Infinity;
-    for (let i = 0; i < stops.length; i++) {
-      const d = Math.abs(stops[i] - current);
+    for (let i = 0; i < stopPositions.length; i++) {
+      const d = Math.abs(-stopPositions[i] - current);
       if (d < bestDist) {
         bestDist = d;
         closest = i as StopIndex;
       }
     }
-    animate(y, stops[closest], {
-      duration: 0.55,
-      ease: [0.32, 0.72, 0, 1],
-    });
-    onChange(closest);
+    goToStop(closest);
   };
 
   const dragBounds = {
-    top: stops[stops.length - 1],
-    bottom: stops[0],
-  };
-
-  const goToStop = (i: StopIndex) => {
-    onChange(i);
-    animate(y, stops[i], {
-      duration: 0.55,
-      ease: [0.32, 0.72, 0, 1],
-    });
+    top: -stopPositions[2],
+    bottom: -stopPositions[0],
   };
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
-      {/* Header — shrink-0 so it never compresses. */}
+      {/* Header */}
       <div className="relative z-30 shrink-0 px-7 pt-7">
         <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
-          className="mt-6 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.25rem, min(6vw, 4.2vh), 2.4rem)" }}
+          className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 3rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -111,9 +87,9 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           How much sun is fun for you?
         </motion.h1>
         <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
+          className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(0.75rem, min(3.2vw, 2vh), 0.95rem)",
+            fontSize: "clamp(0.95rem, min(4vw, 2.6vh), 1.2rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -121,37 +97,51 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
         >
-          L&apos;Oréal data shows that UV exposure and stress contribute to
-          tired skin.
+          UV exposure and stress contribute to tired skin.
         </motion.p>
       </div>
 
-      {/* Body — flex-1 min-h-0 contains the sun + hill + notch labels. All
-          positions inside scale with the measured body height. */}
-      <div ref={bodyRef} className="relative min-h-0 flex-1">
-        {([0, 1, 2] as StopIndex[]).map((i) => (
-          <NotchLabel
-            key={i}
-            label={STOP_LABELS[i]}
-            bottomPx={bodyH * NOTCH_FRACS[i]}
-            active={stopIndex === i}
-            onClick={() => goToStop(i)}
+      {/* Body — vertical white bar with draggable sun */}
+      <div ref={bodyRef} className="relative min-h-0 flex-1 flex items-center justify-center">
+        {/* White vertical progress bar */}
+        <div
+          className="relative rounded-full"
+          style={{
+            width: 28,
+            height: barH,
+            background: "rgba(255, 255, 255, 0.7)",
+            boxShadow:
+              "0 0 0 1px rgba(255,255,255,0.8) inset, 0 4px 16px rgba(120,160,220,0.15)",
+          }}
+        >
+          {/* Fill — grows from the bottom up to the sun position */}
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-500 ease-out"
+            style={{
+              height: `${((value / 2) * 100)}%`,
+              background:
+                "linear-gradient(180deg, rgba(255,180,50,0.8) 0%, rgba(255,220,100,0.4) 100%)",
+            }}
           />
-        ))}
+        </div>
 
-        {/* Sun. Image size scales with body height so it never overflows. */}
+        {/* Sun icon — draggable along the bar */}
         <motion.div
-          className="absolute left-1/2 z-40 -translate-x-1/2"
+          className="absolute z-40"
           drag="y"
           dragConstraints={dragBounds}
           dragElastic={0}
           dragMomentum={false}
           onDragEnd={handleDragEnd}
-          style={{ bottom: sunAnchorBottom, y, cursor: "grab" }}
+          style={{
+            y,
+            bottom: barPad + (bodyH - barH) / 2,
+            cursor: "grab",
+          }}
           whileTap={{ cursor: "grabbing" }}
         >
           <Image
-            src="/loreal/sun.png"
+            src="/loreal/icon-sun.png"
             alt="Sun"
             width={400}
             height={400}
@@ -165,30 +155,28 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
           />
         </motion.div>
 
-        {/* Hill — clamped to body width AND height, painted over the sun at
-            low stops. Without the height cap the hill PNG can dominate the
-            scene at non-1920×1080 resolutions and visually swallow the sun. */}
-        <Image
-          src="/loreal/hill-scene-v5.png"
-          alt=""
-          width={1247}
-          height={350}
-          priority
-          className="pointer-events-none absolute z-50 select-none"
-          style={{
-            bottom: `${hillBottomPx}px`,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxHeight: `${bodyH * 0.32}px`,
-            height: "auto",
-            objectFit: "contain",
-            objectPosition: "bottom",
-          }}
-        />
+        {/* Stop labels — right side */}
+        {([0, 1, 2] as StopIndex[]).map((i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => goToStop(i)}
+            className="absolute right-8 z-30 transition-all duration-300"
+            style={{
+              bottom: `${barPad + (bodyH - barH) / 2 + stopPositions[i] - 10}px`,
+              opacity: value === i ? 1 : 0.5,
+              fontSize: "clamp(1rem, min(4.5vw, 3vh), 1.6rem)",
+              fontWeight: 700,
+              letterSpacing: "-0.01em",
+              color: value === i ? "#001050" : "rgba(0,16,80,0.5)",
+            }}
+          >
+            {STOP_LABELS[i]}
+          </button>
+        ))}
       </div>
 
-      {/* Footer — shrink-0 row holding the next button. Always inside card. */}
+      {/* Footer */}
       <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-6 pt-2">
         <motion.button
           type="button"
@@ -215,35 +203,5 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
         </motion.button>
       </div>
     </div>
-  );
-}
-
-function NotchLabel({
-  label,
-  bottomPx,
-  active,
-  onClick,
-}: {
-  label: string;
-  bottomPx: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="pointer-events-auto absolute right-7 z-30 transition-all duration-300"
-      style={{
-        bottom: `${bottomPx}px`,
-        opacity: active ? 1 : 0.55,
-        fontSize: "clamp(0.95rem, min(4.2vw, 2.8vh), 1.5rem)",
-        fontWeight: 700,
-        letterSpacing: "-0.01em",
-        color: active ? "#001050" : "rgba(0,16,80,0.55)",
-      }}
-    >
-      {label}
-    </button>
   );
 }

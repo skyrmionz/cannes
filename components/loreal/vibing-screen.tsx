@@ -120,6 +120,10 @@ function OrbitalRing({
   isVisible: boolean;
   delay: number;
 }) {
+  // The ring container is a square whose side = radius * 2. Icons are placed
+  // around its center using absolute positioning with CSS calc() for the
+  // trigonometric placement (since CSS min() inside transform doesn't work,
+  // we place them using top/left percentages on a known-size container).
   return (
     <motion.div
       className="absolute"
@@ -154,26 +158,42 @@ function OrbitalRing({
     >
       {Array.from({ length: count }).map((_, i) => {
         const angle = (360 / count) * i;
+        const rad = (angle * Math.PI) / 180;
+        // Position as percentage of the container (50% = center, offset by cos/sin * 50%)
+        const x = 50 + Math.sin(rad) * 50;
+        const y = 50 - Math.cos(rad) * 50;
         return (
           <div
             key={i}
-            className="absolute left-1/2 top-1/2"
+            className="absolute"
             style={{
-              transform: `rotate(${angle}deg) translateY(-${radius}) rotate(-${angle}deg)`,
-              marginLeft: `calc(-${iconSize} / 2)`,
-              marginTop: `calc(-${iconSize} / 2)`,
+              left: `${x}%`,
+              top: `${y}%`,
               width: iconSize,
               height: iconSize,
+              transform: "translate(-50%, -50%)",
             }}
           >
-            <Image
-              src={src}
-              alt=""
-              width={200}
-              height={200}
-              className="h-full w-full select-none object-contain"
-              unoptimized
-            />
+            {/* Counter-rotate so icons stay upright while the ring spins */}
+            <motion.div
+              animate={{ rotate: isVisible ? -direction * 360 : 0 }}
+              transition={{
+                duration: speed,
+                ease: "linear",
+                repeat: Infinity,
+                delay: isVisible ? delay + 0.4 : 0,
+              }}
+              className="h-full w-full"
+            >
+              <Image
+                src={src}
+                alt=""
+                width={200}
+                height={200}
+                className="h-full w-full select-none object-contain"
+                unoptimized
+              />
+            </motion.div>
           </div>
         );
       })}

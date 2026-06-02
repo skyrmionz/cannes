@@ -12,7 +12,7 @@ export function LorealProgressBar({ percent, label }: Props) {
   const clamped = Math.max(0, Math.min(100, percent));
   return (
     <div
-      className="relative h-11 w-full rounded-full"
+      className="relative h-14 w-full rounded-full"
       style={{
         WebkitBackdropFilter: "blur(14px) saturate(140%)",
         backdropFilter: "blur(14px) saturate(140%)",
