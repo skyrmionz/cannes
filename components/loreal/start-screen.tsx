@@ -30,7 +30,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
-          top: "calc(-1 * min(20vw, 12vh))",
+          top: "calc(-1 * min(26vw, 16vh))",
           right: "calc(-1 * min(34vw, 20vh))",
           width: "min(118vw, 100vh)",
           transformOrigin: "100% 100%",
@@ -68,12 +68,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           fontSize="min(18vw, 10vh)"
         />
         <HeadlineWord
-          text="Cannes"
+          text="OOO"
           delay={0.85}
           fontSize="min(18vw, 10vh)"
         />
         <HeadlineWord
-          text="Vibe"
+          text="Status"
           delay={1.0}
           fontSize="min(18vw, 10vh)"
         />
@@ -84,14 +84,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           className="mt-3 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
-          Protect your OOO time.
+          We&rsquo;re at Cannes.
+          <br />
+          Protect your time.
         </motion.p>
       </div>
 
       {/* Bottom — CTA, then Powered-by anchored at the bottom. */}
       <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
         <div>
-          <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
+          <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
         </div>
         <motion.div
           initial={{ opacity: 0 }}

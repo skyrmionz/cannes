@@ -81,7 +81,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             className="h-auto w-full select-none"
             style={{
               filter:
-                "brightness(0) saturate(100%) invert(24%) sepia(93%) saturate(2000%) hue-rotate(215deg) brightness(92%) contrast(95%)",
+                "brightness(0) saturate(100%) invert(26%) sepia(98%) saturate(1800%) hue-rotate(210deg) brightness(100%) contrast(90%)",
             }}
           />
         </motion.div>
@@ -111,7 +111,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         style={{ paddingBottom: "clamp(1.5rem, 6vh, 5rem)" }}
       >
         <GlassyButton onClick={onStart} delay={0.85}>
-          Get started
+          Let&apos;s go
         </GlassyButton>
       </div>
     </div>

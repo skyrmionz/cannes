@@ -247,11 +247,12 @@
   transform: translate(-50%, -50%) rotate(0deg);
   background: conic-gradient(
     from 0deg,
-    hsl(220 90% 60% / 0.3) 0deg,
-    hsl(220 90% 60% / 0.3) 200deg,
-    hsl(210 100% 90%) 270deg,
-    hsl(215 100% 95%) 320deg,
-    hsl(220 90% 60% / 0.3) 360deg
+    hsl(215 100% 55% / 0.4) 0deg,
+    hsl(215 100% 55% / 0.4) 180deg,
+    hsl(210 100% 70%) 240deg,
+    hsl(205 100% 85%) 300deg,
+    hsl(215 100% 95%) 330deg,
+    hsl(215 100% 55% / 0.4) 360deg
   );
   -webkit-animation: glassyRevolve 3.2s linear infinite;
           animation: glassyRevolve 3.2s linear infinite;
