@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, animate } from "motion/react";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 import { useEffect, useMemo } from "react";
@@ -10,11 +11,12 @@ type StopIndex = 0 | 1 | 2;
 
 interface Props {
   onNext: () => void;
+  onBack?: () => void;
   value: StopIndex;
   onChange: (next: StopIndex) => void;
 }
 
-export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
+export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyH = bodySize.h;
 
@@ -25,7 +27,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
 
   // Sun is very large
   const sunPx = useMemo(
-    () => Math.max(160, Math.min(bodyH * 0.5, 400)),
+    () => Math.max(200, Math.min(bodyH * 0.65, 500)),
     [bodyH],
   );
 
@@ -67,7 +69,7 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header — progress bar + question text on TOP */}
-      <div className="relative z-30 shrink-0 px-7 pt-10">
+      <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
           className="mt-10 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
@@ -163,32 +165,57 @@ export function LorealSunQuestionScreen({ onNext, value, onChange }: Props) {
         Slide the sun and click Next
       </motion.p>
 
-      {/* Footer — large glassy Next button (same size as front-page CTA) */}
-      <div className="relative z-30 flex shrink-0 items-center justify-end px-6 pb-8 pt-4">
+      {/* Footer — Back + Next buttons matching other question screens */}
+      <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
+        {onBack ? (
+          <motion.button
+            type="button"
+            onClick={onBack}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="grid h-14 w-14 place-items-center rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.55)",
+              boxShadow: [
+                "0 0 0 1px rgba(255,255,255,0.7) inset",
+                "0 1px 0 rgba(255,255,255,0.85) inset",
+                "0 8px 18px rgba(120,160,220,0.25)",
+              ].join(", "),
+              WebkitBackdropFilter: "blur(10px) saturate(140%)",
+              backdropFilter: "blur(10px) saturate(140%)",
+            }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-6 w-6 text-[#001050]" strokeWidth={3} />
+          </motion.button>
+        ) : (
+          <div />
+        )}
         <motion.button
           type="button"
           onClick={onNext}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="rounded-full font-semibold text-[#001050] tracking-tight"
+          className="grid h-14 w-14 place-items-center rounded-full"
           style={{
-            paddingInline: "clamp(3rem, 9vw, 5.5rem)",
-            paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
-            fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
-            background: "rgba(255,255,255,0.45)",
+            background: "rgba(255,255,255,0.55)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.6) inset",
-              "0 1px 0 rgba(255,255,255,0.8) inset",
-              "0 8px 24px rgba(120,160,220,0.2)",
+              "0 0 0 1px rgba(255,255,255,0.7) inset",
+              "0 1px 0 rgba(255,255,255,0.85) inset",
+              "0 8px 18px rgba(120,160,220,0.25)",
             ].join(", "),
-            WebkitBackdropFilter: "blur(12px) saturate(140%)",
-            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(10px) saturate(140%)",
+            backdropFilter: "blur(10px) saturate(140%)",
           }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
+          aria-label="Next"
         >
-          Next
+          <ChevronRight className="h-6 w-6 text-[#001050]" strokeWidth={3} />
         </motion.button>
       </div>
     </div>

@@ -118,7 +118,7 @@ export function LorealAgendaQuestionScreen({
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-10">
+      <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
           className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
@@ -243,30 +243,24 @@ export function LorealAgendaQuestionScreen({
           whileTap={value !== null ? { scale: 0.96 } : undefined}
           className="grid h-14 w-14 place-items-center rounded-full disabled:cursor-not-allowed"
           style={{
-            background:
-              value !== null
-                ? "linear-gradient(180deg, rgba(78,144,247,0.95) 0%, rgba(26,108,240,0.95) 60%, rgba(15,84,200,0.95) 100%)"
-                : "rgba(255,255,255,0.45)",
-            boxShadow:
-              value !== null
-                ? [
-                    "0 1px 0 rgba(255,255,255,0.45) inset",
-                    "0 -1px 0 rgba(0,16,80,0.25) inset",
-                    "0 0 0 1px rgba(255,255,255,0.25) inset",
-                    "0 12px 28px rgba(15,84,200,0.4)",
-                  ].join(", ")
-                : "0 0 0 1px rgba(0,16,80,0.08) inset, 0 4px 12px rgba(120,160,220,0.18)",
-            opacity: value !== null ? 1 : 0.6,
+            background: "rgba(255,255,255,0.55)",
+            boxShadow: [
+              "0 0 0 1px rgba(255,255,255,0.7) inset",
+              "0 1px 0 rgba(255,255,255,0.85) inset",
+              "0 8px 18px rgba(120,160,220,0.25)",
+            ].join(", "),
+            WebkitBackdropFilter: "blur(10px) saturate(140%)",
+            backdropFilter: "blur(10px) saturate(140%)",
+            opacity: value !== null ? 1 : 0.4,
           }}
           initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: value !== null ? 1 : 0.6, y: 0 }}
+          animate={{ opacity: value !== null ? 1 : 0.4, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
           aria-label="Next"
         >
           <ChevronRight
-            className="h-6 w-6"
+            className="h-6 w-6 text-[#001050]"
             strokeWidth={3}
-            style={{ color: value !== null ? "#FFFFFF" : "#001050" }}
           />
         </motion.button>
       </div>
