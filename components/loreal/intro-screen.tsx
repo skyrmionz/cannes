@@ -19,18 +19,16 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   // interior width (cheeks reach both sides). The wrapper uses inset-3 +
   // overflow-hidden + rounded-[40px] so the glass card's top edge becomes
   // the clip line — Astro's top is cut off by the glass container itself.
-  const astroSize = "min(140vw, 92vh)";
+  const astroSize = "min(160vw, 105vh)";
 
   return (
     <div className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px]">
       {/* Astro icon — oversized so the top portion is clipped by the glass
-          card's rounded top edge. The wrapper's overflow-hidden + rounded
-          radius is what enforces the clip; Astro itself stays as a normal
-          image. */}
+          card's rounded top edge. Pulled down so more of the face is visible. */}
       <motion.div
         className="relative flex w-full shrink-0 justify-center"
         style={{
-          marginTop: `calc(${astroSize} * -0.42)`,
+          marginTop: `calc(${astroSize} * -0.35)`,
         }}
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -47,7 +45,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         />
       </motion.div>
 
-      {/* Content column — padded, fills remaining space */}
+      {/* Content column */}
       <div
         className="flex w-full max-w-2xl flex-1 min-h-0 flex-col items-center px-8 text-center text-[#001050]"
         style={{
@@ -66,12 +64,12 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           I&apos;m Agent Astro.
         </motion.h1>
 
-        {/* Squiggly divider */}
+        {/* Squiggly divider — extra spacing above to separate from headline */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="mt-3 shrink-0 px-2"
+          className="mt-6 shrink-0 px-2"
           style={{ width: "min(80vw, 36vh)" }}
         >
           <Image
@@ -83,10 +81,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Body copy — single paragraph that replaces the old tagline. Pushed
-            to the bottom so it sits right above the CTA. */}
+        {/* Body copy — right below the divider */}
         <motion.p
-          className="mt-auto shrink-0 leading-snug text-[#001050]/85"
+          className="mt-4 shrink-0 leading-snug text-[#001050]/85"
           style={{
             fontSize: "min(5vw, 2.4vh)",
             maxWidth: "min(85vw, 42rem)",
@@ -102,8 +99,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           we&rsquo;ll create your away status together.
         </motion.p>
 
-        {/* CTA — directly below the body copy. */}
-        <div className="mt-4 flex shrink-0 justify-center">
+        {/* CTA — pushed to the bottom */}
+        <div className="mt-auto flex shrink-0 justify-center">
           <GlassyButton onClick={onStart} delay={0.85}>
             Get started
           </GlassyButton>
