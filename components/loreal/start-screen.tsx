@@ -64,37 +64,41 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Headline. Pushed below the umbrella canopy via a top spacer so the
-          words never sit under the umbrella's lower edge. Glasses removed
-          for now; helpers (GlassesGap / GlassesMedia) retained in case we
-          want to bring them back. */}
+      {/* Spacer reserves room for the umbrella canopy. Generously sized so
+          no headline word ever sits under the umbrella's lower edge. */}
       <div
         aria-hidden
         className="shrink-0"
-        style={{ height: "min(40vw, 32vh)" }}
+        style={{ height: "min(58vw, 46vh)" }}
       />
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
+
+      {/* Headline + tagline group — sits in the lower half so it clears the
+          umbrella, with the tagline tucked right under "Cannes Vibe". */}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-end text-[#001050]">
         <HeadlineWord
           text="Find your"
           delay={0.7}
           fontSize="min(18vw, 10vh)"
         />
-        <HeadlineWord text="Cannes" delay={0.85} />
-        <HeadlineWord text="Vibe" delay={1.0} />
-      </div>
-
-      {/* Bottom — tagline + CTA group, then Powered-by anchored at bottom. */}
-      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
+        <HeadlineWord
+          text="Cannes Vibe"
+          delay={0.85}
+          fontSize="min(18vw, 10vh)"
+        />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.5 }}
-          className="max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
+          transition={{ delay: 1.0, duration: 0.5 }}
+          className="mt-3 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
           Protect your OOO time.
         </motion.p>
-        <div className="mt-7">
+      </div>
+
+      {/* Bottom — CTA, then Powered-by anchored at the bottom. */}
+      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
+        <div>
           <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
         </div>
         <motion.div
