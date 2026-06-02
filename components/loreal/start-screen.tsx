@@ -30,14 +30,14 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
-          top: "calc(-1 * min(26vw, 16vh))",
-          right: "calc(-1 * min(34vw, 20vh))",
-          width: "min(118vw, 100vh)",
+          top: "calc(-1 * min(22vw, 14vh))",
+          right: "calc(-1 * min(24vw, 14vh))",
+          width: "min(105vw, 88vh)",
           transformOrigin: "100% 100%",
         }}
-        initial={{ opacity: 0, x: 60, y: -30 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration: 1.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -56,7 +56,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <div
         aria-hidden
         className="shrink-0"
-        style={{ height: "min(46vw, 36vh)" }}
+        style={{ height: "min(38vw, 30vh)" }}
       />
 
       {/* Headline + tagline group — vertically centered between the umbrella
@@ -90,11 +90,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* Spacer — pushes the CTA to be equidistant between tagline and bottom */}
-      <div className="relative z-10 flex-1" />
-
       {/* Bottom — CTA + Powered-by */}
-      <div className="relative z-10 flex shrink-0 w-full flex-col items-center">
+      <div className="relative z-10 flex shrink-0 w-full flex-col items-center mt-auto">
         <div>
           <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
         </div>

@@ -105,9 +105,6 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         </motion.p>
       </div>
 
-      {/* Spacer for equidistant button placement */}
-      <div className="flex-1" />
-
       {/* CTA */}
       <div
         className="shrink-0 flex justify-center"

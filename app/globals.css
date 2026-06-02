@@ -181,7 +181,7 @@
 }
 .umbrella-sway {
   animation: umbrellaSway 6s ease-in-out infinite;
-  animation-delay: 0.8s;
+  animation-delay: 1.8s;
 }
 
 /* L'Oreal glassy CTA — three-state interaction model:

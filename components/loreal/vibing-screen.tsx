@@ -140,27 +140,27 @@ function OrbitalRing({
   const getTransition = (): Record<string, object> => {
     if (phase === "exit") {
       return {
-        scale: { duration: 0.6, ease: [0.4, 0, 0.7, 0.2] as [number, number, number, number] },
-        opacity: { duration: 0.5 },
-        rotate: { duration: 0.6, ease: [0.4, 0, 0.7, 0.2] as [number, number, number, number] },
+        scale: { duration: 0.7, ease: [0.4, 0, 0.6, 0.1] as [number, number, number, number] },
+        opacity: { duration: 0.6 },
+        rotate: { duration: 0.7, ease: [0.4, 0, 0.6, 0.1] as [number, number, number, number] },
       };
     }
+    // Spiral in: ease out scale + rotate together, then continuous spin
     return {
       scale: {
-        type: "spring",
-        stiffness: 300,
-        damping: 18,
+        duration: 0.8,
+        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
         delay,
       },
       opacity: {
-        duration: 0.3,
+        duration: 0.4,
         delay,
       },
       rotate: {
         duration: speed,
         ease: "linear",
         repeat: Infinity,
-        delay: delay + 0.6,
+        delay: delay + 0.8,
       },
     };
   };
