@@ -19,7 +19,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   // interior width (cheeks reach both sides). The wrapper uses inset-3 +
   // overflow-hidden + rounded-[40px] so the glass card's top edge becomes
   // the clip line — Astro's top is cut off by the glass container itself.
-  const astroSize = "min(160vw, 105vh)";
+  const astroSize = "min(190vw, 120vh)";
 
   return (
     <div className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px]">
@@ -65,7 +65,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           I&apos;m Agent Astro.
         </motion.h1>
 
-        {/* Squiggly divider */}
+        {/* Wave divider — tinted to match the CTA button blue */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -78,7 +78,11 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             alt=""
             width={1200}
             height={4}
-            className="h-auto w-full select-none opacity-80"
+            className="h-auto w-full select-none"
+            style={{
+              filter:
+                "brightness(0) saturate(100%) invert(24%) sepia(93%) saturate(2000%) hue-rotate(215deg) brightness(92%) contrast(95%)",
+            }}
           />
         </motion.div>
 
