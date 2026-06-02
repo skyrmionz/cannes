@@ -90,31 +90,28 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* Bottom — CTA + Powered-by */}
-      <div
-        className="relative z-10 flex shrink-0 w-full flex-col items-center"
-        style={{ paddingBottom: "clamp(1.5rem, 4vh, 3rem)" }}
-      >
-        <div>
-          <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
-        </div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.55, duration: 0.5 }}
-          className="mt-4"
-        >
-          <Image
-            src="/loreal/powered-by-astro.png"
-            alt="Powered by Agentforce from Salesforce"
-            width={1140}
-            height={120}
-            priority
-            className="h-auto select-none"
-            style={{ width: "min(70vw, 28vh)" }}
-          />
-        </motion.div>
+      {/* CTA — padded above so it sits with breathing room below the tagline */}
+      <div className="relative z-10 shrink-0 pt-8">
+        <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
+
+      {/* Powered-by — pinned to the very bottom of the container */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.55, duration: 0.5 }}
+        className="relative z-10 mt-auto shrink-0 pb-4"
+      >
+        <Image
+          src="/loreal/powered-by-astro.png"
+          alt="Powered by Agentforce from Salesforce"
+          width={1140}
+          height={120}
+          priority
+          className="h-auto select-none"
+          style={{ width: "min(70vw, 28vh)" }}
+        />
+      </motion.div>
     </div>
   );
 }
