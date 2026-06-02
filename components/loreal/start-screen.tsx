@@ -31,7 +31,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="pointer-events-none absolute z-20 select-none"
         style={{
-          top: "calc(-1 * min(10vw, 5vh))",
+          top: "calc(-1 * min(20vw, 12vh))",
           right: "calc(-1 * min(34vw, 20vh))",
           width: "min(118vw, 100vh)",
           transformOrigin: "100% 100%",
@@ -64,31 +64,37 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Spacer reserves room for the umbrella canopy. Generously sized so
-          no headline word ever sits under the umbrella's lower edge. */}
+      {/* Spacer reserves room for the umbrella canopy so the headline never
+          sits under it. Sized smaller than half the screen so the headline
+          stays vertically centered between the umbrella and the CTA. */}
       <div
         aria-hidden
         className="shrink-0"
-        style={{ height: "min(58vw, 46vh)" }}
+        style={{ height: "min(46vw, 36vh)" }}
       />
 
-      {/* Headline + tagline group — sits in the lower half so it clears the
-          umbrella, with the tagline tucked right under "Cannes Vibe". */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-end text-[#001050]">
+      {/* Headline + tagline group — vertically centered between the umbrella
+          spacer above and the CTA group below, so spacing is equal. */}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
         <HeadlineWord
           text="Find your"
           delay={0.7}
           fontSize="min(18vw, 10vh)"
         />
         <HeadlineWord
-          text="Cannes Vibe"
+          text="Cannes"
           delay={0.85}
+          fontSize="min(18vw, 10vh)"
+        />
+        <HeadlineWord
+          text="Vibe"
+          delay={1.0}
           fontSize="min(18vw, 10vh)"
         />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
+          transition={{ delay: 1.15, duration: 0.5 }}
           className="mt-3 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
