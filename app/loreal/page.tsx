@@ -94,11 +94,9 @@ function LorealContent() {
         />
       ))}
 
-      {/* Droplet preload — only start fetching video metadata once the user
-          has passed the sun question (i.e. hydration screen is next). */}
-      {(step === "hydration" || step === "agenda" || step === "agentforce" || step === "persona") && (
-        <DropletPreload />
-      )}
+      {/* Droplet warm-up — preloads all 3 idles once the L'Oréal flow opens
+          so the hydration screen is paint-ready by the time the user lands. */}
+      <DropletPreload />
 
       {/* Persistent glass card — stays static while content transitions.
           Hidden on full-bleed screens (vibing buffer, agentforce buffer,
@@ -279,7 +277,7 @@ function DropletPreload() {
       style={{ left: -9999, top: -9999 }}
     >
       {sources.map((s) => (
-        <video key={s} muted playsInline preload="metadata" tabIndex={-1}>
+        <video key={s} muted playsInline preload="auto" tabIndex={-1}>
           <source src={`${s}.mp4`} type='video/mp4; codecs="hvc1"' />
           <source src={`${s}.webm`} type="video/webm" />
         </video>

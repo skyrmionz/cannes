@@ -180,17 +180,12 @@
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
-/* Revolve: animate a custom property so the conic-gradient's bright wedge
-   orbits the button perimeter. The element is small (~200×60px) so the
-   per-frame mask repaint is negligible. */
-@property --glassy-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
+/* Revolve: spins the shimmer element via transform (GPU-composited, no
+   repaints). The conic-gradient is static in the element's local space;
+   the rotation makes the bright wedge appear to orbit the button. */
 @keyframes glassyRevolve {
   to {
-    --glassy-angle: 360deg;
+    transform: rotate(360deg);
   }
 }
 
@@ -222,60 +217,62 @@
 /* Shimmer overlay — constant soft glow around the button with a brighter
    band sweeping horizontally. The glow box-shadows sit on ::before/::after
    pseudo-elements 40px outside and then pulled back with inset: 40px. */
+/* Shimmer wrapper — clips the spinning glow to the button's pill shape. */
 .glassy-shimmer {
   position: absolute;
   inset: -40px;
   border-radius: inherit;
-  mix-blend-mode: plus-lighter;
+  overflow: hidden;
   pointer-events: none;
-  --glassy-angle: 0deg;
-  -webkit-mask-image: conic-gradient(
-    from var(--glassy-angle),
-    rgba(0, 0, 0, 0.35) 0deg,
-    rgba(0, 0, 0, 0.35) 220deg,
-    rgba(0, 0, 0, 1) 320deg,
-    rgba(0, 0, 0, 0.35) 360deg
-  );
-          mask-image: conic-gradient(
-    from var(--glassy-angle),
-    rgba(0, 0, 0, 0.35) 0deg,
-    rgba(0, 0, 0, 0.35) 220deg,
-    rgba(0, 0, 0, 1) 320deg,
-    rgba(0, 0, 0, 0.35) 360deg
+}
+
+/* Inner spinning element — a large square with a conic-gradient background.
+   The gradient has a bright wedge; rotating the square makes the wedge
+   orbit the button perimeter. transform: rotate is fully GPU-composited
+   (no repaints). The square is large enough that its circular gradient
+   always covers the pill-shaped clip region. */
+.glassy-shimmer::before {
+  content: "";
+  position: absolute;
+  /* Center in the shimmer wrapper, sized as a square larger than the pill */
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  padding-bottom: 200%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 220deg,
+    hsl(215 100% 70%) 280deg,
+    hsl(210 100% 90%) 320deg,
+    transparent 360deg
   );
   -webkit-animation: glassyRevolve 3.2s linear infinite;
           animation: glassyRevolve 3.2s linear infinite;
+  will-change: transform;
 }
 
-.glassy-shimmer::before,
+/* Static base glow — always-on soft ring around the button. Doesn't rotate
+   so it costs zero runtime overhead. */
 .glassy-shimmer::after {
   content: "";
   position: absolute;
   inset: 40px;
   border-radius: inherit;
-  opacity: 1;
-}
-.glassy-shimmer::before {
   box-shadow:
-    0 0 4px 2px hsl(210 30% 95%),
-    0 0 9px 5px hsl(215 80% 80%),
-    0 0 18px 10px hsl(220 90% 60%),
-    0 0 28px 8px hsl(220 70% 40%);
-  z-index: -1;
-}
-.glassy-shimmer::after {
-  box-shadow:
-    inset 0 0 0 1px hsl(210 80% 95%),
-    inset 0 0 4px 1px hsl(215 100% 85%),
-    inset 0 0 12px 2px hsl(220 100% 75%);
+    0 0 6px 2px hsl(215 80% 80% / 0.5),
+    0 0 14px 6px hsl(220 90% 60% / 0.3),
+    inset 0 0 0 1px hsl(210 80% 95% / 0.4),
+    inset 0 0 6px 1px hsl(215 100% 85% / 0.3);
   z-index: 2;
 }
 
-.glassy-cta:active .glassy-shimmer {
-  -webkit-mask-image: none;
-          mask-image: none;
+.glassy-cta:active .glassy-shimmer::before {
   -webkit-animation: none;
           animation: none;
+  background: hsl(215 100% 70% / 0.6);
 }
 
 .glassy-cta-text {
