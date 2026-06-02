@@ -2,14 +2,13 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "motion/react";
-import { ChevronRight, ChevronLeft, Plus, Minus } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 import {
   HydrationDroplet,
   type DropletLevel,
   type DropletPhase,
 } from "./hydration-droplet";
-import { RoundIconButton } from "./round-icon-button";
 import { useElementSize } from "@/lib/use-element-size";
 
 interface Props {
@@ -31,34 +30,32 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-  // Reserve ~120px for the +/- buttons row + spacer + breathing room. The
-  // 80px reserve underestimated the +/- button height + label gap on narrow
-  // viewports and pushed the buttons outside the glass card.
+  // Droplet fills most of the body height on tall screens (1080x1920)
   const dropletPx = Math.max(
     140,
-    Math.min(bodySize.h - 120, bodySize.w * 0.7, 480),
+    Math.min(bodySize.h - 40, bodySize.w * 0.85, 640),
   );
 
-  const onPlus = useCallback(() => {
-    if (phase !== "idle" || level >= 2) return;
-    const next = (level + 1) as DropletLevel;
-    setFromLevel(level);
-    setToLevel(next);
-    setPhase("transitioning");
-  }, [level, phase]);
+  // Vertical bar height matches the droplet area
+  const barH = Math.max(100, dropletPx * 0.85);
 
-  const onMinus = useCallback(() => {
-    if (phase !== "idle" || level <= 0) return;
-    const next = (level - 1) as DropletLevel;
-    setFromLevel(level);
-    setToLevel(next);
-    setPhase("transitioning");
-  }, [level, phase]);
+  const goToLevel = useCallback(
+    (next: DropletLevel) => {
+      if (phase !== "idle" || next === level) return;
+      setFromLevel(level);
+      setToLevel(next);
+      setPhase("transitioning");
+    },
+    [level, phase],
+  );
 
   const onTransitionEnd = useCallback(() => {
     onChange(toLevel);
     setPhase("idle");
   }, [toLevel, onChange]);
+
+  // Notch positions: 0 = bottom, 1 = middle, 2 = top
+  const notchPositions = [0, barH * 0.5, barH] as const;
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -72,7 +69,9 @@ export function LorealHydrationQuestionScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
         >
-          Be honest: how hydrated are you?
+          Be honest:
+          <br />
+          how hydrated are you?
         </motion.h1>
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/75"
@@ -85,19 +84,66 @@ export function LorealHydrationQuestionScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
         >
-          L&apos;Oréal labs say dehydration encourages fine lines. I&apos;ll
-          calculate your bounce-back time.
+          Calculating your energy reserves for Cannes Week.
         </motion.p>
       </div>
 
-      {/* Body — droplet shrink-fits the available space, +/- row is shrink-0
-          and never compacted. Wrapping the droplet in a min-h-0 flex-1 cell
-          lets it shrink to its computed pixel target without forcing the
-          parent to overflow on short viewports. */}
+      {/* Body — vertical bar on left + droplet on right */}
       <div
         ref={bodyRef}
-        className="relative flex min-h-0 flex-1 flex-col items-center pt-2"
+        className="relative flex min-h-0 flex-1 items-center justify-center gap-6 px-8"
       >
+        {/* Vertical progress bar with notch */}
+        <div className="relative flex flex-col items-center" style={{ height: barH }}>
+          {/* Bar track */}
+          <div
+            className="relative rounded-full"
+            style={{
+              width: 28,
+              height: barH,
+              background: "rgba(255, 255, 255, 0.7)",
+              boxShadow:
+                "0 0 0 1px rgba(255,255,255,0.8) inset, 0 4px 16px rgba(120,160,220,0.15)",
+            }}
+          >
+            {/* Fill from bottom */}
+            <div
+              className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-500 ease-out"
+              style={{
+                height: `${(level / 2) * 100}%`,
+                background:
+                  "linear-gradient(180deg, rgba(80,200,255,0.8) 0%, rgba(140,220,255,0.4) 100%)",
+              }}
+            />
+          </div>
+
+          {/* Notch indicators — tappable circles */}
+          {([0, 1, 2] as DropletLevel[]).map((i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => goToLevel(i)}
+              disabled={phase !== "idle"}
+              className="absolute left-1/2 -translate-x-1/2 rounded-full transition-all duration-300"
+              style={{
+                bottom: `${notchPositions[i] - 14}px`,
+                width: 28,
+                height: 28,
+                background:
+                  level === i
+                    ? "linear-gradient(180deg, #ffffff 0%, #4ec8f7 100%)"
+                    : "rgba(255,255,255,0.6)",
+                boxShadow:
+                  level === i
+                    ? "0 0 8px 2px rgba(78,200,247,0.4), 0 2px 6px rgba(0,0,0,0.1)"
+                    : "0 1px 4px rgba(0,0,0,0.08)",
+                transform: `translateX(-50%) scale(${level === i ? 1.3 : 1})`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Droplet */}
         <div className="flex min-h-0 flex-1 items-center justify-center">
           <HydrationDroplet
             width={`${dropletPx}px`}
@@ -108,29 +154,9 @@ export function LorealHydrationQuestionScreen({
             onTransitionEnd={onTransitionEnd}
           />
         </div>
-        <div className="mt-3 flex shrink-0 items-center gap-6">
-          <RoundIconButton
-            onClick={onMinus}
-            disabled={phase !== "idle" || level <= 0}
-            ariaLabel="Decrease hydration"
-            variant="glass"
-            size={44}
-          >
-            <Minus className="h-5 w-5" strokeWidth={3} />
-          </RoundIconButton>
-          <RoundIconButton
-            onClick={onPlus}
-            disabled={phase !== "idle" || level >= 2}
-            ariaLabel="Increase hydration"
-            variant="glass"
-            size={44}
-          >
-            <Plus className="h-5 w-5" strokeWidth={3} />
-          </RoundIconButton>
-        </div>
       </div>
 
-      {/* Footer — back left, next right. shrink-0 so it always paints. */}
+      {/* Footer — back left, next right */}
       <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
         <motion.button
           type="button"
