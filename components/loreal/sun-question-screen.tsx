@@ -30,7 +30,15 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     [bodyH],
   );
 
-  const stopPositions = [0, travelH * 0.5, travelH] as const;
+  // Clamp the topmost stop so the sun's top edge can't drift above the body
+  // band (which would push it into / above the header on shorter viewports).
+  // Sun center natural position (y=0) sits at bar bottom = (bodyH + barH)/2
+  // from body top. At stop i, center moves up by stopPositions[i]. Keep the
+  // top of the sun at least 16px below body top.
+  const maxStopUp = Math.max(0, (bodyH + barH) / 2 - sunPx / 2 - 16);
+  const stop2 = Math.min(travelH, maxStopUp);
+  const stop1 = stop2 * 0.5;
+  const stopPositions = [0, stop1, stop2] as const;
   const y = useMotionValue<number>(0);
 
   useEffect(() => {

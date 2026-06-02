@@ -259,16 +259,15 @@ function LorealContent() {
 
 // Hidden video tags that preload (but do not render) the 3 hydration idle
 // loops so by the time the user advances to the hydration screen the videos
-// are already decoded and play instantly.
+// are already decoded and play instantly. Only idles are preloaded — the 4
+// directional fills are permanently mounted inside HydrationDroplet, so they
+// load lazily once the user lands on the screen and don't waste bandwidth on
+// screens that never reach hydration.
 function DropletPreload() {
   const sources: ReadonlyArray<string> = [
     "/loreal/droplet-low-idle",
     "/loreal/droplet-mid-idle",
     "/loreal/droplet-full-idle",
-    "/loreal/droplet-low-to-mid",
-    "/loreal/droplet-mid-to-full",
-    "/loreal/droplet-mid-to-low",
-    "/loreal/droplet-full-to-mid",
   ];
   return (
     <div

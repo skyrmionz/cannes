@@ -99,7 +99,6 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
-              filter: visible ? "brightness(1.05)" : undefined,
             }}
           >
             <TransparentVideoLoop
