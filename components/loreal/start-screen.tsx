@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import Image from "next/image";
-import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 import { GlassyButton } from "./glassy-button";
 
 interface StartScreenProps {
@@ -158,38 +157,3 @@ function HeadlineWord({
   );
 }
 
-function GlassesGap() {
-  // The glasses overlap the headline lines above and below via negative
-  // margins. Margins scale with viewport height so the overlap stays
-  // proportional on big screens.
-  return (
-    <motion.div
-      className="relative z-10 flex justify-center"
-      style={{
-        // clamp(min, mid, max) on negative values — keeps overlap proportional
-        // to viewport height but bounded on tiny + huge screens.
-        marginTop: "clamp(-150px, -10vh, -60px)",
-        marginBottom: "clamp(-100px, -6vh, -40px)",
-      }}
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
-    >
-      <GlassesMedia />
-    </motion.div>
-  );
-}
-
-function GlassesMedia() {
-  return (
-    <TransparentVideoLoop
-      mp4Src="/loreal/glasses-idle.mp4"
-      webmSrc="/loreal/glasses-idle.webm"
-      // Glasses scale with both axes so they fill space on tall windows.
-      width="min(75vw, 36vh)"
-      fallbackSrc="/loreal/holographic-glasses.png"
-      fallbackAlt="Holographic sunglasses"
-      className="select-none"
-    />
-  );
-}
