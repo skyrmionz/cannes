@@ -25,9 +25,48 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         paddingBottom: "clamp(2rem, 7vh, 5rem)",
       }}
     >
+      {/* Umbrella — anchored to the top-right, leans in over the headline.
+          Subtle continuous sway via rotate keyframes; transformOrigin at
+          top-right so the canopy stays in place while the pole arc swings. */}
+      <motion.div
+        className="pointer-events-none absolute z-20 select-none"
+        style={{
+          top: "calc(-1 * min(8vw, 4vh))",
+          right: "calc(-1 * min(6vw, 3vh))",
+          width: "min(95vw, 78vh)",
+          transformOrigin: "top right",
+        }}
+        initial={{ opacity: 0, rotate: -3, x: 30 }}
+        animate={{
+          opacity: 1,
+          x: 0,
+          rotate: [-1.6, 1.6, -1.6],
+        }}
+        transition={{
+          opacity: { duration: 0.7, delay: 0.1 },
+          x: { duration: 0.7, delay: 0.1, ease: "easeOut" },
+          rotate: {
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.7,
+          },
+        }}
+      >
+        <Image
+          src="/loreal/umbrella.png"
+          alt=""
+          width={1080}
+          height={1920}
+          priority
+          draggable={false}
+          className="h-auto w-full select-none"
+        />
+      </motion.div>
+
       {/* Top — Powered-by Agentforce */}
       <motion.div
-        className="shrink-0"
+        className="relative z-10 shrink-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
@@ -43,25 +82,25 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Middle — headline + inline glasses, fills the available middle space */}
-      <div className="flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord text="Your" delay={0.7} />
-        <GlassesGap />
-        <HeadlineWord text="Cannes" delay={0.85} />
-        <HeadlineWord text="Style" delay={1.0} />
+      {/* Middle — headline. Glasses removed for now (kept in code via the
+          GlassesGap helper below) in case we want to bring them back. */}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
+        <HeadlineWord text="Set" delay={0.7} />
+        <HeadlineWord text="your" delay={0.85} />
+        <HeadlineWord text="Cannes" delay={1.0} />
+        <HeadlineWord text="Status" delay={1.15} />
       </div>
 
       {/* Bottom — tagline directly above CTA */}
-      <div className="flex shrink-0 flex-col items-center gap-4">
+      <div className="relative z-10 flex shrink-0 flex-col items-center gap-4">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.5 }}
+          transition={{ delay: 1.3, duration: 0.5 }}
           className="max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
-          It&rsquo;s hot out here, and so are you! We&rsquo;ll find your vibe
-          and get you some suncare too.
+          Protect your OOO vibe.
         </motion.p>
         <GlassyButton onClick={onStart}>Let&apos;s glow</GlassyButton>
       </div>
