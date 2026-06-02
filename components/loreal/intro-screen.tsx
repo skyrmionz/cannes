@@ -105,10 +105,13 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         </motion.p>
       </div>
 
-      {/* CTA pinned near the bottom */}
+      {/* Spacer for equidistant button placement */}
+      <div className="flex-1" />
+
+      {/* CTA */}
       <div
         className="shrink-0 flex justify-center"
-        style={{ paddingBottom: "clamp(1.5rem, 6vh, 5rem)" }}
+        style={{ paddingBottom: "clamp(1.5rem, 5vh, 4rem)" }}
       >
         <GlassyButton onClick={onStart} delay={0.85}>
           Let&apos;s go

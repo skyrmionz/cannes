@@ -10,7 +10,6 @@ interface Props {
 
 const HOLD_MS = 5000;
 
-// Matching the reference: fewer, larger icons. Astro dominates the center.
 const SUN_COUNT = 8;
 const WATER_COUNT = 6;
 const TREE_COUNT = 4;
@@ -33,7 +32,7 @@ export function LorealVibingScreen({ onComplete }: Props) {
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
-      {/* Agent Astro — center, pops in/out */}
+      {/* Agent Astro — center */}
       <motion.div
         className="absolute z-30"
         initial={{ scale: 0, opacity: 0 }}
@@ -44,7 +43,7 @@ export function LorealVibingScreen({ onComplete }: Props) {
         }
         transition={
           phase === "exit"
-            ? { duration: 0.5, ease: [0.6, 0, 0.7, 0.2] }
+            ? { duration: 0.6, ease: [0.6, 0, 0.7, 0.2] }
             : { type: "spring", stiffness: 450, damping: 20, delay: 0.05 }
         }
       >
@@ -55,47 +54,50 @@ export function LorealVibingScreen({ onComplete }: Props) {
           height={720}
           priority
           className="h-auto select-none"
-          style={{ width: "min(44vw, 28vh)" }}
+          style={{ width: "min(32vw, 20vh)" }}
         />
       </motion.div>
 
-      {/* Sun ring — innermost, clockwise, small icons */}
+      {/* Sun ring — innermost, clockwise */}
       <OrbitalRing
         src="/loreal/icon-sun.png"
         count={SUN_COUNT}
-        radius="min(30vw, 20vh)"
-        iconSize="min(10vw, 7vh)"
+        radius="min(28vw, 19vh)"
+        iconSize="min(14vw, 9vh)"
         direction={1}
         speed={20}
         phase={phase}
         delay={0.1}
         spiralRotation={180}
+        iconRotation="outward"
       />
 
-      {/* Water ring — middle, counter-clockwise, medium icons */}
+      {/* Water ring — middle, counter-clockwise, droplets face outward */}
       <OrbitalRing
         src="/loreal/icon-water.png"
         count={WATER_COUNT}
-        radius="min(50vw, 34vh)"
-        iconSize="min(16vw, 11vh)"
+        radius="min(48vw, 33vh)"
+        iconSize="min(20vw, 14vh)"
         direction={-1}
         speed={28}
         phase={phase}
         delay={0.2}
         spiralRotation={-240}
+        iconRotation="outward"
       />
 
-      {/* Tree ring — outermost, clockwise, large icons */}
+      {/* Tree ring — outermost, clockwise, trunks face inward */}
       <OrbitalRing
         src="/loreal/icon-tree.png"
         count={TREE_COUNT}
         radius="min(72vw, 48vh)"
-        iconSize="min(24vw, 16vh)"
+        iconSize="min(30vw, 20vh)"
         direction={1}
         speed={36}
         phase={phase}
         delay={0.3}
         spiralRotation={300}
+        iconRotation="inward"
       />
     </div>
   );
@@ -111,6 +113,7 @@ function OrbitalRing({
   phase,
   delay,
   spiralRotation,
+  iconRotation,
 }: {
   src: string;
   count: number;
@@ -121,15 +124,12 @@ function OrbitalRing({
   phase: "enter" | "spin" | "exit";
   delay: number;
   spiralRotation: number;
+  iconRotation: "outward" | "inward";
 }) {
-  // During enter: scale from 0 + rotate spiralRotation° to scale 1 + rotate 0.
-  // During spin: rotate continuously.
-  // During exit: scale back to 0 + rotate -spiralRotation° (reverse spiral).
   const getAnimate = () => {
     if (phase === "exit") {
       return { scale: 0, opacity: 0, rotate: -spiralRotation };
     }
-    // enter + spin: full scale, continuous rotation
     return {
       scale: 1,
       opacity: 1,
@@ -140,9 +140,9 @@ function OrbitalRing({
   const getTransition = (): Record<string, object> => {
     if (phase === "exit") {
       return {
-        scale: { duration: 0.55, ease: [0.6, 0, 0.7, 0.2] as [number, number, number, number] },
-        opacity: { duration: 0.4 },
-        rotate: { duration: 0.55, ease: [0.6, 0, 0.7, 0.2] as [number, number, number, number] },
+        scale: { duration: 0.6, ease: [0.4, 0, 0.7, 0.2] as [number, number, number, number] },
+        opacity: { duration: 0.5 },
+        rotate: { duration: 0.6, ease: [0.4, 0, 0.7, 0.2] as [number, number, number, number] },
       };
     }
     return {
@@ -181,6 +181,13 @@ function OrbitalRing({
         const rad = (angle * Math.PI) / 180;
         const x = 50 + Math.sin(rad) * 50;
         const y = 50 - Math.cos(rad) * 50;
+
+        // Icons don't spin on their own axis. They have a fixed rotation
+        // so they point outward or inward relative to the center.
+        // "outward" = bottom of icon faces away from center (angle + 180)
+        // "inward" = bottom of icon faces toward center (angle)
+        const iconAngle = iconRotation === "outward" ? angle + 180 : angle;
+
         return (
           <div
             key={i}
@@ -190,38 +197,17 @@ function OrbitalRing({
               top: `${y}%`,
               width: iconSize,
               height: iconSize,
-              transform: "translate(-50%, -50%)",
+              transform: `translate(-50%, -50%) rotate(${iconAngle}deg)`,
             }}
           >
-            {/* Counter-rotate so icons stay upright while the ring spins */}
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={
-                phase === "exit"
-                  ? { rotate: 0 }
-                  : { rotate: -direction * 360 }
-              }
-              transition={
-                phase === "exit"
-                  ? { duration: 0.55 }
-                  : {
-                      duration: speed,
-                      ease: "linear",
-                      repeat: Infinity,
-                      delay: delay + 0.6,
-                    }
-              }
-              className="h-full w-full"
-            >
-              <Image
-                src={src}
-                alt=""
-                width={200}
-                height={200}
-                className="h-full w-full select-none object-contain"
-                unoptimized
-              />
-            </motion.div>
+            <Image
+              src={src}
+              alt=""
+              width={200}
+              height={200}
+              className="h-full w-full select-none object-contain"
+              unoptimized
+            />
           </div>
         );
       })}
