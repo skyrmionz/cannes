@@ -28,33 +28,17 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           canopy reaches the left edge. Pivot at the bottom-right so only
           the top-left tip of the canopy visibly sways. */}
       <motion.div
-        className="pointer-events-none absolute z-20 select-none"
+        className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
           top: "calc(-1 * min(20vw, 12vh))",
           right: "calc(-1 * min(34vw, 20vh))",
           width: "min(118vw, 100vh)",
           transformOrigin: "100% 100%",
         }}
-        initial={{ opacity: 0, rotate: -10, x: 40 }}
-        animate={{
-          opacity: 1,
-          x: 0,
-          rotate: [-8, -6.4, -8],
-        }}
-        transition={{
-          opacity: { duration: 0.7, delay: 0.1 },
-          x: { duration: 0.7, delay: 0.1, ease: "easeOut" },
-          rotate: {
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.7,
-          },
-        }}
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
       >
-        {/* Use a plain <img> so the original PNG bytes are served as-is.
-            Next/Image was converting to AVIF/WebP and softening the colors +
-            introducing perceptible compression artefacts on the canopy. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/loreal/umbrella.png"
@@ -63,7 +47,6 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           height={1920}
           draggable={false}
           className="h-auto w-full select-none"
-          style={{ imageRendering: "auto" }}
         />
       </motion.div>
 

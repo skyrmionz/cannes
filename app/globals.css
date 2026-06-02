@@ -174,23 +174,25 @@
   }
 }
 
+/* Umbrella sway — CSS animation so no JS rAF loop runs. */
+@keyframes umbrellaSway {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(-6.4deg); }
+}
+.umbrella-sway {
+  animation: umbrellaSway 6s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
 /* L'Oreal glassy CTA — three-state interaction model:
      idle    : no shimmer, no glow (just the gradient base + small drop shadow)
      hover   : wipe shimmer sweeps right→left across the button face
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
-/* Revolve: animate a CSS custom property so the conic-gradient's bright
-   wedge orbits the button. The button is small (~250×60px) so the repaint
-   area is trivial — the perf issue was from video preloads, not this. */
-@property --glassy-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
 @keyframes glassyRevolve {
   to {
-    --glassy-angle: 360deg;
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
@@ -222,60 +224,60 @@
 /* Shimmer overlay — constant soft glow around the button with a brighter
    band sweeping horizontally. The glow box-shadows sit on ::before/::after
    pseudo-elements 40px outside and then pulled back with inset: 40px. */
+/* Shimmer: two layers inside a clipped container.
+   ::before — a large circle with a conic-gradient that rotates via
+   transform: rotate (GPU-composited, zero repaints even after hours).
+   ::after — static soft glow ring (box-shadows, no animation). */
 .glassy-shimmer {
   position: absolute;
-  inset: -40px;
+  inset: -2px;
   border-radius: inherit;
-  mix-blend-mode: plus-lighter;
+  overflow: hidden;
   pointer-events: none;
-  --glassy-angle: 0deg;
-  -webkit-mask-image: conic-gradient(
-    from var(--glassy-angle),
-    rgba(0, 0, 0, 0.35) 0deg,
-    rgba(0, 0, 0, 0.35) 220deg,
-    rgba(0, 0, 0, 1) 320deg,
-    rgba(0, 0, 0, 0.35) 360deg
-  );
-          mask-image: conic-gradient(
-    from var(--glassy-angle),
-    rgba(0, 0, 0, 0.35) 0deg,
-    rgba(0, 0, 0, 0.35) 220deg,
-    rgba(0, 0, 0, 1) 320deg,
-    rgba(0, 0, 0, 0.35) 360deg
+}
+
+/* Rotating bright-spot disc. Sized as a circle large enough to always
+   cover the pill button from its center. The conic-gradient has a bright
+   wedge; rotating the disc makes the wedge orbit the perimeter. */
+.glassy-shimmer::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background: conic-gradient(
+    from 0deg,
+    hsl(220 90% 60% / 0.2) 0deg,
+    hsl(220 90% 60% / 0.2) 200deg,
+    hsl(210 100% 85%) 280deg,
+    hsl(215 100% 95%) 320deg,
+    hsl(220 90% 60% / 0.2) 360deg
   );
   -webkit-animation: glassyRevolve 3.2s linear infinite;
           animation: glassyRevolve 3.2s linear infinite;
+  will-change: transform;
 }
 
-.glassy-shimmer::before,
+/* Static ambient glow — always visible, no animation cost. */
 .glassy-shimmer::after {
   content: "";
   position: absolute;
-  inset: 40px;
+  inset: 2px;
   border-radius: inherit;
-  opacity: 1;
-}
-.glassy-shimmer::before {
   box-shadow:
-    0 0 4px 2px hsl(210 30% 95%),
-    0 0 9px 5px hsl(215 80% 80%),
-    0 0 18px 10px hsl(220 90% 60%),
-    0 0 28px 8px hsl(220 70% 40%);
-  z-index: -1;
-}
-.glassy-shimmer::after {
-  box-shadow:
-    inset 0 0 0 1px hsl(210 80% 95%),
-    inset 0 0 4px 1px hsl(215 100% 85%),
-    inset 0 0 12px 2px hsl(220 100% 75%);
-  z-index: 2;
+    0 0 6px 2px hsl(215 80% 80% / 0.5),
+    0 0 14px 6px hsl(220 90% 60% / 0.25),
+    inset 0 0 0 1px hsl(210 80% 95% / 0.5),
+    inset 0 0 5px 1px hsl(215 100% 85% / 0.3);
 }
 
-.glassy-cta:active .glassy-shimmer {
-  -webkit-mask-image: none;
-          mask-image: none;
-  -webkit-animation: none;
-          animation: none;
+.glassy-cta:active .glassy-shimmer::before {
+  -webkit-animation-play-state: paused;
+          animation-play-state: paused;
+  background: hsl(215 100% 80% / 0.6);
 }
 
 .glassy-cta-text {
