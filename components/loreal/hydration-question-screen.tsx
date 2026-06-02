@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion } from "motion/react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { motion, useMotionValue, animate } from "motion/react";
 import { LorealProgressBar } from "./progress-bar";
 import {
   HydrationDroplet,
@@ -30,14 +29,14 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-  // Droplet fills most of the body height on tall screens (1080x1920)
   const dropletPx = Math.max(
     140,
     Math.min(bodySize.h - 40, bodySize.w * 0.85, 640),
   );
 
-  // Vertical bar height matches the droplet area
   const barH = Math.max(100, dropletPx * 0.85);
+  const stopPositions = [0, barH * 0.5, barH] as const;
+  const y = useMotionValue<number>(-stopPositions[value]);
 
   const goToLevel = useCallback(
     (next: DropletLevel) => {
@@ -45,17 +44,46 @@ export function LorealHydrationQuestionScreen({
       setFromLevel(level);
       setToLevel(next);
       setPhase("transitioning");
+      animate(y, -stopPositions[next], {
+        duration: 0.55,
+        ease: [0.32, 0.72, 0, 1],
+      });
     },
-    [level, phase],
+    [level, phase, y, stopPositions],
   );
+
+  const handleDragEnd = useCallback(() => {
+    if (phase !== "idle") return;
+    const current = y.get();
+    let closest: DropletLevel = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < stopPositions.length; i++) {
+      const d = Math.abs(-stopPositions[i] - current);
+      if (d < bestDist) {
+        bestDist = d;
+        closest = i as DropletLevel;
+      }
+    }
+    if (closest !== level) {
+      setFromLevel(level);
+      setToLevel(closest);
+      setPhase("transitioning");
+    }
+    animate(y, -stopPositions[closest], {
+      duration: 0.4,
+      ease: [0.32, 0.72, 0, 1],
+    });
+  }, [level, phase, y, stopPositions]);
 
   const onTransitionEnd = useCallback(() => {
     onChange(toLevel);
     setPhase("idle");
   }, [toLevel, onChange]);
 
-  // Notch positions: 0 = bottom, 1 = middle, 2 = top
-  const notchPositions = [0, barH * 0.5, barH] as const;
+  const dragBounds = {
+    top: -stopPositions[2],
+    bottom: -stopPositions[0],
+  };
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -63,7 +91,7 @@ export function LorealHydrationQuestionScreen({
       <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={50} label="50% to glow" />
         <motion.h1
-          className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -93,9 +121,8 @@ export function LorealHydrationQuestionScreen({
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 items-center justify-center gap-6 px-8"
       >
-        {/* Vertical progress bar with notch */}
+        {/* Vertical progress bar with single draggable notch */}
         <div className="relative flex flex-col items-center" style={{ height: barH }}>
-          {/* Bar track */}
           <div
             className="relative rounded-full"
             style={{
@@ -117,30 +144,33 @@ export function LorealHydrationQuestionScreen({
             />
           </div>
 
-          {/* Notch indicators — tappable circles */}
-          {([0, 1, 2] as DropletLevel[]).map((i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => goToLevel(i)}
-              disabled={phase !== "idle"}
-              className="absolute left-1/2 -translate-x-1/2 rounded-full transition-all duration-300"
+          {/* Draggable notch — white-to-blue gradient circle */}
+          <motion.div
+            className="absolute left-1/2 z-10"
+            style={{
+              y,
+              bottom: 0,
+              marginLeft: -20,
+              cursor: "grab",
+            }}
+            drag="y"
+            dragConstraints={dragBounds}
+            dragElastic={0}
+            dragMomentum={false}
+            onDragEnd={handleDragEnd}
+            whileTap={{ cursor: "grabbing", scale: 1.15 }}
+          >
+            <div
+              className="rounded-full"
               style={{
-                bottom: `${notchPositions[i] - 14}px`,
-                width: 28,
-                height: 28,
-                background:
-                  level === i
-                    ? "linear-gradient(180deg, #ffffff 0%, #4ec8f7 100%)"
-                    : "rgba(255,255,255,0.6)",
+                width: 40,
+                height: 40,
+                background: "linear-gradient(180deg, #ffffff 0%, #4ec8f7 100%)",
                 boxShadow:
-                  level === i
-                    ? "0 0 8px 2px rgba(78,200,247,0.4), 0 2px 6px rgba(0,0,0,0.1)"
-                    : "0 1px 4px rgba(0,0,0,0.08)",
-                transform: `translateX(-50%) scale(${level === i ? 1.3 : 1})`,
+                  "0 0 10px 3px rgba(78,200,247,0.35), 0 2px 8px rgba(0,0,0,0.12)",
               }}
             />
-          ))}
+          </motion.div>
         </div>
 
         {/* Droplet */}
@@ -156,53 +186,57 @@ export function LorealHydrationQuestionScreen({
         </div>
       </div>
 
-      {/* Footer — back left, next right */}
+      {/* Footer — glassy Back + Next text buttons */}
       <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
         <motion.button
           type="button"
           onClick={onBack}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="grid h-14 w-14 place-items-center rounded-full"
+          className="rounded-full font-semibold text-[#001050] tracking-tight"
           style={{
-            background: "rgba(255,255,255,0.55)",
+            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
+            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
+            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
+            background: "rgba(255,255,255,0.45)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.7) inset",
-              "0 1px 0 rgba(255,255,255,0.85) inset",
-              "0 8px 18px rgba(120,160,220,0.25)",
+              "0 0 0 1px rgba(255,255,255,0.6) inset",
+              "0 1px 0 rgba(255,255,255,0.8) inset",
+              "0 8px 24px rgba(120,160,220,0.2)",
             ].join(", "),
-            WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            backdropFilter: "blur(10px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            backdropFilter: "blur(12px) saturate(140%)",
           }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          aria-label="Back"
         >
-          <ChevronLeft className="h-6 w-6 text-[#001050]" strokeWidth={3} />
+          Back
         </motion.button>
         <motion.button
           type="button"
           onClick={onNext}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="grid h-14 w-14 place-items-center rounded-full"
+          className="rounded-full font-semibold text-[#001050] tracking-tight"
           style={{
-            background: "rgba(255,255,255,0.55)",
+            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
+            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
+            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
+            background: "rgba(255,255,255,0.45)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.7) inset",
-              "0 1px 0 rgba(255,255,255,0.85) inset",
-              "0 8px 18px rgba(120,160,220,0.25)",
+              "0 0 0 1px rgba(255,255,255,0.6) inset",
+              "0 1px 0 rgba(255,255,255,0.8) inset",
+              "0 8px 24px rgba(120,160,220,0.2)",
             ].join(", "),
-            WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            backdropFilter: "blur(10px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            backdropFilter: "blur(12px) saturate(140%)",
           }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          aria-label="Next"
         >
-          <ChevronRight className="h-6 w-6 text-[#001050]" strokeWidth={3} />
+          Next
         </motion.button>
       </div>
     </div>
