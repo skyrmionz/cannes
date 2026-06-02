@@ -224,21 +224,19 @@
 /* Shimmer overlay — constant soft glow around the button with a brighter
    band sweeping horizontally. The glow box-shadows sit on ::before/::after
    pseudo-elements 40px outside and then pulled back with inset: 40px. */
-/* Shimmer: two layers inside a clipped container.
-   ::before — a large circle with a conic-gradient that rotates via
-   transform: rotate (GPU-composited, zero repaints even after hours).
-   ::after — static soft glow ring (box-shadows, no animation). */
+/* Shimmer sits BEHIND the button (z-index: -1). A large rotating disc
+   with a conic-gradient bright wedge orbits behind the pill shape, giving
+   the appearance of a glow spinning around the button's edge. */
 .glassy-shimmer {
   position: absolute;
-  inset: -2px;
+  inset: -12px;
   border-radius: inherit;
-  overflow: hidden;
   pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 9999px;
 }
 
-/* Rotating bright-spot disc. Sized as a circle large enough to always
-   cover the pill button from its center. The conic-gradient has a bright
-   wedge; rotating the disc makes the wedge orbit the perimeter. */
 .glassy-shimmer::before {
   content: "";
   position: absolute;
@@ -250,34 +248,21 @@
   transform: translate(-50%, -50%) rotate(0deg);
   background: conic-gradient(
     from 0deg,
-    hsl(220 90% 60% / 0.2) 0deg,
-    hsl(220 90% 60% / 0.2) 200deg,
-    hsl(210 100% 85%) 280deg,
+    hsl(220 90% 60% / 0.3) 0deg,
+    hsl(220 90% 60% / 0.3) 200deg,
+    hsl(210 100% 90%) 270deg,
     hsl(215 100% 95%) 320deg,
-    hsl(220 90% 60% / 0.2) 360deg
+    hsl(220 90% 60% / 0.3) 360deg
   );
   -webkit-animation: glassyRevolve 3.2s linear infinite;
           animation: glassyRevolve 3.2s linear infinite;
   will-change: transform;
 }
 
-/* Static ambient glow — always visible, no animation cost. */
-.glassy-shimmer::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border-radius: inherit;
-  box-shadow:
-    0 0 6px 2px hsl(215 80% 80% / 0.5),
-    0 0 14px 6px hsl(220 90% 60% / 0.25),
-    inset 0 0 0 1px hsl(210 80% 95% / 0.5),
-    inset 0 0 5px 1px hsl(215 100% 85% / 0.3);
-}
-
 .glassy-cta:active .glassy-shimmer::before {
   -webkit-animation-play-state: paused;
           animation-play-state: paused;
-  background: hsl(215 100% 80% / 0.6);
+  background: hsl(215 100% 80% / 0.5);
 }
 
 .glassy-cta-text {
