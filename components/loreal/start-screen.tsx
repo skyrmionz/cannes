@@ -56,11 +56,13 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         <Image
           src="/loreal/umbrella.png"
           alt=""
-          width={1080}
-          height={1920}
+          width={2160}
+          height={3840}
           priority
+          quality={95}
           draggable={false}
           className="h-auto w-full select-none"
+          style={{ imageRendering: "auto" }}
         />
       </motion.div>
 

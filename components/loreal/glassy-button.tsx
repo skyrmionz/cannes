@@ -33,9 +33,9 @@ export function GlassyButton({ onClick, children, delay = 1.4 }: Props) {
         // Padding + font scale gracefully on short viewports so the bigger
         // desktop look doesn't blow out at 360h or push the button outside
         // the glass card.
-        paddingInline: "clamp(2.4rem, 6vw, 4rem)",
-        paddingBlock: "clamp(0.85rem, 2vh, 1.5rem)",
-        fontSize: "clamp(1rem, min(3.6vw, 2.6vh), 1.25rem)",
+        paddingInline: "clamp(3rem, 9vw, 5.5rem)",
+        paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
+        fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
       }}
     >
       <span aria-hidden className="glassy-shimmer" />
