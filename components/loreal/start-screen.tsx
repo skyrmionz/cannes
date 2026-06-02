@@ -91,7 +91,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       </div>
 
       {/* CTA — padded above so it sits with breathing room below the tagline */}
-      <div className="relative z-10 shrink-0 pt-8">
+      <div className="relative z-10 shrink-0 pt-8 pb-6">
         <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
 
@@ -100,7 +100,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.55, duration: 0.5 }}
-        className="relative z-10 mt-auto shrink-0 pb-4"
+        className="relative z-10 mt-auto shrink-0 pb-5"
       >
         <Image
           src="/loreal/powered-by-astro.png"

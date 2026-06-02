@@ -70,7 +70,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="mt-8 shrink-0 px-2"
+          className="mt-10 mb-8 shrink-0 px-2"
           style={{ width: "min(80vw, 36vh)" }}
         >
           <Image
