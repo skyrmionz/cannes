@@ -1,186 +1,182 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 
 interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 3000;
+const HOLD_MS = 5000;
+const EXIT_DURATION = 0.45;
 
-// 4 horizontal strips of repeating 3D icons, each row alternating direction.
-// Centered headline "You're glowing!" sits on its own band so the carousels
-// never overlap the words.
+// Number of icons in each orbital ring
+const SUN_COUNT = 8;
+const WATER_COUNT = 10;
+const TREE_COUNT = 12;
+
 export function LorealVibingScreen({ onComplete }: Props) {
+  const [phase, setPhase] = useState<"enter" | "spin" | "exit">("enter");
+
   useEffect(() => {
-    const t = setTimeout(onComplete, HOLD_MS);
-    return () => clearTimeout(t);
+    // enter → spin after the pop-in finishes
+    const t1 = setTimeout(() => setPhase("spin"), 600);
+    // spin → exit before transitioning out
+    const t2 = setTimeout(() => setPhase("exit"), HOLD_MS - EXIT_DURATION * 1000 - 200);
+    const t3 = setTimeout(onComplete, HOLD_MS);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, [onComplete]);
 
+  const isVisible = phase === "enter" || phase === "spin";
+
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden">
-      {/* Top two rows */}
-      <div className="flex min-h-0 flex-1 flex-col justify-around pt-4">
-        <PoppingRow delay={0.05}>
-          <CarouselRow src="/loreal/persona-sunglasses.png" direction="left" speed={20} />
-        </PoppingRow>
-        <PoppingRow delay={0.18}>
-          <CarouselRow src="/loreal/persona-watermelon.png" direction="right" speed={24} />
-        </PoppingRow>
-      </div>
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+      {/* Agent Astro — center, pops in then out */}
+      <motion.div
+        className="absolute z-30"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{
+          scale: isVisible ? 1 : 0,
+          opacity: isVisible ? 1 : 0,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 500,
+          damping: 25,
+          duration: EXIT_DURATION,
+        }}
+      >
+        <Image
+          src="/loreal/agent-astro.png"
+          alt="Agent Astro"
+          width={720}
+          height={720}
+          priority
+          className="h-auto select-none"
+          style={{ width: "min(36vw, 22vh)" }}
+        />
+      </motion.div>
 
-      {/* Headline band — own row in the flex column, never overlapped */}
-      <div className="flex shrink-0 items-center justify-center px-6 py-4">
-        <motion.h1
-          className="text-center font-bold leading-[0.95] tracking-tight text-[#001050]"
-          style={{
-            fontSize: "clamp(3rem, 13vw, 5rem)",
-            textShadow: "0 4px 24px rgba(255,255,255,0.6)",
-          }}
-          initial={{ opacity: 0, scale: 0.7, y: 16 }}
-          animate={{
-            opacity: 1,
-            scale: [0.7, 1.08, 1],
-            y: [16, -6, 4, -3, 0],
-          }}
-          transition={{
-            opacity: { duration: 0.45, ease: "easeOut", delay: 0.3 },
-            scale: {
-              duration: 0.55,
-              times: [0, 0.65, 1],
-              ease: [0.34, 1.56, 0.64, 1], // overshoot/back-out for the pop
-              delay: 0.3,
-            },
-            y: {
-              duration: 4,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatType: "mirror",
-              delay: 0.85,
-            },
-          }}
-        >
-          Glowing up!
-        </motion.h1>
-      </div>
+      {/* Sun ring — innermost, clockwise */}
+      <OrbitalRing
+        src="/loreal/icon-sun.png"
+        count={SUN_COUNT}
+        radius="min(26vw, 18vh)"
+        iconSize="min(11vw, 7vh)"
+        direction={1}
+        speed={18}
+        isVisible={isVisible}
+        delay={0.08}
+      />
 
-      {/* Bottom two rows */}
-      <div className="flex min-h-0 flex-1 flex-col justify-around pb-4">
-        <PoppingRow delay={0.42}>
-          <CarouselRow src="/loreal/persona-dewy.png" direction="left" speed={22} />
-        </PoppingRow>
-        <PoppingRow delay={0.54}>
-          <CarouselRow src="/loreal/persona-palm-sun.png" direction="right" speed={26} />
-        </PoppingRow>
-      </div>
+      {/* Water ring — middle, counter-clockwise */}
+      <OrbitalRing
+        src="/loreal/icon-water.png"
+        count={WATER_COUNT}
+        radius="min(42vw, 30vh)"
+        iconSize="min(13vw, 9vh)"
+        direction={-1}
+        speed={24}
+        isVisible={isVisible}
+        delay={0.16}
+      />
+
+      {/* Tree ring — outermost, clockwise */}
+      <OrbitalRing
+        src="/loreal/icon-tree.png"
+        count={TREE_COUNT}
+        radius="min(60vw, 42vh)"
+        iconSize="min(16vw, 11vh)"
+        direction={1}
+        speed={30}
+        isVisible={isVisible}
+        delay={0.24}
+      />
     </div>
   );
 }
 
-// Stagger-in wrapper that pops each carousel row in with a slight overshoot
-// scale + fade. The infinite horizontal scroll inside is unaffected.
-function PoppingRow({
-  children,
+function OrbitalRing({
+  src,
+  count,
+  radius,
+  iconSize,
+  direction,
+  speed,
+  isVisible,
   delay,
 }: {
-  children: ReactNode;
+  src: string;
+  count: number;
+  radius: string;
+  iconSize: string;
+  direction: 1 | -1;
+  speed: number;
+  isVisible: boolean;
   delay: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: 0.55,
-        ease: [0.34, 1.56, 0.64, 1],
-        delay,
+      className="absolute"
+      style={{
+        width: `calc(${radius} * 2)`,
+        height: `calc(${radius} * 2)`,
       }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function CarouselRow({
-  src,
-  direction,
-  speed,
-}: {
-  src: string;
-  direction: "left" | "right";
-  speed: number;
-}) {
-  const COUNT = 8;
-  const ICON = 96;
-  const GAP = 56;
-  const STRIDE = ICON + GAP;
-  const TRAVEL = COUNT * STRIDE;
-
-  return (
-    // overflow-x-clip lets the strip scroll horizontally without revealing
-    // off-screen copies, while leaving the vertical axis free so the bob
-    // animation isn't cut off at the row edges. Height scales with viewport
-    // height so 4 rows + headline always fit at 720h and phone portrait.
-    <div
-      className="relative overflow-x-clip"
-      style={{ height: "clamp(72px, 16vh, 120px)" }}
-    >
-      <motion.div
-        className="absolute top-1/2 left-0 flex -translate-y-1/2 items-center"
-        style={{ gap: `${GAP}px` }}
-        animate={{
-          x: direction === "left" ? [0, -TRAVEL] : [-TRAVEL, 0],
-        }}
-        transition={{
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{
+        scale: isVisible ? 1 : 0,
+        opacity: isVisible ? 1 : 0,
+        rotate: isVisible ? direction * 360 : 0,
+      }}
+      transition={{
+        scale: {
+          type: "spring",
+          stiffness: 400,
+          damping: 22,
+          delay: isVisible ? delay : 0,
+        },
+        opacity: {
+          duration: 0.3,
+          delay: isVisible ? delay : 0,
+        },
+        rotate: {
           duration: speed,
           ease: "linear",
           repeat: Infinity,
-        }}
-      >
-        {Array.from({ length: COUNT * 2 }).map((_, i) => (
-          <FloatingIcon
-            key={i}
-            src={src}
-            size={ICON}
-            bobDelay={(i % COUNT) * 0.25}
-          />
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
-function FloatingIcon({
-  src,
-  size,
-  bobDelay,
-}: {
-  src: string;
-  size: number;
-  bobDelay: number;
-}) {
-  return (
-    <motion.div
-      className="flex shrink-0 items-center justify-center"
-      style={{ width: size, height: size }}
-      animate={{ y: [0, -8, 0, 6, 0] }}
-      transition={{
-        duration: 3.2,
-        ease: "easeInOut",
-        repeat: Infinity,
-        delay: bobDelay,
+          delay: isVisible ? delay + 0.4 : 0,
+        },
       }}
     >
-      <Image
-        src={src}
-        alt=""
-        width={size * 2}
-        height={size * 2}
-        className="h-full w-full select-none object-contain"
-        unoptimized
-      />
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = (360 / count) * i;
+        return (
+          <div
+            key={i}
+            className="absolute left-1/2 top-1/2"
+            style={{
+              transform: `rotate(${angle}deg) translateY(-${radius}) rotate(-${angle}deg)`,
+              marginLeft: `calc(-${iconSize} / 2)`,
+              marginTop: `calc(-${iconSize} / 2)`,
+              width: iconSize,
+              height: iconSize,
+            }}
+          >
+            <Image
+              src={src}
+              alt=""
+              width={200}
+              height={200}
+              className="h-full w-full select-none object-contain"
+              unoptimized
+            />
+          </div>
+        );
+      })}
     </motion.div>
   );
 }
