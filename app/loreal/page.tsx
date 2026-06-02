@@ -90,7 +90,6 @@ function LorealContent() {
             background: SUN_TINTS[lv],
             opacity: activeTint === lv ? 1 : 0,
             transition: "opacity 900ms cubic-bezier(0.32,0.72,0,1)",
-            willChange: "opacity",
           }}
         />
       ))}
@@ -278,7 +277,7 @@ function DropletPreload() {
       style={{ left: -9999, top: -9999 }}
     >
       {sources.map((s) => (
-        <video key={s} muted playsInline preload="auto" tabIndex={-1}>
+        <video key={s} muted playsInline preload="metadata" tabIndex={-1}>
           <source src={`${s}.mp4`} type='video/mp4; codecs="hvc1"' />
           <source src={`${s}.webm`} type="video/webm" />
         </video>

@@ -180,17 +180,13 @@
      active  : the entire button glows (outer halo + inner edge highlight)
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
-/* Revolve: a single bright wedge follows the perimeter of the button by
-   rotating a conic-gradient mask. Using @property so the angle can be
-   animated smoothly (raw conic-gradient `from` is otherwise discrete). */
-@property --glassy-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
+/* Revolve: rotate the entire shimmer element so the conic-gradient's bright
+   wedge appears to orbit the button. A transform: rotate is GPU-composited
+   (no per-frame repaint), unlike the previous @property approach that forced
+   the browser to repaint the conic-gradient mask every frame. */
 @keyframes glassyRevolve {
   to {
-    --glassy-angle: 360deg;
+    transform: rotate(360deg);
   }
 }
 
@@ -239,19 +235,18 @@
   border-radius: inherit;
   mix-blend-mode: plus-lighter;
   pointer-events: none;
-  --glassy-angle: 0deg;
-  /* Conic mask: ~35% alpha all the way around (so the entire ring is always
-     glowing) with a bright peak that rises to full intensity in one wedge.
-     The wedge revolves as --glassy-angle is animated. */
+  /* Static conic mask — the bright wedge is fixed in the element's local
+     space. The entire element rotates via transform so the GPU handles it
+     with zero repaints. */
   -webkit-mask-image: conic-gradient(
-    from var(--glassy-angle),
+    from 0deg,
     rgba(0, 0, 0, 0.4) 0deg,
     rgba(0, 0, 0, 0.4) 220deg,
     rgba(0, 0, 0, 1) 320deg,
     rgba(0, 0, 0, 0.4) 360deg
   );
           mask-image: conic-gradient(
-    from var(--glassy-angle),
+    from 0deg,
     rgba(0, 0, 0, 0.4) 0deg,
     rgba(0, 0, 0, 0.4) 220deg,
     rgba(0, 0, 0, 1) 320deg,
@@ -261,6 +256,7 @@
           mask-repeat: no-repeat;
   -webkit-animation: glassyRevolve 3.2s linear infinite;
           animation: glassyRevolve 3.2s linear infinite;
+  will-change: transform;
 }
 
 .glassy-shimmer::before,
