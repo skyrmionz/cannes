@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useMotionValue, animate } from "motion/react";
-import Image from "next/image";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 import { useEffect, useMemo } from "react";
@@ -145,12 +144,14 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           }}
           whileTap={{ cursor: "grabbing" }}
         >
-          <Image
+          {/* Plain <img> (not next/image) so the 994×1040 source paints
+              directly at full resolution. next/image's optimizer compresses
+              to AVIF/WebP and quantizes the soft yellow gradient, which
+              produced visible banding/grain on the sun. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/loreal/icon-sun.png"
             alt="Sun"
-            width={400}
-            height={400}
-            priority
             draggable={false}
             className="select-none"
             style={{

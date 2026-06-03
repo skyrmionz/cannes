@@ -106,6 +106,12 @@ export function HydrationDroplet({
               webmSrc={`${src}.webm`}
               width="100%"
               className="block"
+              // Filter applied to the <video> element itself (not a wrapper
+              // div) so it only affects the video's pixel data — no
+              // rectangular halo on the transparent surroundings.
+              // Slight brightness + contrast lifts the muted look and masks
+              // HEVC alpha-compression grain.
+              filter="brightness(1.08) contrast(1.04) saturate(1.06)"
             />
           </div>
         );
@@ -173,7 +179,14 @@ function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
         preload="auto"
         onEnded={onEnded}
         className="block"
-        style={{ width: "100%", height: "auto" }}
+        style={{
+          width: "100%",
+          height: "auto",
+          // Same filter as idle videos so brightness/grain stay consistent
+          // across the idle → fill → idle handoff. Applied to the <video>
+          // pixels only (not a wrapper) so the transparent area stays clean.
+          filter: "brightness(1.08) contrast(1.04) saturate(1.06)",
+        }}
       >
         <source src={`${src}.mp4`} type='video/mp4; codecs="hvc1"' />
         <source src={`${src}.webm`} type="video/webm" />

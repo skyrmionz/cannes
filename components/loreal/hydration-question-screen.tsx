@@ -83,13 +83,26 @@ export function LorealHydrationQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — stacked up/down glass buttons on the left, droplet on the right */}
+      {/* Body — droplet centered in the body; up/down buttons absolutely
+          positioned on the left so they don't shift the droplet's center. */}
       <div
         ref={bodyRef}
-        className="relative flex min-h-0 flex-1 items-center justify-center gap-6 px-8"
+        className="relative flex min-h-0 flex-1 items-center justify-center"
       >
-        {/* Stacked level buttons */}
-        <div className="flex shrink-0 flex-col items-center gap-3">
+        {/* Droplet — centered in the body region */}
+        <HydrationDroplet
+          width={`${dropletPx}px`}
+          level={level}
+          phase={phase}
+          fromLevel={fromLevel}
+          toLevel={toLevel}
+          onTransitionEnd={onTransitionEnd}
+        />
+
+        {/* Stacked level buttons — absolutely pinned to the left edge,
+            vertically centered. Outside the centering flow so they don't
+            push the droplet right. */}
+        <div className="absolute left-6 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-4">
           <LevelButton
             direction="up"
             disabled={!canGoUp}
@@ -99,18 +112,6 @@ export function LorealHydrationQuestionScreen({
             direction="down"
             disabled={!canGoDown}
             onClick={() => goToLevel((level - 1) as DropletLevel)}
-          />
-        </div>
-
-        {/* Droplet */}
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <HydrationDroplet
-            width={`${dropletPx}px`}
-            level={level}
-            phase={phase}
-            fromLevel={fromLevel}
-            toLevel={toLevel}
-            onTransitionEnd={onTransitionEnd}
           />
         </div>
       </div>
@@ -181,7 +182,12 @@ function LevelButton({
   disabled: boolean;
   onClick: () => void;
 }) {
-  const path = direction === "up" ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6";
+  // Full arrows (shaft + head), not bare chevrons. Drawn vertically so the
+  // up arrow points up and the down arrow points down, like ↑ / ↓.
+  const path =
+    direction === "up"
+      ? "M12 20 L12 6 M5 13 L12 6 L19 13"
+      : "M12 4 L12 18 M5 11 L12 18 L19 11";
   const gradientId = `hydration-arrow-${direction}`;
   return (
     <motion.button
@@ -190,15 +196,15 @@ function LevelButton({
       disabled={disabled}
       whileHover={!disabled ? { scale: 1.06 } : undefined}
       whileTap={!disabled ? { scale: 0.94 } : undefined}
-      className="relative grid place-items-center rounded-3xl disabled:cursor-not-allowed"
+      className="relative grid place-items-center rounded-[28px] disabled:cursor-not-allowed"
       style={{
-        width: 72,
-        height: 72,
+        width: 110,
+        height: 110,
         background: "rgba(255,255,255,0.45)",
         boxShadow: [
           "0 0 0 1px rgba(255,255,255,0.7) inset",
           "0 1px 0 rgba(255,255,255,0.85) inset",
-          "0 10px 26px rgba(120,160,220,0.22)",
+          "0 12px 30px rgba(120,160,220,0.25)",
         ].join(", "),
         WebkitBackdropFilter: "blur(14px) saturate(150%)",
         backdropFilter: "blur(14px) saturate(150%)",
@@ -209,8 +215,8 @@ function LevelButton({
     >
       {/* SVG with linear blue gradient stroke */}
       <svg
-        width="40"
-        height="40"
+        width="68"
+        height="68"
         viewBox="0 0 24 24"
         fill="none"
         aria-hidden
