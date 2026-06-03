@@ -13,30 +13,42 @@ interface Props {
   onChange: (next: AgendaIndex) => void;
 }
 
+type Corner = "tl" | "tr" | "bl" | "br";
+
 const OPTIONS: ReadonlyArray<{
   title: string;
   body: string;
   image: string;
+  imageCorner: Corner;
+  imageScale: number; // size of the image relative to card width
 }> = [
   {
     title: "Packed",
     body: "Panels, meetings, parties, repeat.",
     image: "/loreal/agenda-packed.png",
+    imageCorner: "br",
+    imageScale: 0.7,
   },
   {
     title: "Curated",
     body: "I know exactly which parties are worth my time.",
     image: "/loreal/agenda-curated.png",
+    imageCorner: "br",
+    imageScale: 0.6,
   },
   {
-    title: "Spontaneous.",
+    title: "Spontaneous",
     body: "I'll see what kind of trouble I can find.",
     image: "/loreal/agenda-spontaneous.png",
+    imageCorner: "br",
+    imageScale: 0.7,
   },
   {
-    title: "Salesforce Forever.",
+    title: "Salesforce Forever",
     body: "Please don't make me leave this beach.",
     image: "/loreal/agenda-salesforce-forever.png",
+    imageCorner: "bl",
+    imageScale: 0.65,
   },
 ];
 
@@ -82,16 +94,27 @@ export function LorealAgendaQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — 2x2 grid of cards + hint below. min-h-0 lets the grid
-          shrink to fit between header and footer. */}
-      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-4">
-        <div className="grid min-h-0 w-full flex-1 grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
+      {/* Body — 2x2 grid of shorter cards + hint below. Cards are
+          intentionally rectangular (wider than tall) with generous gap
+          and outer breathing room so each card reads as a distinct chip. */}
+      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-5 px-8 py-4">
+        <div
+          className="grid w-full grid-cols-2 gap-5 sm:gap-6"
+          style={{
+            // Rows are auto-sized — cards take their content height (set
+            // by aspect ratio on the card itself), not fill the body. This
+            // gives the breathing room the user asked for.
+            gridAutoRows: "min-content",
+          }}
+        >
           {OPTIONS.map((opt, i) => (
             <AgendaCard
               key={opt.title}
               title={opt.title}
               body={opt.body}
               image={opt.image}
+              imageCorner={opt.imageCorner}
+              imageScale={opt.imageScale}
               selected={value === i}
               onClick={() => onChange(i as AgendaIndex)}
             />
@@ -175,15 +198,27 @@ function AgendaCard({
   title,
   body,
   image,
+  imageCorner,
+  imageScale,
   selected,
   onClick,
 }: {
   title: string;
   body: string;
   image: string;
+  imageCorner: Corner;
+  imageScale: number;
   selected: boolean;
   onClick: () => void;
 }) {
+  // Image positioning per corner. Translate by 25% of its own size off the
+  // card edge so it visually clips into the card's rounded corner.
+  const cornerStyle: Record<Corner, React.CSSProperties> = {
+    tl: { top: 0, left: 0, transform: "translate(-22%, -22%)" },
+    tr: { top: 0, right: 0, transform: "translate(22%, -22%)" },
+    bl: { bottom: 0, left: 0, transform: "translate(-22%, 22%)" },
+    br: { bottom: 0, right: 0, transform: "translate(22%, 22%)" },
+  };
   return (
     <motion.button
       type="button"
@@ -191,8 +226,11 @@ function AgendaCard({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 320, damping: 26 }}
-      className="relative flex h-full w-full flex-col overflow-hidden rounded-[24px] text-left"
+      className="relative w-full overflow-hidden rounded-[28px] text-left"
       style={{
+        // Rectangular: wider than tall, like the reference mockup. 4:3 keeps
+        // the cards short enough to leave room for the hint and footer.
+        aspectRatio: "4 / 3",
         background: "linear-gradient(180deg, #FFFFFF 0%, #EAF3FE 100%)",
         boxShadow: [
           "0 0 0 1px rgba(0,16,80,0.08)",
@@ -201,16 +239,34 @@ function AgendaCard({
         ].join(", "),
       }}
     >
-      {/* Animated gradient border — sits as an absolutely-positioned layer
-          behind the card body. When selected, its 4px ring shows through
-          the card's inner padding. */}
+      {/* Image — anchored to a specific corner and translated past the
+          edge so the card's overflow-hidden clips it into the rounded
+          corner. Painted under the text via z-0. */}
+      <div
+        className="pointer-events-none absolute z-0"
+        style={{
+          ...cornerStyle[imageCorner],
+          width: `${imageScale * 100}%`,
+          aspectRatio: "1 / 1",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={image}
+          alt=""
+          draggable={false}
+          className="h-full w-full select-none object-contain"
+          style={{ objectPosition: cornerToObjectPosition(imageCorner) }}
+        />
+      </div>
+
+      {/* Animated gradient border ring */}
       {selected && (
         <span
           aria-hidden
-          className="agenda-selected-gradient pointer-events-none absolute inset-0 rounded-[24px]"
+          className="agenda-selected-gradient pointer-events-none absolute inset-0 z-30 rounded-[28px]"
           style={{
             padding: 4,
-            // mask: keep only the 4px outer ring visible
             WebkitMask:
               "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
             WebkitMaskComposite: "xor",
@@ -219,68 +275,73 @@ function AgendaCard({
         />
       )}
 
-      {/* Title + subtitle — top section. Sized to match the reference
-          mockup: chunky card titles, body copy almost half the title size. */}
+      {/* Title + body — pushed down and right so they don't sit jammed
+          against the corner. Larger type per reference mockup. */}
       <div
-        className="relative z-10 shrink-0 px-4 pt-4 sm:px-5 sm:pt-5"
-        style={{ color: "#001050" }}
+        className="relative z-10 flex h-full flex-col"
+        style={{
+          color: "#001050",
+          paddingTop: "clamp(1.1rem, 4.5%, 2rem)",
+          paddingLeft: "clamp(1.1rem, 5%, 2rem)",
+          paddingRight: "clamp(1rem, 4%, 1.5rem)",
+        }}
       >
         <h2
           className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.65rem)" }}
+          style={{ fontSize: "clamp(1.4rem, min(5.4vw, 3.8vh), 2.2rem)" }}
         >
           {title}
         </h2>
         <p
           className="mt-2 font-bold leading-[1.2] tracking-tight"
           style={{
-            fontSize: "clamp(0.78rem, min(2.7vw, 1.85vh), 1.05rem)",
+            fontSize: "clamp(0.9rem, min(3.2vw, 2.2vh), 1.25rem)",
             opacity: 0.85,
+            // Constrain body width so it doesn't run into the corner image
+            maxWidth: "70%",
           }}
         >
           {body}
         </p>
       </div>
 
-      {/* Image — fills the entire bottom region of the card. Plain <img>
-          (not next/image) so the 273×273 source paints directly without
-          AVIF quantization, which was producing visible grain on the
-          smooth 3D-render backgrounds. */}
-      <div className="relative mt-1 min-h-0 flex-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full select-none object-contain object-bottom"
-        />
-      </div>
-
       {/* Confirmation check — top-right, gradient-filled when selected */}
       {selected && (
         <motion.div
-          className="pointer-events-none absolute right-3 top-3 z-20 grid place-items-center rounded-full"
+          className="pointer-events-none absolute right-3 top-3 z-40 grid place-items-center rounded-full"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 420, damping: 22 }}
           style={{
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             boxShadow:
               "0 0 0 2px #FFFFFF, 0 6px 14px rgba(15,84,200,0.45)",
           }}
         >
-          {/* Animated gradient disc — same keyframe as the ring */}
           <span
             aria-hidden
             className="agenda-selected-gradient absolute inset-0 rounded-full"
           />
           <Check
-            className="relative h-4 w-4 text-white"
+            className="relative h-5 w-5 text-white"
             strokeWidth={3.5}
           />
         </motion.div>
       )}
     </motion.button>
   );
+}
+
+function cornerToObjectPosition(corner: Corner): string {
+  switch (corner) {
+    case "tl":
+      return "left top";
+    case "tr":
+      return "right top";
+    case "bl":
+      return "left bottom";
+    case "br":
+      return "right bottom";
+  }
 }
