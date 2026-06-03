@@ -71,8 +71,9 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
+          className="relative"
           style={{
-            width: "min(60vw, 32vh)",
+            width: "min(82vw, 44vh)",
             marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
             marginBottom: "0.25rem",
           }}
@@ -83,6 +84,20 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             alt="OOO"
             draggable={false}
             className="h-auto w-full select-none"
+          />
+          {/* Tiny crab perched on the sand in front of the OOO */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/loreal/crab.png"
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute select-none"
+            style={{
+              width: "14%",
+              left: "50%",
+              bottom: "-6%",
+              transform: "translateX(-50%)",
+            }}
           />
         </motion.div>
         <HeadlineWord

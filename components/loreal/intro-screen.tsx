@@ -19,16 +19,16 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   // interior width (cheeks reach both sides). The wrapper uses inset-3 +
   // overflow-hidden + rounded-[40px] so the glass card's top edge becomes
   // the clip line — Astro's top is cut off by the glass container itself.
-  const astroSize = "min(190vw, 120vh)";
+  const astroSize = "min(220vw, 138vh)";
 
   return (
     <div className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px]">
       {/* Astro icon — oversized, clipped by the glass card top. Pulled down
-          so the chin/mouth area is visible. */}
+          further so more of the face is visible inside the card. */}
       <motion.div
         className="relative flex w-full shrink-0 justify-center"
         style={{
-          marginTop: `calc(${astroSize} * -0.28)`,
+          marginTop: `calc(${astroSize} * -0.20)`,
         }}
         initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -53,24 +53,12 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
         }}
       >
-        <motion.h1
-          className="shrink-0 whitespace-nowrap font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "min(8vw, 5.2vh)" }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-        >
-          Coucou,
-          <br />
-          I&apos;m Agent Astro.
-        </motion.h1>
-
-        {/* Wave divider — tinted to match the CTA button blue */}
+        {/* Wave divider — sits directly above the Coucou heading */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="mt-10 mb-8 shrink-0 px-2"
+          className="mb-6 shrink-0 px-2"
           style={{ width: "min(80vw, 36vh)" }}
         >
           <Image
@@ -86,9 +74,21 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Body copy */}
+        <motion.h1
+          className="shrink-0 whitespace-nowrap font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "min(8vw, 5.2vh)" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+        >
+          Coucou,
+          <br />
+          I&apos;m Agent Astro.
+        </motion.h1>
+
+        {/* Body copy — sits directly under "I'm Agent Astro." */}
         <motion.p
-          className="mt-8 shrink-0 leading-snug text-[#001050]/85"
+          className="mt-4 shrink-0 leading-snug text-[#001050]/85"
           style={{
             fontSize: "min(5vw, 2.4vh)",
             maxWidth: "min(85vw, 42rem)",
