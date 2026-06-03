@@ -95,9 +95,9 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             className="pointer-events-none absolute select-none"
             style={{
               width: "7%",
-              left: "78%",
-              bottom: "2%",
-              transform: "rotate(-12deg)",
+              left: "67%",
+              bottom: "12%",
+              transform: "rotate(12deg)",
               transformOrigin: "center bottom",
             }}
           />
