@@ -32,7 +32,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         style={{
           top: "calc(-1 * min(22vw, 14vh))",
           right: "calc(-1 * min(8vw, 5vh))",
-          width: "min(120vw, 100vh)",
+          width: "min(105vw, 88vh)",
           transformOrigin: "100% 100%",
         }}
         initial={{ opacity: 0 }}
