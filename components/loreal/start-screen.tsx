@@ -43,8 +43,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         <img
           src="/loreal/umbrella.png"
           alt=""
-          width={1080}
-          height={1920}
+          width={1060}
+          height={956}
           draggable={false}
           className="h-auto w-full select-none"
         />
@@ -71,8 +71,11 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
-          className="my-2"
-          style={{ width: "min(60vw, 32vh)" }}
+          style={{
+            width: "min(60vw, 32vh)",
+            marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
+            marginBottom: "0.25rem",
+          }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
