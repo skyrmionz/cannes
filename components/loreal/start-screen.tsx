@@ -85,7 +85,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="h-auto w-full select-none"
           />
-          {/* Tiny crab perched on the sand in front of the OOO */}
+          {/* Tiny crab perched on the sand divet in front of the right O,
+              tilted slightly so it doesn't sit dead-flat. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/loreal/crab.png"
@@ -93,10 +94,11 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="pointer-events-none absolute select-none"
             style={{
-              width: "14%",
-              left: "50%",
-              bottom: "-6%",
-              transform: "translateX(-50%)",
+              width: "7%",
+              left: "78%",
+              bottom: "2%",
+              transform: "rotate(-12deg)",
+              transformOrigin: "center bottom",
             }}
           />
         </motion.div>
