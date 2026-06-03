@@ -31,8 +31,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
           top: "calc(-1 * min(22vw, 14vh))",
-          right: "calc(-1 * min(24vw, 14vh))",
-          width: "min(105vw, 88vh)",
+          right: "calc(-1 * min(8vw, 5vh))",
+          width: "min(120vw, 100vh)",
           transformOrigin: "100% 100%",
         }}
         initial={{ opacity: 0 }}
