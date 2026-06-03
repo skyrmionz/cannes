@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import Image from "next/image";
 import { Check } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
 
@@ -36,7 +35,7 @@ const OPTIONS: ReadonlyArray<{
   },
   {
     title: "Salesforce Forever.",
-    body: "Please don't make me leave the booth.",
+    body: "Please don't make me leave this beach.",
     image: "/loreal/agenda-salesforce-forever.png",
   },
 ];
@@ -83,9 +82,10 @@ export function LorealAgendaQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — 2x2 grid of cards. min-h-0 lets the grid shrink to fit. */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-6 py-4">
-        <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
+      {/* Body — 2x2 grid of cards + hint below. min-h-0 lets the grid
+          shrink to fit between header and footer. */}
+      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-4">
+        <div className="grid min-h-0 w-full flex-1 grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
           {OPTIONS.map((opt, i) => (
             <AgendaCard
               key={opt.title}
@@ -97,6 +97,19 @@ export function LorealAgendaQuestionScreen({
             />
           ))}
         </div>
+
+        {/* Hint — two centered lines, matching the sun/hydration hint style */}
+        <motion.p
+          className="shrink-0 text-center font-bold leading-tight tracking-tight text-[#001050]/60"
+          style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+        >
+          Select
+          <br />
+          and click next
+        </motion.p>
       </div>
 
       {/* Footer — glassy Back + Next text buttons (matching other questions) */}
@@ -206,21 +219,22 @@ function AgendaCard({
         />
       )}
 
-      {/* Title + subtitle — top section */}
+      {/* Title + subtitle — top section. Sized to match the reference
+          mockup: chunky card titles, body copy almost half the title size. */}
       <div
-        className="relative z-10 shrink-0 px-3 pt-3 sm:px-4 sm:pt-4"
+        className="relative z-10 shrink-0 px-4 pt-4 sm:px-5 sm:pt-5"
         style={{ color: "#001050" }}
       >
         <h2
           className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(0.95rem, min(3.4vw, 2.4vh), 1.4rem)" }}
+          style={{ fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.65rem)" }}
         >
           {title}
         </h2>
         <p
-          className="mt-1 font-bold leading-[1.2] tracking-tight"
+          className="mt-2 font-bold leading-[1.2] tracking-tight"
           style={{
-            fontSize: "clamp(0.7rem, min(2.4vw, 1.6vh), 0.95rem)",
+            fontSize: "clamp(0.78rem, min(2.7vw, 1.85vh), 1.05rem)",
             opacity: 0.85,
           }}
         >
@@ -228,15 +242,17 @@ function AgendaCard({
         </p>
       </div>
 
-      {/* Image — fills the entire bottom region of the card */}
+      {/* Image — fills the entire bottom region of the card. Plain <img>
+          (not next/image) so the 273×273 source paints directly without
+          AVIF quantization, which was producing visible grain on the
+          smooth 3D-render backgrounds. */}
       <div className="relative mt-1 min-h-0 flex-1">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={image}
           alt=""
-          fill
-          sizes="(max-width: 768px) 50vw, 320px"
-          className="select-none object-contain object-bottom"
           draggable={false}
+          className="absolute inset-0 h-full w-full select-none object-contain object-bottom"
         />
       </div>
 
