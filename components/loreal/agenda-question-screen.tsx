@@ -47,7 +47,7 @@ const OPTIONS: ReadonlyArray<{
     title: "Salesforce Forever",
     body: "Please don't make me leave this beach.",
     image: "/loreal/agenda-salesforce-forever.png",
-    imageCorner: "bl",
+    imageCorner: "br",
     imageScale: 0.65,
   },
 ];
