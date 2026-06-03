@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useAnimation } from "motion/react";
 import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 
@@ -106,12 +106,12 @@ export function HydrationDroplet({
               webmSrc={`${src}.webm`}
               width="100%"
               className="block"
-              // Filter applied to the <video> element itself (not a wrapper
-              // div) so it only affects the video's pixel data — no
-              // rectangular halo on the transparent surroundings.
-              // Slight brightness + contrast lifts the muted look and masks
-              // HEVC alpha-compression grain.
-              filter="brightness(1.08) contrast(1.04) saturate(1.06)"
+              // Brightness only (no contrast/saturate). Contrast in
+              // particular amplifies frame-to-frame chroma differences in
+              // the HEVC alpha encode, which reads as a faint pulse on
+              // the low-idle loop. Plain brightness lifts the look without
+              // that side-effect.
+              filter="brightness(1.07)"
             />
           </div>
         );
@@ -150,11 +150,21 @@ interface FillVideoProps {
 // Permanently-mounted fill video. Plays from frame 0 each time it becomes
 // active. Stays hidden otherwise. Never has its src reassigned, so there's
 // no load() reset → no blank frame on click.
+//
+// Click-flash fix: previously this used useEffect, which runs AFTER paint.
+// On activation, the browser would paint one frame of whatever state the
+// <video> was last left in (typically its end frame = the destination
+// state). Switching to useLayoutEffect reseats currentTime=0 before paint
+// so the first visible frame is always the source state.
+//
+// We also rewind to 0 immediately after `ended` fires (in addition to
+// onEnded's bubble-up), so even if Safari paints a frame during the
+// hide/linger handoff, that frame is the source — never the destination.
 function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const wasActive = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const v = ref.current;
     if (!v) return;
     if (active && !wasActive.current) {
@@ -177,16 +187,23 @@ function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
         muted
         playsInline
         preload="auto"
-        onEnded={onEnded}
-        className="block"
-        style={{
-          width: "100%",
-          height: "auto",
-          // Same filter as idle videos so brightness/grain stay consistent
-          // across the idle → fill → idle handoff. Applied to the <video>
-          // pixels only (not a wrapper) so the transparent area stays clean.
-          filter: "brightness(1.08) contrast(1.04) saturate(1.06)",
+        onEnded={(e) => {
+          // Rewind immediately so the video's resting frame becomes the
+          // source state, not the destination. Combined with the
+          // useLayoutEffect on activation, this guarantees no destination
+          // flash on the next click.
+          const v = e.currentTarget;
+          try {
+            v.pause();
+            v.currentTime = 0;
+          } catch {
+            /* ignore */
+          }
+          onEnded();
         }}
+        className="block"
+        // No filter on fill videos — user wants brightness only on idles.
+        style={{ width: "100%", height: "auto" }}
       >
         <source src={`${src}.mp4`} type='video/mp4; codecs="hvc1"' />
         <source src={`${src}.webm`} type="video/webm" />
