@@ -67,11 +67,21 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           delay={0.7}
           fontSize="min(18vw, 10vh)"
         />
-        <HeadlineWord
-          text="OOO"
-          delay={0.85}
-          fontSize="min(18vw, 10vh)"
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
+          className="my-2"
+          style={{ width: "min(60vw, 32vh)" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/loreal/ooo-beachy.png"
+            alt="OOO"
+            draggable={false}
+            className="h-auto w-full select-none"
+          />
+        </motion.div>
         <HeadlineWord
           text="Status"
           delay={1.0}

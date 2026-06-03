@@ -10,7 +10,7 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   useEffect(() => {
-    const timer = setTimeout(onComplete, 3200);
+    const timer = setTimeout(onComplete, 4000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -54,7 +54,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
             className="h-full rounded-full bg-[#C8A96E]"
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
-            transition={{ duration: 3, ease: "easeInOut" }}
+            transition={{ duration: 3.8, ease: "easeInOut" }}
           />
         </div>
     </div>
