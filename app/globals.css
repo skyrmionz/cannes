@@ -275,14 +275,8 @@
   text-shadow: 0 1px 1px rgba(0, 16, 80, 0.45);
 }
 
-/* Animated blue gradient — used by the selected agenda card's outline
-   and its checkmark. Background-size 200% so the gradient slides instead
-   of stretching. Same palette as the hydration progress-bar fill. */
-@keyframes agendaSelectedSweep {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+/* Static blue gradient — used by the selected agenda card's outline
+   and its checkmark. Same palette as the hydration progress-bar fill. */
 .agenda-selected-gradient {
   background: linear-gradient(
     120deg,
@@ -291,6 +285,4 @@
     #0F3B8C 65%,
     #1A6CF0 100%
   );
-  background-size: 200% 200%;
-  animation: agendaSelectedSweep 3s ease-in-out infinite;
 }

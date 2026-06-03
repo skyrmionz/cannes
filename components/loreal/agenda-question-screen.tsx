@@ -211,13 +211,12 @@ function AgendaCard({
   selected: boolean;
   onClick: () => void;
 }) {
-  // Image positioning per corner. Translate by 25% of its own size off the
-  // card edge so it visually clips into the card's rounded corner.
+  // Image sits flush against the card's corner, fully visible inside the card.
   const cornerStyle: Record<Corner, React.CSSProperties> = {
-    tl: { top: 0, left: 0, transform: "translate(-22%, -22%)" },
-    tr: { top: 0, right: 0, transform: "translate(22%, -22%)" },
-    bl: { bottom: 0, left: 0, transform: "translate(-22%, 22%)" },
-    br: { bottom: 0, right: 0, transform: "translate(22%, 22%)" },
+    tl: { top: 0, left: 0 },
+    tr: { top: 0, right: 0 },
+    bl: { bottom: 0, left: 0 },
+    br: { bottom: 0, right: 0 },
   };
   return (
     <motion.button
@@ -228,9 +227,7 @@ function AgendaCard({
       transition={{ type: "spring", stiffness: 320, damping: 26 }}
       className="relative w-full overflow-hidden rounded-[28px] text-left"
       style={{
-        // Rectangular: wider than tall, like the reference mockup. 4:3 keeps
-        // the cards short enough to leave room for the hint and footer.
-        aspectRatio: "4 / 3",
+        aspectRatio: "1 / 1",
         background: "linear-gradient(180deg, #FFFFFF 0%, #EAF3FE 100%)",
         boxShadow: [
           "0 0 0 1px rgba(0,16,80,0.08)",
