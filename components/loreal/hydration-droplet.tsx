@@ -157,9 +157,11 @@ interface FillVideoProps {
 // state). Switching to useLayoutEffect reseats currentTime=0 before paint
 // so the first visible frame is always the source state.
 //
-// We also rewind to 0 immediately after `ended` fires (in addition to
-// onEnded's bubble-up), so even if Safari paints a frame during the
-// hide/linger handoff, that frame is the source — never the destination.
+// IMPORTANT: do NOT rewind on `ended`. The linger window depends on the
+// fill staying parked on its last (destination) frame so the destination
+// idle has time to paint underneath. If we rewind in onEnded, the fill
+// flashes its source frame during linger — exactly the "previous level
+// flashes" bug. Resetting currentTime=0 before next activation is enough.
 function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const wasActive = useRef(false);
@@ -187,20 +189,7 @@ function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
         muted
         playsInline
         preload="auto"
-        onEnded={(e) => {
-          // Rewind immediately so the video's resting frame becomes the
-          // source state, not the destination. Combined with the
-          // useLayoutEffect on activation, this guarantees no destination
-          // flash on the next click.
-          const v = e.currentTarget;
-          try {
-            v.pause();
-            v.currentTime = 0;
-          } catch {
-            /* ignore */
-          }
-          onEnded();
-        }}
+        onEnded={onEnded}
         className="block"
         // No filter on fill videos — user wants brightness only on idles.
         style={{ width: "100%", height: "auto" }}
