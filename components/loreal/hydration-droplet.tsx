@@ -191,8 +191,10 @@ function FillVideo({ src, active, lingering, onEnded }: FillVideoProps) {
         preload="auto"
         onEnded={onEnded}
         className="block"
-        // No filter on fill videos — user wants brightness only on idles.
-        style={{ width: "100%", height: "auto" }}
+        // Tiny brightness lift on fills too so they don't read dimmer than
+        // the slightly-brightened idles. Kept lower than the idle filter
+        // (1.04 vs 1.07) so the diff isn't perceptible at handoff.
+        style={{ width: "100%", height: "auto", filter: "brightness(1.04)" }}
       >
         <source src={`${src}.mp4`} type='video/mp4; codecs="hvc1"' />
         <source src={`${src}.webm`} type="video/webm" />

@@ -1,11 +1,9 @@
 "use client";
 
-import { motion, useMotionValue, animate } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { motion } from "motion/react";
 import Image from "next/image";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
-import { useElementSize } from "@/lib/use-element-size";
 
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
@@ -19,27 +17,27 @@ interface Props {
 const OPTIONS: ReadonlyArray<{
   title: string;
   body: string;
-  Icon: () => ReactNode;
+  image: string;
 }> = [
   {
     title: "Packed",
     body: "Panels, meetings, parties, repeat.",
-    Icon: CoffeeCupIcon,
+    image: "/loreal/agenda-packed.png",
   },
   {
     title: "Curated",
     body: "I know exactly which parties are worth my time.",
-    Icon: SparkleIcon,
+    image: "/loreal/agenda-curated.png",
   },
   {
     title: "Spontaneous.",
     body: "I'll see what kind of trouble I can find.",
-    Icon: WavesIcon,
+    image: "/loreal/agenda-spontaneous.png",
   },
   {
-    title: "Salesforce Forever",
+    title: "Salesforce Forever.",
     body: "Please don't make me leave the booth.",
-    Icon: CloudIcon,
+    image: "/loreal/agenda-salesforce-forever.png",
   },
 ];
 
@@ -49,67 +47,6 @@ export function LorealAgendaQuestionScreen({
   value,
   onChange,
 }: Props) {
-  const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-
-  // The card that's currently centered in the carousel. Independent of `value`
-  // (which only mutates when the user explicitly confirms a card via tap).
-  // Seed from `value` so returning to the screen lands on the saved choice.
-  const [centerIdx, setCenterIdx] = useState<AgendaIndex>(value ?? 0);
-
-  // Card geometry — width is a fraction of body width so the next card peeks
-  // ~10% from each side. Cap at 480px so cards stay reasonably sized on large
-  // monitors (without the cap, 1920px viewport produced 1500px cards that
-  // misproportioned the icon/text and clipped against the body height).
-  const cardW = Math.min(Math.max(220, bodySize.w * 0.78), 480);
-  const gap = Math.max(16, bodySize.w * 0.04);
-  const stride = cardW + gap;
-  const cardH = Math.min(
-    Math.max(280, cardW * 1.25),
-    Math.max(280, bodySize.h - 80),
-  );
-
-  // Carousel x — negative offsets shift cards left. Stop i sits at -stride * i,
-  // with a centering shift so the active card is centered in the body.
-  const centerOffset = bodySize.w > 0 ? (bodySize.w - cardW) / 2 : 0;
-  const x = useMotionValue(0);
-
-  const stopFor = (i: number) => centerOffset - stride * i;
-
-  // Sync motion value to the current center index whenever geometry shifts.
-  useEffect(() => {
-    x.set(stopFor(centerIdx));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodySize.w, bodySize.h, centerIdx]);
-
-  const goTo = (i: AgendaIndex) => {
-    setCenterIdx(i);
-    animate(x, stopFor(i), {
-      type: "spring",
-      stiffness: 380,
-      damping: 36,
-    });
-  };
-
-  const onDragEnd = (
-    _e: unknown,
-    info: { velocity: { x: number; y: number } },
-  ) => {
-    const current = x.get();
-    // Velocity-aware snap: a flick should advance by one card even if the drag
-    // distance is small, so add a fraction of the velocity to the projection.
-    const projected = current + info.velocity.x * 0.18;
-    let best: AgendaIndex = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < OPTIONS.length; i++) {
-      const d = Math.abs(stopFor(i) - projected);
-      if (d < bestDist) {
-        bestDist = d;
-        best = i as AgendaIndex;
-      }
-    }
-    goTo(best);
-  };
-
   const handleNext = () => {
     if (value === null) return;
     onNext();
@@ -122,17 +59,19 @@ export function LorealAgendaQuestionScreen({
         <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
           className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
+          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 2.8rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
         >
-          What&apos;s your Cannes agenda like?
+          What&apos;s your Cannes
+          <br />
+          agenda like?
         </motion.h1>
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.6vh), 1.3rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -140,100 +79,52 @@ export function LorealAgendaQuestionScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4, ease: "easeOut" }}
         >
-          Let&apos;s make sure you&apos;re protected from skin damage.
+          This is what ties it all together.
         </motion.p>
       </div>
 
-      {/* Body — carousel + dots. Centered via flex so vertically balanced
-          regardless of header/footer height. */}
-      <div
-        ref={bodyRef}
-        className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
-      >
-        <div
-          className="relative w-full overflow-visible"
-          style={{ height: cardH }}
-        >
-          <motion.div
-            className="absolute top-0 left-0 flex h-full"
-            style={{ x, gap: `${gap}px`, touchAction: "pan-y" }}
-            drag="x"
-            dragMomentum={false}
-            dragElastic={0.18}
-            onDragEnd={onDragEnd}
-          >
-            {OPTIONS.map((opt, i) => {
-              const isCenter = i === centerIdx;
-              const isConfirmed = value === i;
-              return (
-                <AgendaCard
-                  key={opt.title}
-                  width={cardW}
-                  height={cardH}
-                  active={isCenter}
-                  confirmed={isConfirmed}
-                  title={opt.title}
-                  body={opt.body}
-                  Icon={opt.Icon}
-                  cardW={cardW}
-                  onClick={() => {
-                    if (i === centerIdx) {
-                      // Tap on the centered card commits the selection.
-                      onChange(i as AgendaIndex);
-                    } else {
-                      goTo(i as AgendaIndex);
-                    }
-                  }}
-                />
-              );
-            })}
-          </motion.div>
-        </div>
-
-        {/* Dots indicator */}
-        <div className="mt-4 flex items-center gap-2">
-          {OPTIONS.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Go to option ${i + 1}`}
-              onClick={() => goTo(i as AgendaIndex)}
-              className="rounded-full transition-all"
-              style={{
-                width: i === centerIdx ? 24 : 8,
-                height: 8,
-                background:
-                  i === centerIdx ? "#001050" : "rgba(0,16,80,0.28)",
-              }}
+      {/* Body — 2x2 grid of cards. min-h-0 lets the grid shrink to fit. */}
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-6 py-4">
+        <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
+          {OPTIONS.map((opt, i) => (
+            <AgendaCard
+              key={opt.title}
+              title={opt.title}
+              body={opt.body}
+              image={opt.image}
+              selected={value === i}
+              onClick={() => onChange(i as AgendaIndex)}
             />
           ))}
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer — glassy Back + Next text buttons (matching other questions) */}
       <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
         <motion.button
           type="button"
           onClick={onBack}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="grid h-14 w-14 place-items-center rounded-full"
+          className="rounded-full font-semibold text-[#001050] tracking-tight"
           style={{
-            background: "rgba(255,255,255,0.55)",
+            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
+            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
+            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
+            background: "rgba(255,255,255,0.45)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.7) inset",
-              "0 1px 0 rgba(255,255,255,0.85) inset",
-              "0 8px 18px rgba(120,160,220,0.25)",
+              "0 0 0 1px rgba(255,255,255,0.6) inset",
+              "0 1px 0 rgba(255,255,255,0.8) inset",
+              "0 8px 24px rgba(120,160,220,0.2)",
             ].join(", "),
-            WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            backdropFilter: "blur(10px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            backdropFilter: "blur(12px) saturate(140%)",
           }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          aria-label="Back"
         >
-          <ChevronLeft className="h-6 w-6 text-[#001050]" strokeWidth={3} />
+          Back
         </motion.button>
         <motion.button
           type="button"
@@ -241,27 +132,26 @@ export function LorealAgendaQuestionScreen({
           disabled={value === null}
           whileHover={value !== null ? { scale: 1.04 } : undefined}
           whileTap={value !== null ? { scale: 0.96 } : undefined}
-          className="grid h-14 w-14 place-items-center rounded-full disabled:cursor-not-allowed"
+          className="rounded-full font-semibold text-[#001050] tracking-tight disabled:cursor-not-allowed"
           style={{
-            background: "rgba(255,255,255,0.55)",
+            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
+            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
+            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
+            background: "rgba(255,255,255,0.45)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.7) inset",
-              "0 1px 0 rgba(255,255,255,0.85) inset",
-              "0 8px 18px rgba(120,160,220,0.25)",
+              "0 0 0 1px rgba(255,255,255,0.6) inset",
+              "0 1px 0 rgba(255,255,255,0.8) inset",
+              "0 8px 24px rgba(120,160,220,0.2)",
             ].join(", "),
-            WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            backdropFilter: "blur(10px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            backdropFilter: "blur(12px) saturate(140%)",
             opacity: value !== null ? 1 : 0.4,
           }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: value !== null ? 1 : 0.4, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          aria-label="Next"
         >
-          <ChevronRight
-            className="h-6 w-6 text-[#001050]"
-            strokeWidth={3}
-          />
+          Next
         </motion.button>
       </div>
     </div>
@@ -269,175 +159,112 @@ export function LorealAgendaQuestionScreen({
 }
 
 function AgendaCard({
-  width,
-  height,
-  active,
-  confirmed,
   title,
   body,
-  Icon,
-  cardW,
+  image,
+  selected,
   onClick,
 }: {
-  width: number;
-  height: number;
-  active: boolean;
-  confirmed: boolean;
   title: string;
   body: string;
-  Icon: () => ReactNode;
-  cardW: number;
+  image: string;
+  selected: boolean;
   onClick: () => void;
 }) {
-  // Inner sizing scales with the card itself, not the viewport. With viewport-
-  // relative clamps, large monitors made the inside of small (capped) cards
-  // misproportioned and clipped. Anchor padding/typography/icon to cardW.
-  const padPx = Math.max(20, Math.min(cardW * 0.07, 36));
-  const titleFs = Math.max(20, Math.min(cardW * 0.11, 42));
-  const bodyFs = Math.max(14, Math.min(cardW * 0.065, 24));
-  const iconW = Math.max(60, cardW * 0.4);
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      animate={{
-        scale: active ? 1 : 0.92,
-        opacity: active ? 1 : 0.6,
-      }}
-      transition={{ type: "spring", stiffness: 260, damping: 26 }}
-      className="relative shrink-0 overflow-hidden rounded-[28px] text-left"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 320, damping: 26 }}
+      className="relative flex h-full w-full flex-col overflow-hidden rounded-[24px] text-left"
       style={{
-        width,
-        height,
         background: "linear-gradient(180deg, #FFFFFF 0%, #EAF3FE 100%)",
         boxShadow: [
-          confirmed
-            ? "0 0 0 4px #1A6CF0"
-            : "0 0 0 1px rgba(0,16,80,0.08)",
-          "0 18px 40px rgba(120,160,220,0.20)",
+          "0 0 0 1px rgba(0,16,80,0.08)",
+          "0 14px 30px rgba(120,160,220,0.18)",
           "0 1px 0 rgba(255,255,255,0.9) inset",
         ].join(", "),
       }}
     >
+      {/* Animated gradient border — sits as an absolutely-positioned layer
+          behind the card body. When selected, its 4px ring shows through
+          the card's inner padding. */}
+      {selected && (
+        <span
+          aria-hidden
+          className="agenda-selected-gradient pointer-events-none absolute inset-0 rounded-[24px]"
+          style={{
+            padding: 4,
+            // mask: keep only the 4px outer ring visible
+            WebkitMask:
+              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude",
+          }}
+        />
+      )}
+
+      {/* Title + subtitle — top section */}
       <div
-        className="flex h-full flex-col"
-        style={{ padding: `${padPx}px` }}
+        className="relative z-10 shrink-0 px-3 pt-3 sm:px-4 sm:pt-4"
+        style={{ color: "#001050" }}
       >
         <h2
-          className="font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: `${titleFs}px` }}
+          className="font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "clamp(0.95rem, min(3.4vw, 2.4vh), 1.4rem)" }}
         >
           {title}
         </h2>
         <p
-          className="mt-4 font-bold leading-[1.2] tracking-tight text-[#001050]"
-          style={{ fontSize: `${bodyFs}px` }}
+          className="mt-1 font-bold leading-[1.2] tracking-tight"
+          style={{
+            fontSize: "clamp(0.7rem, min(2.4vw, 1.6vh), 0.95rem)",
+            opacity: 0.85,
+          }}
         >
           {body}
         </p>
-        <div className="mt-auto flex items-end">
-          <div
-            className="text-[#001050]"
-            style={{ width: `${iconW}px`, aspectRatio: "1 / 1" }}
-          >
-            <Icon />
-          </div>
-        </div>
       </div>
 
-      {/* Confirm ring overlay — pulsing inner highlight when confirmed. */}
-      {confirmed && (
-        <motion.div
-          className="pointer-events-none absolute inset-0 rounded-[28px]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.0, 0.55, 0.0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-          style={{ boxShadow: "0 0 0 8px rgba(26,108,240,0.18) inset" }}
+      {/* Image — fills the entire bottom region of the card */}
+      <div className="relative mt-1 min-h-0 flex-1">
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="(max-width: 768px) 50vw, 320px"
+          className="select-none object-contain object-bottom"
+          draggable={false}
         />
-      )}
+      </div>
 
-      {/* Confirmation check mark — top right corner of the selected card. */}
-      {confirmed && (
+      {/* Confirmation check — top-right, gradient-filled when selected */}
+      {selected && (
         <motion.div
-          className="pointer-events-none absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full"
+          className="pointer-events-none absolute right-3 top-3 z-20 grid place-items-center rounded-full"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            type: "spring",
-            stiffness: 420,
-            damping: 22,
-          }}
+          transition={{ type: "spring", stiffness: 420, damping: 22 }}
           style={{
-            background:
-              "linear-gradient(180deg, #4E90F7 0%, #1A6CF0 60%, #0F54C8 100%)",
+            width: 32,
+            height: 32,
             boxShadow:
               "0 0 0 2px #FFFFFF, 0 6px 14px rgba(15,84,200,0.45)",
           }}
         >
-          <Check className="h-5 w-5 text-white" strokeWidth={3.5} />
+          {/* Animated gradient disc — same keyframe as the ring */}
+          <span
+            aria-hidden
+            className="agenda-selected-gradient absolute inset-0 rounded-full"
+          />
+          <Check
+            className="relative h-4 w-4 text-white"
+            strokeWidth={3.5}
+          />
         </motion.div>
       )}
     </motion.button>
-  );
-}
-
-// Inline SVG icons mirroring the provided refs. All filled in #001050.
-
-function CoffeeCupIcon() {
-  return (
-    <svg
-      viewBox="0 0 64 48"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-full w-full"
-    >
-      <path d="M4 6 H44 C44 26 36 42 30 42 H18 C12 42 4 26 4 6 Z" />
-      <path d="M44 12 H50 A8 8 0 0 1 50 28 H46" />
-    </svg>
-  );
-}
-
-function SparkleIcon() {
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-full w-full"
-    >
-      <path d="M32 4 L40 24 L60 32 L40 40 L32 60 L24 40 L4 32 L24 24 Z" />
-    </svg>
-  );
-}
-
-function WavesIcon() {
-  return (
-    <Image
-      src="/loreal/icon-spontaneous.png"
-      alt=""
-      width={400}
-      height={250}
-      className="h-full w-full select-none object-contain object-left-bottom"
-      draggable={false}
-    />
-  );
-}
-
-function CloudIcon() {
-  return (
-    <Image
-      src="/loreal/icon-salesforce.png"
-      alt=""
-      width={400}
-      height={300}
-      className="h-full w-full select-none object-contain object-left-bottom"
-      draggable={false}
-    />
   );
 }
