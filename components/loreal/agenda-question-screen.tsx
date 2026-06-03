@@ -69,8 +69,8 @@ export function LorealAgendaQuestionScreen({
       <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
-          className="mt-8 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 2.8rem)" }}
+          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -82,7 +82,7 @@ export function LorealAgendaQuestionScreen({
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.6vh), 1.3rem)",
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
