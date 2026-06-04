@@ -55,18 +55,19 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         we&rsquo;ll create your away status together.
       </motion.p>
 
-      {/* Center region: wave equidistant between subtitle bottom and Astro top.
-          Two equal flex-1 spacers around the wave force that spacing; a bigger
-          spacer below Astro absorbs the rest of the available height. */}
+      {/* Center region: tight gap between subtitle/wave/Astro */}
       <div className="flex flex-1 min-h-0 w-full flex-col items-center">
-        <div className="min-h-0 flex-1" />
-        {/* Wave divider */}
+        {/* Wave divider — small fixed gap below the subtitle */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
           className="shrink-0 px-2"
-          style={{ width: "min(34vw, 18vh)" }}
+          style={{
+            width: "min(34vw, 18vh)",
+            marginTop: "clamp(0.75rem, 2vh, 1.5rem)",
+            marginBottom: "clamp(0.75rem, 2vh, 1.5rem)",
+          }}
         >
           <Image
             src="/loreal/divider-line.png"
@@ -80,15 +81,14 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             }}
           />
         </motion.div>
-        <div className="min-h-0 flex-1" />
 
-        {/* Astro — full image, large, centered */}
+        {/* Astro — slightly smaller than before */}
         <motion.div
           className="flex shrink-0 min-h-0 justify-center"
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{ width: "min(75vw, 50vh)" }}
+          style={{ width: "min(68vw, 46vh)" }}
         >
           <Image
             src="/loreal/agent-astro.png"
