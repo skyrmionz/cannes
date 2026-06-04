@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 type StopIndex = 0 | 1 | 2;
 
@@ -68,16 +68,14 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     return pts.join(" ");
   }, [pathW, verticalSpan]);
 
-  // x is the source of truth — drag controls x; y is derived from x via the
-  // plateau function so the sun always sits on the curve.
+  // x = drag-controlled position in pathW pixels. We rescale it when
+  // pathW changes so the sun stays at the correct fractional position
+  // across remounts / resizes.
   const x = useMotionValue<number>(0);
   const y = useTransform(x, (xv) => {
     const t = pathW > 0 ? Math.max(0, Math.min(1, xv / pathW)) : 0;
     return -plateau(t) * verticalSpan;
   });
-
-  // Continuous progress value (0..1) used to drive glow intensity smoothly
-  // as the user drags, even between stops.
   const progress = useTransform(x, (xv) => {
     const t = pathW > 0 ? Math.max(0, Math.min(1, xv / pathW)) : 0;
     return plateau(t);
@@ -126,25 +124,37 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   const stopTs = useMemo(() => [0, inversePlateau(0.5), 1], []);
   const stopXs = useMemo(() => stopTs.map((t) => t * pathW), [stopTs, pathW]);
 
-  // Initialise / reset x when geometry changes or the controlled value updates
-  // from outside (e.g. coming back from another screen).
-  const lastBodyW = useRef(0);
-  useEffect(() => {
-    if (bodyW !== lastBodyW.current) {
+  // Whenever pathW changes (mount, resize, remount), preserve the sun's
+  // *fractional* position. Use useLayoutEffect so the rescale happens
+  // before paint and we never see a one-frame flash with the sun at the
+  // wrong absolute pixel.
+  const prevPathW = useRef(0);
+  useLayoutEffect(() => {
+    if (pathW <= 0) return;
+    const cur = x.get();
+    const prev = prevPathW.current;
+    if (prev <= 0) {
+      // First mount with a real measurement — snap to the controlled value.
       x.set(stopXs[value]);
-      lastBodyW.current = bodyW;
+    } else if (Math.abs(prev - pathW) > 0.5) {
+      // Geometry changed — keep the same fractional position.
+      const t = Math.max(0, Math.min(1, cur / prev));
+      x.set(t * pathW);
     }
+    prevPathW.current = pathW;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyW, bodyH]);
+  }, [pathW]);
 
-  // External value change → animate to new stop.
+  // External value change → animate to new stop. Skipped while pathW
+  // hasn't been measured yet (would set x to a stale 0).
   useEffect(() => {
+    if (pathW <= 0) return;
     const target = stopXs[value];
     if (Math.abs(x.get() - target) > 1) {
       animate(x, target, { duration: 0.5, ease: [0.32, 0.72, 0, 1] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, pathW]);
+  }, [value]);
 
   const goToStop = (i: StopIndex) => {
     onChange(i);
@@ -196,9 +206,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         </motion.p>
       </div>
 
-      {/* Body — exponential-plateau curve with a draggable sun riding it. */}
+      {/* Body — exponential-plateau curve with a draggable sun riding it.
+          We don't paint the curve / stops / sun until pathW has been
+          measured so the user never sees stops at a flooredfallback width. */}
       <div ref={bodyRef} className="relative min-h-0 flex-1">
-        {/* SVG curve — the visible track */}
+        {bodyW > 0 && (
         <svg
           aria-hidden
           className="absolute pointer-events-none"
@@ -221,15 +233,15 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           </defs>
           <path
             d={pathD}
-            stroke="rgba(255,255,255,0.7)"
-            strokeWidth={18}
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth={28}
             fill="none"
             strokeLinecap="round"
           />
           <motion.path
             d={pathD}
             stroke="url(#sun-track-gradient)"
-            strokeWidth={10}
+            strokeWidth={20}
             fill="none"
             strokeLinecap="round"
             pathLength={1}
@@ -237,9 +249,10 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             style={{ strokeDashoffset: trackFill }}
           />
         </svg>
+        )}
 
         {/* Stop markers — show the three snap points */}
-        {([0, 1, 2] as const).map((i) => {
+        {bodyW > 0 && ([0, 1, 2] as const).map((i) => {
           const t = stopTs[i];
           return (
             <div
@@ -263,7 +276,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         })}
 
         {/* Tap zones for the three stops */}
-        {([0, 1, 2] as const).map((i) => {
+        {bodyW > 0 && ([0, 1, 2] as const).map((i) => {
           const t = stopTs[i];
           return (
             <button
@@ -310,7 +323,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             scale: sunScale,
             cursor: "grab",
             filter: sunFilter,
-            willChange: "transform, filter",
+            willChange: "transform",
           }}
           whileTap={{ cursor: "grabbing" }}
         >

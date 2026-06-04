@@ -26,7 +26,7 @@ type Step =
   | "agentforce"
   | "persona";
 
-const FULL_BLEED_STEPS: ReadonlyArray<Step> = ["vibing", "agentforce", "persona"];
+const FULL_BLEED_STEPS: ReadonlyArray<Step> = ["vibing", "agentforce"];
 
 const LOREAL_GRADIENT =
   "linear-gradient(180deg, #90D0FE 0%, #EAF5FE 62.02%, #FBF3E0 100%)";

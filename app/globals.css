@@ -194,8 +194,11 @@
    Recolored to our blue palette from buttons.cool/button/BaeZJqd (simeydotme). */
 
 @keyframes glassyRevolve {
+  from {
+    transform: translate3d(-50%, -50%, 0) rotate(0deg);
+  }
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: translate3d(-50%, -50%, 0) rotate(360deg);
   }
 }
 

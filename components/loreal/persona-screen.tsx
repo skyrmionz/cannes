@@ -2,9 +2,7 @@
 
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
-import { GlassyButton } from "./glassy-button";
 import {
   type SunStop,
   type HydrationLevel,
@@ -27,7 +25,7 @@ export function LorealPersonaScreen({
   agendaIndex,
   onFinish,
 }: Props) {
-  const { persona, qrUrl } = useMemo(() => {
+  const { qrUrl } = useMemo(() => {
     const p = getPersona(sunStop, hydrationLevel, agendaIndex);
     const code = generateResultCode();
     const encoded = encodeLorealResult({
@@ -41,107 +39,130 @@ export function LorealPersonaScreen({
     const origin =
       typeof window !== "undefined" ? window.location.origin : "";
     return {
-      persona: p,
       qrUrl: `${origin}/loreal/result/${encoded}`,
     };
   }, [sunStop, hydrationLevel, agendaIndex]);
 
-  const subtitleStyle = {
-    fontSize: "clamp(0.8rem, min(2.8vw, 1.9vh), 1.05rem)",
-    fontFamily:
-      'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-  } as const;
-
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-5 pt-5 pb-10 text-[#001050] sm:px-6 sm:pt-7 sm:pb-14">
-      {/* Top spacer — pushes the persona text down so the
-          title + description sit closer to the icon. */}
-      <div className="min-h-0 flex-1" />
-
-      <motion.h1
-        className="shrink-0 text-center font-bold leading-[1.05] tracking-tight"
-        style={{ fontSize: "clamp(1.25rem, min(6vw, 4.5vh), 2.6rem)" }}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-      >
-        Your persona is{" "}
-        <span className="whitespace-nowrap">{persona.name}.</span>
-      </motion.h1>
-
-      <motion.p
-        className="mt-2 w-full max-w-2xl shrink-0 text-center leading-snug text-[#001050]/80"
-        style={subtitleStyle}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.22, duration: 0.5, ease: "easeOut" }}
-      >
-        {persona.description}
-      </motion.p>
-
-      {/* Icon — anchored in the visual center via balanced flex-1 spacers. */}
+    <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px] text-[#001050]">
+      {/* Palm tree — anchored top-left, fronds reach top-right. The base
+          stays still while the top sways slightly. transform-origin pinned
+          to the bottom of the image so motion only shows up near the canopy. */}
       <motion.div
-        className="relative mt-3 flex shrink-0 items-center justify-center"
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
+        aria-hidden
+        className="pointer-events-none absolute z-10 select-none"
+        style={{
+          top: 0,
+          left: 0,
+          width: "100%",
+          transformOrigin: "50% 100%",
+        }}
+        animate={{ rotate: [-0.9, 0.9, -0.9] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <motion.div
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Image
-            src="/loreal/sunscreen-tube.png"
-            alt="L'Oréal sunscreen"
-            width={720}
-            height={720}
-            priority
-            draggable={false}
-            className="h-auto select-none"
-            style={{ width: "min(48vw, 28vh)" }}
-          />
-        </motion.div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/loreal/persona-palm.png"
+          alt=""
+          draggable={false}
+          className="block h-auto w-full select-none"
+        />
       </motion.div>
 
-      {/* QR block — message on top, QR below, both centered. Same subtitle
-          font formatting as the persona description above the icon. */}
-      <motion.div
-        className="mt-3 flex w-full max-w-md shrink-0 flex-col items-center text-center"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
-      >
-        <p
-          className="leading-snug text-[#001050]/80"
-          style={subtitleStyle}
+      {/* Tap-anywhere reset — large invisible button covers the whole card so
+          a brand ambassador (or kiosk auto-reset) can advance without a CTA
+          breaking the marketing comp. */}
+      <button
+        type="button"
+        aria-label="Finish"
+        onClick={onFinish}
+        className="absolute inset-0 z-0 cursor-default"
+        style={{ background: "transparent" }}
+      />
+
+      {/* Content stack */}
+      <div className="relative z-20 flex h-full w-full flex-col items-center px-6 pt-6 pb-8">
+        {/* Spacer so title clears the palm fronds */}
+        <div
+          aria-hidden
+          className="shrink-0"
+          style={{ height: "clamp(7rem, 22vh, 14rem)" }}
+        />
+
+        <motion.h1
+          className="shrink-0 text-center font-bold leading-[1.05] tracking-tight"
+          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 2.8rem)" }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
         >
-          Scan this QR code and show it to one of our Brand Ambassadors for
-          your L&rsquo;Oréal gift!
-        </p>
-        <div className="mt-3 grid place-items-center rounded-2xl bg-white p-3">
-          <QRCodeSVG
-            value={qrUrl}
-            size={120}
-            bgColor="#FFFFFF"
-            fgColor="#001050"
-            level="M"
-          />
+          Your personal
+          <br />
+          OOO status is
+          <br />
+          one step away
+        </motion.h1>
+
+        {/* QR + crab cluster, vertically centered in the slack region */}
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+          <motion.div
+            className="relative flex flex-col items-center"
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
+          >
+            {/* Crab — perched on top edge of the QR card, centered, upright */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/loreal/crab.png"
+              alt=""
+              draggable={false}
+              className="pointer-events-none relative z-10 select-none"
+              style={{
+                width: "clamp(60px, 14vw, 110px)",
+                marginBottom: "clamp(-22px, -3vh, -16px)",
+              }}
+            />
+
+            {/* QR card */}
+            <div
+              className="grid place-items-center rounded-[28px] bg-white"
+              style={{
+                padding: "clamp(14px, 3vw, 22px)",
+                boxShadow: [
+                  "0 0 0 1px rgba(0,16,80,0.06)",
+                  "0 18px 40px rgba(120,160,220,0.22)",
+                ].join(", "),
+              }}
+            >
+              <QRCodeSVG
+                value={qrUrl}
+                size={220}
+                bgColor="#FFFFFF"
+                fgColor="#001050"
+                level="M"
+              />
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
 
-      {/* Bottom spacer — mirrors the top so the icon stays vertically centered. */}
-      <div className="min-h-0 flex-1" />
-
-      <motion.div
-        className="mt-4 shrink-0"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7, duration: 0.4 }}
-      >
-        <GlassyButton onClick={onFinish} delay={0}>
-          Finish Up
-        </GlassyButton>
-      </motion.div>
+        <motion.p
+          className="shrink-0 max-w-md text-center leading-snug text-[#001050]"
+          style={{
+            fontSize: "clamp(1rem, min(4.2vw, 2.6vh), 1.3rem)",
+            fontFamily:
+              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            fontWeight: 500,
+            marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
+          }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+        >
+          Scan this QR code and show it to our Brand Ambassadors to pick up
+          your gift.
+        </motion.p>
+      </div>
     </div>
   );
 }
