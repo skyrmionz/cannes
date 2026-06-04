@@ -103,12 +103,13 @@ export function LorealPersonaScreen({
           shell as the other screens. The palm above paints OVER this and
           over the glass card edge. */}
       <div className="absolute inset-3 z-20 flex flex-col items-center overflow-hidden rounded-[40px] px-6 pb-8">
-        {/* Spacer so the title clears the palm fronds and sits lower
-            on the screen, like the start screen's headline. */}
+        {/* Spacer so the title clears the palm fronds with breathing room
+            (taller than the previous 32vh because the fronds reach further
+            down into the card than the umbrella does). */}
         <div
           aria-hidden
           className="shrink-0"
-          style={{ height: "clamp(11rem, 32vh, 22rem)" }}
+          style={{ height: "clamp(13rem, 38vh, 26rem)" }}
         />
 
         <motion.h1
@@ -165,22 +166,23 @@ export function LorealPersonaScreen({
             />
           </div>
 
-          {/* Caption — directly under the QR */}
+          {/* Caption — directly under the QR, two lines max, smaller. */}
           <motion.p
             className="shrink-0 max-w-md text-center leading-snug text-[#001050]"
             style={{
-              fontSize: "min(5.2vw, 2.8vh)",
+              fontSize: "min(3.6vw, 2vh)",
               fontFamily:
                 'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
               fontWeight: 500,
-              marginTop: "clamp(1rem, 3vh, 2rem)",
+              marginTop: "clamp(0.85rem, 2.5vh, 1.5rem)",
             }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
           >
-            Scan this QR code and show it to our Brand Ambassadors to pick
-            up your gift.
+            Scan this QR code and show it to our Brand
+            <br />
+            Ambassadors to pick up your gift.
           </motion.p>
         </motion.div>
       </div>
