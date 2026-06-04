@@ -55,18 +55,18 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         we&rsquo;ll create your away status together.
       </motion.p>
 
-      {/* Center region: wave + Astro, vertically centered between subtitle and CTA */}
-      <div className="flex flex-1 min-h-0 w-full flex-col items-center justify-center">
-        {/* Wave divider — directly above Astro */}
+      {/* Center region: wave equidistant between subtitle bottom and Astro top.
+          Two equal flex-1 spacers around the wave force that spacing; a bigger
+          spacer below Astro absorbs the rest of the available height. */}
+      <div className="flex flex-1 min-h-0 w-full flex-col items-center">
+        <div className="min-h-0 flex-1" />
+        {/* Wave divider */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
           className="shrink-0 px-2"
-          style={{
-            width: "min(34vw, 18vh)",
-            marginBottom: "clamp(1rem, 3vh, 2rem)",
-          }}
+          style={{ width: "min(34vw, 18vh)" }}
         >
           <Image
             src="/loreal/divider-line.png"
@@ -80,6 +80,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             }}
           />
         </motion.div>
+        <div className="min-h-0 flex-1" />
 
         {/* Astro — full image, large, centered */}
         <motion.div
@@ -103,7 +104,10 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
       {/* CTA */}
       <div
         className="shrink-0 flex justify-center"
-        style={{ paddingBottom: "clamp(2.5rem, 7vh, 5rem)" }}
+        style={{
+          marginTop: "clamp(1rem, 3vh, 2rem)",
+          paddingBottom: "clamp(4rem, 12vh, 8rem)",
+        }}
       >
         <GlassyButton onClick={onStart} delay={0.85}>
           Let&apos;s go

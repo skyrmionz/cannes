@@ -76,9 +76,9 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             width: "min(82vw, 44vh)",
             marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
             marginBottom: "0.25rem",
-            // Source PNG's visible content is ~2.2% right of pixel center;
-            // shift left so it optically centers with "Find your" / "Status".
-            transform: "translateX(-2.2%)",
+            // Source PNG's three O centers sit at avg x=470.7 in an 898-wide
+            // canvas (center=449), i.e. +2.4% right. Shift left to compensate.
+            transform: "translateX(-2.4%)",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -123,8 +123,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* CTA — sits closer to the tagline (less top padding) */}
-      <div className="relative z-10 shrink-0 pt-2 pb-2">
+      {/* CTA — pushed up via mb-auto on the powered-by below; the explicit
+          margin-bottom here adds breathing room above powered-by. */}
+      <div
+        className="relative z-10 shrink-0"
+        style={{ marginBottom: "clamp(2rem, 6vh, 5rem)" }}
+      >
         <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
 
