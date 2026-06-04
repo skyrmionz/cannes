@@ -22,7 +22,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   return (
     <div
       className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px] text-[#001050]"
-      style={{ paddingTop: "clamp(2rem, 6vh, 4rem)" }}
+      style={{ paddingTop: "clamp(3.5rem, 10vh, 6rem)" }}
     >
       {/* Title */}
       <motion.h1
@@ -65,8 +65,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           className="shrink-0 px-2"
           style={{
             width: "min(34vw, 18vh)",
-            marginTop: "clamp(0.75rem, 2vh, 1.5rem)",
-            marginBottom: "clamp(0.75rem, 2vh, 1.5rem)",
+            marginTop: "clamp(1.5rem, 4.5vh, 3rem)",
+            marginBottom: "clamp(1.5rem, 4.5vh, 3rem)",
           }}
         >
           <Image
