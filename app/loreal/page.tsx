@@ -98,6 +98,11 @@ function LorealContent() {
           so the hydration screen is paint-ready by the time the user lands. */}
       <DropletPreload />
 
+      {/* Vibing-screen warm-up — decode the orbital ring icons + Astro before
+          we transition into the loading screen so the cross-zoom doesn't
+          stutter on the first paint. */}
+      <VibingPreload />
+
       {/* Persistent glass card — stays static while content transitions.
           Hidden on full-bleed screens (vibing buffer, agentforce buffer,
           persona reveal) so they read against the gradient directly. */}
@@ -263,6 +268,30 @@ function LorealContent() {
 // Without this, the first fill the user triggers (typically low → mid)
 // stutters because preload="auto" inside HydrationDroplet only kicks in
 // once the screen mounts.
+// Decode the orbital ring images so the loading screen doesn't jitter
+// on first paint. Images warm up in the browser image cache once the
+// L'Oréal flow mounts (i.e. while the user is on the start/intro screens).
+function VibingPreload() {
+  const images: ReadonlyArray<string> = [
+    "/loreal/agent-astro.png",
+    "/loreal/icon-sun.png",
+    "/loreal/icon-beach-chair.png",
+    "/loreal/icon-tree.png",
+  ];
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0"
+      style={{ left: -9999, top: -9999 }}
+    >
+      {images.map((s) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img key={s} src={s} alt="" decoding="async" loading="eager" />
+      ))}
+    </div>
+  );
+}
+
 function DropletPreload() {
   const sources: ReadonlyArray<string> = [
     "/loreal/droplet-low-idle",

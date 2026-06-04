@@ -14,62 +14,96 @@ interface Props {
   onChange: (next: StopIndex) => void;
 }
 
+// Exponential-plateau curve: y(t) = 1 - exp(-k*t), normalized to [0,1].
+// Larger k → faster initial rise, longer plateau toward the end. The curve
+// gives the path a gentle hump on the left and flattens out to the right.
+const PLATEAU_K = 3.4;
+function plateau(t: number): number {
+  const norm = 1 - Math.exp(-PLATEAU_K);
+  return (1 - Math.exp(-PLATEAU_K * t)) / norm;
+}
+
+// Glow intensity per stop. Stop 0 = subtle, stop 2 = brightest.
+const SUN_GLOWS: Record<StopIndex, string> = {
+  0: [
+    "0 0 24px rgba(255,210,140,0.35)",
+    "0 0 60px rgba(255,200,120,0.18)",
+  ].join(", "),
+  1: [
+    "0 0 40px rgba(255,210,120,0.55)",
+    "0 0 110px rgba(255,200,100,0.35)",
+    "0 0 180px rgba(255,180,80,0.2)",
+  ].join(", "),
+  2: [
+    "0 0 60px rgba(255,225,150,0.85)",
+    "0 0 140px rgba(255,200,100,0.7)",
+    "0 0 240px rgba(255,170,60,0.5)",
+    "0 0 360px rgba(255,150,40,0.3)",
+  ].join(", "),
+};
+
 export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
+  const bodyW = bodySize.w;
   const bodyH = bodySize.h;
 
-  // The bar fills the body area. Sun stops at bottom, middle, and top of bar.
-  const barH = Math.max(100, bodyH * 0.75);
-  const barPad = 0;
-  const travelH = barH;
+  // Path geometry. The plateau spans most of the body width, with side
+  // padding so the sun never gets clipped. Vertical span is the curve's
+  // travel — sun starts low-left and ends high-right.
+  const sidePad = 80;
+  const pathW = Math.max(160, bodyW - sidePad * 2);
+  const verticalSpan = Math.max(120, bodyH * 0.55);
 
-  // Sun is very large
+  // Sun size scales off body height but stays smaller than before so it
+  // sits cleanly on the curve.
   const sunPx = useMemo(
-    () => Math.max(180, Math.min(bodyH * 0.58, 450)),
+    () => Math.max(140, Math.min(bodyH * 0.42, 360)),
     [bodyH],
   );
 
-  // Clamp the topmost stop so the sun's top edge can't drift above the body
-  // band (which would push it into / above the header on shorter viewports).
-  // Sun center natural position (y=0) sits at bar bottom = (bodyH + barH)/2
-  // from body top. At stop i, center moves up by stopPositions[i]. Keep the
-  // top of the sun at least 16px below body top.
-  const maxStopUp = Math.max(0, (bodyH + barH) / 2 - sunPx / 2 - 16);
-  const stop2 = Math.min(travelH, maxStopUp);
-  const stop1 = stop2 * 0.5;
-  const stopPositions = [0, stop1, stop2] as const;
-  const y = useMotionValue<number>(0);
+  // Compute the (x, y) of each stop along the plateau curve. Stop 0 is the
+  // left/low end; stop 2 is the right/high (plateau) end. y is measured
+  // from the curve's baseline upward — final CSS uses these as offsets
+  // from the body's bottom-center.
+  const stopXs = [0, 0.5, 1].map((t) => t * pathW);
+  const stopYs = [0, 0.5, 1].map((t) => plateau(t) * verticalSpan);
+
+  // Path baseline anchor (bottom of the curve at the left edge of pathW).
+  // The path is centered horizontally; baseline sits ~10% above body bottom
+  // so the sun at stop 0 doesn't sit directly on the body's edge.
+  const baselineFromBottom = bodyH * 0.18;
+  const pathLeft = (bodyW - pathW) / 2;
+
+  // Build the SVG path for the curve (used both for the visible line and as
+  // the trajectory the sun rides on).
+  const samples = 64;
+  const pathD = useMemo(() => {
+    const pts: string[] = [];
+    for (let i = 0; i <= samples; i++) {
+      const t = i / samples;
+      const x = t * pathW;
+      const yVal = plateau(t) * verticalSpan;
+      pts.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)} ${(verticalSpan - yVal).toFixed(2)}`);
+    }
+    return pts.join(" ");
+  }, [pathW, verticalSpan]);
+
+  // x and y motion values — animated together when the user picks a stop.
+  // CSS y is +down; we want the sun to rise as the stop increases, so we
+  // store the negative of the curve height.
+  const x = useMotionValue<number>(stopXs[0]);
+  const y = useMotionValue<number>(-stopYs[0]);
 
   useEffect(() => {
-    y.set(-stopPositions[value]);
+    x.set(stopXs[value]);
+    y.set(-stopYs[value]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyH]);
+  }, [bodyW, bodyH]);
 
   const goToStop = (i: StopIndex) => {
     onChange(i);
-    animate(y, -stopPositions[i], {
-      duration: 0.55,
-      ease: [0.32, 0.72, 0, 1],
-    });
-  };
-
-  const handleDragEnd = () => {
-    const current = y.get();
-    let closest: StopIndex = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < stopPositions.length; i++) {
-      const d = Math.abs(-stopPositions[i] - current);
-      if (d < bestDist) {
-        bestDist = d;
-        closest = i as StopIndex;
-      }
-    }
-    goToStop(closest);
-  };
-
-  const dragBounds = {
-    top: -stopPositions[2],
-    bottom: -stopPositions[0],
+    animate(x, stopXs[i], { duration: 0.6, ease: [0.32, 0.72, 0, 1] });
+    animate(y, -stopYs[i], { duration: 0.6, ease: [0.32, 0.72, 0, 1] });
   };
 
   return (
@@ -103,63 +137,136 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         </motion.p>
       </div>
 
-      {/* Body — vertical white bar with draggable sun. The sun's center
-          is clamped to the bar's top and bottom edges. */}
-      <div ref={bodyRef} className="relative min-h-0 flex-1 flex items-center justify-center">
-        {/* White vertical progress bar */}
-        <div
-          className="relative rounded-full"
+      {/* Body — exponential-plateau path with a draggable sun riding it.
+          The sun travels left→right and rises along the curve, with three
+          discrete snap stops. Glow intensity tracks the stop. */}
+      <div ref={bodyRef} className="relative min-h-0 flex-1">
+        {/* SVG curve — the visible track */}
+        <svg
+          aria-hidden
+          className="absolute pointer-events-none"
           style={{
-            width: 32,
-            height: barH,
-            background: "rgba(255, 255, 255, 0.7)",
-            boxShadow:
-              "0 0 0 1px rgba(255,255,255,0.8) inset, 0 4px 16px rgba(120,160,220,0.15)",
+            left: pathLeft,
+            bottom: baselineFromBottom,
+            width: pathW,
+            height: verticalSpan,
+            overflow: "visible",
           }}
+          viewBox={`0 0 ${pathW} ${verticalSpan}`}
+          preserveAspectRatio="none"
         >
-          {/* Fill — grows from the bottom up to the sun position */}
-          <div
-            className="absolute bottom-0 left-0 right-0 rounded-full transition-all duration-500 ease-out"
+          <defs>
+            <linearGradient id="sun-track-gradient" x1="0" y1="0" x2={pathW} y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="rgba(255,210,150,0.55)" />
+              <stop offset="60%" stopColor="rgba(255,180,90,0.85)" />
+              <stop offset="100%" stopColor="rgba(255,140,40,1)" />
+            </linearGradient>
+          </defs>
+          {/* Track shadow / base */}
+          <path
+            d={pathD}
+            stroke="rgba(255,255,255,0.7)"
+            strokeWidth={18}
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Track fill up to the sun */}
+          <path
+            d={pathD}
+            stroke="url(#sun-track-gradient)"
+            strokeWidth={10}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={1}
+            pathLength={1}
             style={{
-              height: `${((value / 2) * 100)}%`,
-              background:
-                "linear-gradient(180deg, rgba(255,160,30,0.9) 0%, rgba(255,200,80,0.5) 100%)",
+              strokeDasharray: 1,
+              strokeDashoffset: 1 - value / 2,
+              transition: "stroke-dashoffset 600ms cubic-bezier(0.32,0.72,0,1)",
             }}
           />
-        </div>
+        </svg>
 
-        {/* Sun icon — draggable along the bar. Anchored so its CENTER aligns
-            with the bar bottom at stop 0, bar middle at stop 1, bar top at stop 2. */}
-        <motion.div
-          className="absolute z-40"
-          drag="y"
-          dragConstraints={dragBounds}
-          dragElastic={0}
-          dragMomentum={false}
-          onDragEnd={handleDragEnd}
-          style={{
-            y,
-            bottom: `calc(${(bodyH - barH) / 2}px - ${sunPx / 2}px)`,
-            cursor: "grab",
+        {/* Stop markers — small dots so the user sees where the snap points are */}
+        {([0, 1, 2] as const).map((i) => (
+          <div
+            key={`stop-${i}`}
+            className="absolute z-30 rounded-full"
+            style={{
+              left: pathLeft + stopXs[i],
+              bottom: baselineFromBottom + stopYs[i],
+              width: 14,
+              height: 14,
+              transform: "translate(-50%, 50%)",
+              background:
+                value >= i
+                  ? "linear-gradient(180deg, #FFE08A 0%, #FF9A40 100%)"
+                  : "rgba(255,255,255,0.95)",
+              boxShadow: "0 0 0 2px rgba(0,16,80,0.08), 0 4px 10px rgba(120,160,220,0.18)",
+              transition: "background 300ms ease",
+            }}
+          />
+        ))}
+
+        {/* Sun — glows brighter as the user climbs the curve. The motion
+            x/y move the sun's center along the curve; margins offset by
+            half the sun size so its center sits exactly on (x, y). */}
+        <motion.button
+          type="button"
+          className="absolute z-40 rounded-full"
+          onClick={() => {
+            const next = ((value + 1) % 3) as StopIndex;
+            goToStop(next);
           }}
-          whileTap={{ cursor: "grabbing" }}
+          aria-label="Cycle sun position"
+          style={{
+            left: pathLeft,
+            bottom: baselineFromBottom,
+            x,
+            y,
+            width: sunPx,
+            height: sunPx,
+            marginLeft: -sunPx / 2,
+            marginBottom: -sunPx / 2,
+            cursor: "pointer",
+            boxShadow: SUN_GLOWS[value],
+            transition: "box-shadow 700ms cubic-bezier(0.32,0.72,0,1)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+          }}
         >
-          {/* Plain <img> (not next/image) so the 994×1040 source paints
-              directly at full resolution. next/image's optimizer compresses
-              to AVIF/WebP and quantizes the soft yellow gradient, which
-              produced visible banding/grain on the sun. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/loreal/icon-sun.png"
             alt="Sun"
             draggable={false}
             className="select-none"
+            style={{ width: "100%", height: "auto" }}
+          />
+        </motion.button>
+
+        {/* Tap zones — invisible buttons over each stop so the user can
+            jump directly to a position by clicking the dot or its area. */}
+        {([0, 1, 2] as const).map((i) => (
+          <button
+            key={`tap-${i}`}
+            type="button"
+            onClick={() => goToStop(i)}
+            aria-label={`Sun stop ${i + 1}`}
+            className="absolute z-20"
             style={{
-              width: `${sunPx}px`,
-              height: "auto",
+              left: pathLeft + stopXs[i],
+              bottom: baselineFromBottom + stopYs[i],
+              width: 64,
+              height: 64,
+              transform: "translate(-50%, 50%)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
             }}
           />
-        </motion.div>
+        ))}
       </div>
 
       {/* Hint text below the bar */}
@@ -173,7 +280,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Slide the sun and click Next
+        Tap the sun to climb the curve
       </motion.p>
 
       {/* Footer — glassy Back + Next text buttons */}

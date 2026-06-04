@@ -9,21 +9,28 @@ interface Props {
 }
 
 const HOLD_MS = 5000;
+// Wait this long after mount before kicking off the orbital animations so
+// the cross-zoom from the intro screen has finished compositing. Without
+// the delay, dozens of motion children animating concurrently with the
+// outgoing screen's exit caused visible jank on weaker devices.
+const ANIM_START_DELAY_MS = 700;
 
 const SUN_COUNT = 10;
 const WATER_COUNT = 10;
 const TREE_COUNT = 10;
 
 export function LorealVibingScreen({ onComplete }: Props) {
-  const [phase, setPhase] = useState<"spiral-in" | "spin" | "spiral-out">(
-    "spiral-in",
-  );
+  const [phase, setPhase] = useState<
+    "pre" | "spiral-in" | "spin" | "spiral-out"
+  >("pre");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("spin"), 1000);
+    const t0 = setTimeout(() => setPhase("spiral-in"), ANIM_START_DELAY_MS);
+    const t1 = setTimeout(() => setPhase("spin"), ANIM_START_DELAY_MS + 1000);
     const t2 = setTimeout(() => setPhase("spiral-out"), HOLD_MS - 800);
     const t3 = setTimeout(onComplete, HOLD_MS);
     return () => {
+      clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
@@ -39,7 +46,9 @@ export function LorealVibingScreen({ onComplete }: Props) {
         animate={
           phase === "spiral-out"
             ? { scale: 0, opacity: 0 }
-            : { scale: 1, opacity: 1 }
+            : phase === "pre"
+              ? { scale: 0, opacity: 0 }
+              : { scale: 1, opacity: 1 }
         }
         transition={
           phase === "spiral-out"
@@ -122,7 +131,7 @@ function OrbitalRing({
   iconSize: string;
   direction: 1 | -1;
   speed: number;
-  phase: "spiral-in" | "spin" | "spiral-out";
+  phase: "pre" | "spiral-in" | "spin" | "spiral-out";
   delay: number;
   spiralTurns: number;
   iconRotation: "outward" | "inward" | "none";
@@ -133,6 +142,9 @@ function OrbitalRing({
   // always increases — Framer Motion transitions smoothly to the next value.
   const getAnimate = () => {
     if (phase === "spiral-out") {
+      return { scale: 0, opacity: 0, rotate: 0 };
+    }
+    if (phase === "pre") {
       return { scale: 0, opacity: 0, rotate: 0 };
     }
     // Both spiral-in and spin use the same target — the continuous spin.
