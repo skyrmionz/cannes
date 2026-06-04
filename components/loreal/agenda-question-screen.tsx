@@ -79,10 +79,13 @@ export function LorealAgendaQuestionScreen({
   // Width per card if filling the row; height per card if filling the column.
   const cardWFill = (availW - colGap) / 2;
   const cardHFill = (availH - verticalGap) / 2;
-  // Cards aren't forced to a square ratio — they fill the body region.
-  // Each one is independently sized in CSS via grid-template-cols/auto-rows.
+  // Cards fill the row but only ~88% of the available column height so they
+  // read as cards (not blocks). Cap aspect at min 1.0 (square) and max 1.15
+  // so the proportion stays consistent across resolutions.
   const cardW = cardWFill;
-  const cardH = cardHFill;
+  const minH = cardW * 1.0;
+  const maxH = cardW * 1.15;
+  const cardH = Math.max(minH, Math.min(cardHFill * 0.88, maxH));
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -144,6 +147,7 @@ export function LorealAgendaQuestionScreen({
               imageCorner={opt.imageCorner}
               imageScale={opt.imageScale}
               cardW={cardW}
+              cardH={cardH}
               selected={value === i}
               onClick={() => onChange(i as AgendaIndex)}
             />
@@ -228,6 +232,7 @@ function AgendaCard({
   imageCorner,
   imageScale,
   cardW,
+  cardH,
   selected,
   onClick,
 }: {
@@ -237,15 +242,17 @@ function AgendaCard({
   imageCorner: Corner;
   imageScale: number;
   cardW: number;
+  cardH: number;
   selected: boolean;
   onClick: () => void;
 }) {
-  // Scale all interior typography/padding off the card width so the layout
-  // looks identical at every viewport size.
-  const titleSize = Math.max(13, Math.min(cardW * 0.13, 26));
-  const bodySize = Math.max(10, Math.min(cardW * 0.072, 16));
-  const padTop = Math.max(10, cardW * 0.07);
-  const padLeft = Math.max(12, cardW * 0.075);
+  // Scale typography off the smaller card dimension so text fills the card
+  // proportionally at every viewport size (phone, 1080x1920, desktop).
+  const baseDim = Math.min(cardW, cardH);
+  const titleSize = Math.max(16, Math.min(baseDim * 0.18, 36));
+  const bodySize = Math.max(12, Math.min(baseDim * 0.095, 22));
+  const padTop = Math.max(12, baseDim * 0.08);
+  const padLeft = Math.max(14, baseDim * 0.09);
   // Image sits flush against the card's corner, fully visible inside the card.
   const cornerStyle: Record<Corner, React.CSSProperties> = {
     tl: { top: 0, left: 0 },
@@ -327,9 +334,9 @@ function AgendaCard({
           className="font-bold leading-[1.2] tracking-tight"
           style={{
             fontSize: bodySize,
-            marginTop: Math.max(4, cardW * 0.025),
+            marginTop: Math.max(6, baseDim * 0.04),
             opacity: 0.85,
-            maxWidth: "75%",
+            maxWidth: "82%",
           }}
         >
           {body}
