@@ -50,9 +50,10 @@ export function LorealVibingScreen({ onComplete }: Props) {
         <Image
           src="/loreal/agent-astro.png"
           alt="Agent Astro"
-          width={720}
-          height={720}
+          width={2981}
+          height={2756}
           priority
+          unoptimized
           className="h-auto select-none"
           style={{ width: "min(32vw, 20vh)" }}
         />

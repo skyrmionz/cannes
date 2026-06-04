@@ -25,7 +25,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
 
   // Sun is very large
   const sunPx = useMemo(
-    () => Math.max(200, Math.min(bodyH * 0.65, 500)),
+    () => Math.max(180, Math.min(bodyH * 0.58, 450)),
     [bodyH],
   );
 
