@@ -165,7 +165,10 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
       {/* Hint text below the bar */}
       <motion.p
         className="relative z-30 shrink-0 text-center font-bold tracking-tight text-[#001050]/60 px-7"
-        style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
+        style={{
+          fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)",
+          marginTop: "clamp(1.25rem, 3.5vh, 2.5rem)",
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}

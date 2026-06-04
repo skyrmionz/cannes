@@ -29,9 +29,19 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
+  // Responsive button size: smaller on phones so they don't dominate the body
+  // region. Same value drives both the absolute-positioned button and the
+  // droplet's "reserve" math, so they always agree.
+  const buttonSize = Math.max(64, Math.min(110, bodySize.w * 0.18));
+  // Each button column = left offset (16) + button + gap to droplet (16) = 32 + button
+  const buttonReserve = 32 + buttonSize;
   const dropletPx = Math.max(
-    140,
-    Math.min(bodySize.h - 40, bodySize.w * 0.75, 640),
+    120,
+    Math.min(
+      bodySize.h - 24,
+      Math.max(120, bodySize.w - buttonReserve * 2),
+      640,
+    ),
   );
 
   const goToLevel = useCallback(
@@ -102,14 +112,16 @@ export function LorealHydrationQuestionScreen({
         {/* Stacked level buttons — absolutely pinned to the left edge,
             vertically centered. Outside the centering flow so they don't
             push the droplet right. */}
-        <div className="absolute left-6 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-4">
+        <div className="absolute left-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3">
           <LevelButton
             direction="up"
+            size={buttonSize}
             disabled={!canGoUp}
             onClick={() => goToLevel((level + 1) as DropletLevel)}
           />
           <LevelButton
             direction="down"
+            size={buttonSize}
             disabled={!canGoDown}
             onClick={() => goToLevel((level - 1) as DropletLevel)}
           />
@@ -186,10 +198,12 @@ export function LorealHydrationQuestionScreen({
 
 function LevelButton({
   direction,
+  size,
   disabled,
   onClick,
 }: {
   direction: "up" | "down";
+  size: number;
   disabled: boolean;
   onClick: () => void;
 }) {
@@ -209,8 +223,8 @@ function LevelButton({
       whileTap={!disabled ? { scale: 0.94 } : undefined}
       className="relative grid place-items-center rounded-[28px] disabled:cursor-not-allowed"
       style={{
-        width: 110,
-        height: 110,
+        width: size,
+        height: size,
         background: "rgba(255,255,255,0.45)",
         boxShadow: [
           "0 0 0 1px rgba(255,255,255,0.7) inset",
@@ -226,8 +240,8 @@ function LevelButton({
     >
       {/* SVG with linear blue gradient stroke */}
       <svg
-        width="68"
-        height="68"
+        width={Math.round(size * 0.62)}
+        height={Math.round(size * 0.62)}
         viewBox="0 0 24 24"
         fill="none"
         aria-hidden

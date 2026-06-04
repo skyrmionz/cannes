@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { LorealProgressBar } from "./progress-bar";
+import { useElementSize } from "@/lib/use-element-size";
 
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
@@ -63,14 +64,40 @@ export function LorealAgendaQuestionScreen({
     onNext();
   };
 
+  // Measure the body region so we can size cards to fit (2 rows + gaps + hint)
+  // without overflowing on phones. Falls back to a generous estimate pre-mount.
+  const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
+  const bodyW = bodySize.w || 360;
+  const bodyH = bodySize.h || 480;
+  // Reserve room for hint + paddings
+  const hintReserve = 56;
+  const verticalGap = 12;
+  const availH = Math.max(160, bodyH - hintReserve);
+  // Each card sits in a 2x2 grid with `colGap`. Card width is half the body
+  // width minus padding/gap; height is half the available body minus row gap.
+  const horizPad = 24; // matches paddingInline ~1rem
+  const colGap = 14;
+  const cardWByWidth = Math.max(120, (bodyW - horizPad * 2 - colGap) / 2);
+  const cardHByHeight = Math.max(120, (availH - verticalGap) / 2);
+  // Use the smaller of: width-derived card (square-ish at 1/1.05) and height-derived.
+  const cardWFromHeight = cardHByHeight / 1.05;
+  const cardW = Math.min(cardWByWidth, cardWFromHeight, 320);
+  const cardH = cardW * 1.05;
+
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-12">
+      <div
+        className="relative z-30 shrink-0 px-7"
+        style={{ paddingTop: "clamp(1.75rem, 5vh, 3rem)" }}
+      >
         <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
-          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
+          className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{
+            fontSize: "clamp(1.4rem, min(7vw, 5vh), 2.6rem)",
+            marginTop: "clamp(1rem, 3vh, 2.5rem)",
+          }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -80,9 +107,9 @@ export function LorealAgendaQuestionScreen({
           agenda like?
         </motion.h1>
         <motion.p
-          className="mt-3 text-center leading-snug text-[#001050]/75"
+          className="mt-2 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
+            fontSize: "clamp(0.9rem, min(4vw, 2.2vh), 1.2rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -94,17 +121,24 @@ export function LorealAgendaQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — 2x2 grid of shorter cards + hint below. Cards are
-          intentionally rectangular (wider than tall) with generous gap
-          and outer breathing room so each card reads as a distinct chip. */}
-      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-5 px-8 py-4">
+      {/* Body — 2x2 grid of cards + hint below. Cards are sized by their
+          aspect ratio; gridAutoRows keeps rows tight so the hint stays
+          within the body region. */}
+      <div
+        ref={bodyRef}
+        className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
+        style={{
+          paddingInline: "clamp(0.75rem, 3vw, 2rem)",
+          paddingBlock: "clamp(0.5rem, 1.5vh, 1rem)",
+          gap: "clamp(0.5rem, 1.5vh, 1rem)",
+        }}
+      >
         <div
-          className="grid w-full grid-cols-2 gap-5 sm:gap-6"
+          className="grid"
           style={{
-            // Rows are auto-sized — cards take their content height (set
-            // by aspect ratio on the card itself), not fill the body. This
-            // gives the breathing room the user asked for.
-            gridAutoRows: "min-content",
+            gridTemplateColumns: `${cardW}px ${cardW}px`,
+            gridAutoRows: `${cardH}px`,
+            gap: `${verticalGap}px ${colGap}px`,
           }}
         >
           {OPTIONS.map((opt, i) => (
@@ -115,23 +149,22 @@ export function LorealAgendaQuestionScreen({
               image={opt.image}
               imageCorner={opt.imageCorner}
               imageScale={opt.imageScale}
+              cardW={cardW}
               selected={value === i}
               onClick={() => onChange(i as AgendaIndex)}
             />
           ))}
         </div>
 
-        {/* Hint — two centered lines, matching the sun/hydration hint style */}
+        {/* Hint — single line, matching the sun/hydration hint style */}
         <motion.p
-          className="shrink-0 text-center font-bold leading-tight tracking-tight text-[#001050]/60"
-          style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
+          className="shrink-0 whitespace-nowrap text-center font-bold leading-tight tracking-tight text-[#001050]/60"
+          style={{ fontSize: "clamp(0.85rem, min(4vw, 2.4vh), 1.3rem)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.4 }}
         >
-          Select
-          <br />
-          and click next
+          Select and click next
         </motion.p>
       </div>
 
@@ -200,6 +233,7 @@ function AgendaCard({
   image,
   imageCorner,
   imageScale,
+  cardW,
   selected,
   onClick,
 }: {
@@ -208,9 +242,16 @@ function AgendaCard({
   image: string;
   imageCorner: Corner;
   imageScale: number;
+  cardW: number;
   selected: boolean;
   onClick: () => void;
 }) {
+  // Scale all interior typography/padding off the card width so the layout
+  // looks identical at every viewport size.
+  const titleSize = Math.max(13, Math.min(cardW * 0.13, 26));
+  const bodySize = Math.max(10, Math.min(cardW * 0.072, 16));
+  const padTop = Math.max(10, cardW * 0.07);
+  const padLeft = Math.max(12, cardW * 0.075);
   // Image sits flush against the card's corner, fully visible inside the card.
   const cornerStyle: Record<Corner, React.CSSProperties> = {
     tl: { top: 0, left: 0 },
@@ -225,9 +266,8 @@ function AgendaCard({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 320, damping: 26 }}
-      className="relative w-full overflow-hidden rounded-[28px] text-left"
+      className="relative h-full w-full overflow-hidden rounded-[28px] text-left"
       style={{
-        aspectRatio: "1 / 1",
         background: "linear-gradient(180deg, #FFFFFF 0%, #EAF3FE 100%)",
         boxShadow: [
           "0 0 0 1px rgba(0,16,80,0.08)",
@@ -278,24 +318,24 @@ function AgendaCard({
         className="relative z-10 flex h-full flex-col"
         style={{
           color: "#001050",
-          paddingTop: "clamp(1.1rem, 4.5%, 2rem)",
-          paddingLeft: "clamp(1.1rem, 5%, 2rem)",
-          paddingRight: "clamp(1rem, 4%, 1.5rem)",
+          paddingTop: padTop,
+          paddingLeft: padLeft,
+          paddingRight: Math.max(10, cardW * 0.06),
         }}
       >
         <h2
           className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(1.4rem, min(5.4vw, 3.8vh), 2.2rem)" }}
+          style={{ fontSize: titleSize }}
         >
           {title}
         </h2>
         <p
-          className="mt-2 font-bold leading-[1.2] tracking-tight"
+          className="font-bold leading-[1.2] tracking-tight"
           style={{
-            fontSize: "clamp(0.9rem, min(3.2vw, 2.2vh), 1.25rem)",
+            fontSize: bodySize,
+            marginTop: Math.max(4, cardW * 0.025),
             opacity: 0.85,
-            // Constrain body width so it doesn't run into the corner image
-            maxWidth: "70%",
+            maxWidth: "75%",
           }}
         >
           {body}

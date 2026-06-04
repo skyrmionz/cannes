@@ -40,7 +40,7 @@ export function LorealProgressBar({ percent, label }: Props) {
       {/* Right-aligned label — same dark navy as the title text */}
       <span
         className="absolute right-5 top-1/2 -translate-y-1/2 font-bold tracking-tight text-[#001050]"
-        style={{ fontSize: "clamp(1rem, min(4vw, 2.4vh), 1.35rem)" }}
+        style={{ fontSize: "clamp(1.15rem, min(5vw, 3vh), 1.7rem)" }}
       >
         {label}
       </span>

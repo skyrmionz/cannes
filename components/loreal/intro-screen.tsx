@@ -88,7 +88,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{ width: "min(76vw, 50vh)" }}
+          style={{ width: "min(64vw, 42vh)" }}
         >
           <Image
             src="/loreal/agent-astro.png"
@@ -105,7 +105,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
       <div
         className="shrink-0 flex justify-center"
         style={{
-          marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
+          marginTop: "clamp(2rem, 5vh, 3.5rem)",
           paddingBottom: "clamp(2rem, 5vh, 4rem)",
         }}
       >

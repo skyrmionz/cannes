@@ -120,11 +120,14 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* CTA — pushed up via mb-auto on the powered-by below; the explicit
-          margin-bottom here adds breathing room above powered-by. */}
+      {/* CTA — explicit gap above the tagline and below to powered-by so the
+          button never touches either, on tall or short viewports. */}
       <div
         className="relative z-10 shrink-0"
-        style={{ marginBottom: "clamp(2rem, 6vh, 5rem)" }}
+        style={{
+          marginTop: "clamp(1.5rem, 5vh, 3.5rem)",
+          marginBottom: "clamp(1.5rem, 5vh, 3.5rem)",
+        }}
       >
         <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
