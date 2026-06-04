@@ -72,22 +72,26 @@ export function LorealPersonaScreen({
         style={{ background: "transparent" }}
       />
 
-      {/* Palm tree — anchored at the screen's top edge, NOT inside the glass
-          card. Renders above the persistent glass card (z-10 in page.tsx) so
-          the fronds spill out past the rounded corners exactly like the
-          umbrella does on the start screen. transform-origin at the bottom
-          of the image so the trunk stays still while the canopy sways. */}
+      {/* Palm tree — anchored at the screen's top edge, paints over the
+          glass card so the fronds spill past the rounded corners (like the
+          start-screen umbrella). The image is sized slightly wider than the
+          screen and shifted left so any rotation stays inside the bleed
+          and never exposes a gap on the left edge. transform-origin pinned
+          to the bottom-left so the trunk root stays still while the canopy
+          tip travels — i.e. only the top sways. Sway amplitude is small
+          since this is a tall image and small angles still move the tip
+          a long way. */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute z-30 select-none"
         style={{
           top: 0,
-          left: 0,
-          width: "100%",
-          transformOrigin: "50% 100%",
+          left: "-3%",
+          width: "106%",
+          transformOrigin: "0% 100%",
         }}
-        animate={{ rotate: [-0.9, 0.9, -0.9] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ rotate: [-0.35, 0.35, -0.35] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -103,13 +107,14 @@ export function LorealPersonaScreen({
           shell as the other screens. The palm above paints OVER this and
           over the glass card edge. */}
       <div className="absolute inset-3 z-20 flex flex-col items-center overflow-hidden rounded-[40px] px-6 pb-8">
-        {/* Spacer so the title clears the palm fronds with breathing room
-            (taller than the previous 32vh because the fronds reach further
-            down into the card than the umbrella does). */}
+        {/* Spacer so the title clears the palm fronds with breathing room.
+            The palm image is ~1078×1918 (tall + heavy fronds at top) and
+            renders at 106% screen width, so the canopy reaches noticeably
+            further down than the umbrella did on the start screen. */}
         <div
           aria-hidden
           className="shrink-0"
-          style={{ height: "clamp(13rem, 38vh, 26rem)" }}
+          style={{ height: "clamp(16rem, 48vh, 32rem)" }}
         />
 
         <motion.h1
