@@ -60,13 +60,26 @@ export function LorealPersonaScreen({
   }, [sunStop, hydrationLevel, agendaIndex]);
 
   return (
-    <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px] text-[#001050]">
-      {/* Palm tree — anchored top-left, fronds reach top-right. The base
-          stays still while the top sways slightly. transform-origin pinned
-          to the bottom of the image so motion only shows up near the canopy. */}
+    <div className="absolute inset-0 text-[#001050]">
+      {/* Tap-anywhere reset — large invisible button covers the whole screen
+          so a brand ambassador (or kiosk auto-reset) can advance without a
+          CTA breaking the marketing comp. */}
+      <button
+        type="button"
+        aria-label="Finish"
+        onClick={onFinish}
+        className="absolute inset-0 z-0 cursor-default"
+        style={{ background: "transparent" }}
+      />
+
+      {/* Palm tree — anchored at the screen's top edge, NOT inside the glass
+          card. Renders above the persistent glass card (z-10 in page.tsx) so
+          the fronds spill out past the rounded corners exactly like the
+          umbrella does on the start screen. transform-origin at the bottom
+          of the image so the trunk stays still while the canopy sways. */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute z-10 select-none"
+        className="pointer-events-none absolute z-30 select-none"
         style={{
           top: 0,
           left: 0,
@@ -85,19 +98,11 @@ export function LorealPersonaScreen({
         />
       </motion.div>
 
-      {/* Tap-anywhere reset — large invisible button covers the whole card so
-          a brand ambassador (or kiosk auto-reset) can advance without a CTA
-          breaking the marketing comp. */}
-      <button
-        type="button"
-        aria-label="Finish"
-        onClick={onFinish}
-        className="absolute inset-0 z-0 cursor-default"
-        style={{ background: "transparent" }}
-      />
-
-      {/* Content stack */}
-      <div className="relative z-20 flex h-full w-full flex-col items-center px-6 pb-8">
+      {/* Content stack — sits inside the glass card's bounds (inset-3 +
+          rounded-[40px] in page.tsx) so text + QR read framed by the same
+          shell as the other screens. The palm above paints OVER this and
+          over the glass card edge. */}
+      <div className="absolute inset-3 z-20 flex flex-col items-center overflow-hidden rounded-[40px] px-6 pb-8">
         {/* Spacer so the title clears the palm fronds and sits lower
             on the screen, like the start screen's headline. */}
         <div
