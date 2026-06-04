@@ -82,13 +82,16 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Astro — slightly smaller than before */}
+        {/* Astro — bigger; sits lower in the column */}
         <motion.div
           className="flex shrink-0 min-h-0 justify-center"
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{ width: "min(64vw, 42vh)" }}
+          style={{
+            width: "min(78vw, 52vh)",
+            marginTop: "clamp(0.5rem, 2vh, 1.5rem)",
+          }}
         >
           <Image
             src="/loreal/agent-astro.png"

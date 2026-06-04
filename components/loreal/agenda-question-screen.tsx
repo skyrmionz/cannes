@@ -64,40 +64,34 @@ export function LorealAgendaQuestionScreen({
     onNext();
   };
 
-  // Measure the body region so we can size cards to fit (2 rows + gaps + hint)
-  // without overflowing on phones. Falls back to a generous estimate pre-mount.
+  // Measure the body region so the 2x2 grid fills it edge-to-edge regardless
+  // of viewport (phone, 1080x1920 portrait kiosk, desktop). Cards stretch
+  // along whichever axis has slack.
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyW = bodySize.w || 360;
   const bodyH = bodySize.h || 480;
-  // Reserve room for hint + paddings
   const hintReserve = 56;
-  const verticalGap = 12;
-  const availH = Math.max(160, bodyH - hintReserve);
-  // Each card sits in a 2x2 grid with `colGap`. Card width is half the body
-  // width minus padding/gap; height is half the available body minus row gap.
-  const horizPad = 24; // matches paddingInline ~1rem
+  const verticalGap = 14;
   const colGap = 14;
-  const cardWByWidth = Math.max(120, (bodyW - horizPad * 2 - colGap) / 2);
-  const cardHByHeight = Math.max(120, (availH - verticalGap) / 2);
-  // Use the smaller of: width-derived card (square-ish at 1/1.05) and height-derived.
-  const cardWFromHeight = cardHByHeight / 1.05;
-  const cardW = Math.min(cardWByWidth, cardWFromHeight, 320);
-  const cardH = cardW * 1.05;
+  const horizPad = 16;
+  const availW = Math.max(160, bodyW - horizPad * 2);
+  const availH = Math.max(200, bodyH - hintReserve);
+  // Width per card if filling the row; height per card if filling the column.
+  const cardWFill = (availW - colGap) / 2;
+  const cardHFill = (availH - verticalGap) / 2;
+  // Cards aren't forced to a square ratio — they fill the body region.
+  // Each one is independently sized in CSS via grid-template-cols/auto-rows.
+  const cardW = cardWFill;
+  const cardH = cardHFill;
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
-      {/* Header */}
-      <div
-        className="relative z-30 shrink-0 px-7"
-        style={{ paddingTop: "clamp(1.75rem, 5vh, 3rem)" }}
-      >
+      {/* Header — matches sun/hydration question format */}
+      <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={75} label="75% to glow" />
         <motion.h1
-          className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{
-            fontSize: "clamp(1.4rem, min(7vw, 5vh), 2.6rem)",
-            marginTop: "clamp(1rem, 3vh, 2.5rem)",
-          }}
+          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -107,9 +101,9 @@ export function LorealAgendaQuestionScreen({
           agenda like?
         </motion.h1>
         <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
+          className="mt-3 text-center leading-snug text-[#001050]/75"
           style={{
-            fontSize: "clamp(0.9rem, min(4vw, 2.2vh), 1.2rem)",
+            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
           }}
@@ -128,7 +122,7 @@ export function LorealAgendaQuestionScreen({
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
         style={{
-          paddingInline: "clamp(0.75rem, 3vw, 2rem)",
+          paddingInline: `${horizPad}px`,
           paddingBlock: "clamp(0.5rem, 1.5vh, 1rem)",
           gap: "clamp(0.5rem, 1.5vh, 1rem)",
         }}
