@@ -30,7 +30,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
       <motion.div
         className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
-          top: "calc(-1 * min(22vw, 14vh))",
+          top: "calc(-1 * min(14vw, 9vh))",
           right: "calc(-1 * min(8vw, 5vh))",
           width: "min(105vw, 88vh)",
           transformOrigin: "100% 100%",
@@ -120,8 +120,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* CTA — padded above so it sits with breathing room below the tagline */}
-      <div className="relative z-10 shrink-0 pt-8 pb-6">
+      {/* CTA — sits closer to the tagline (less top padding) */}
+      <div className="relative z-10 shrink-0 pt-2 pb-2">
         <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
 

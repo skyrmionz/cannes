@@ -19,47 +19,54 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
   // interior width (cheeks reach both sides). The wrapper uses inset-3 +
   // overflow-hidden + rounded-[40px] so the glass card's top edge becomes
   // the clip line — Astro's top is cut off by the glass container itself.
-  const astroSize = "min(220vw, 138vh)";
-
   return (
-    <div className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px]">
-      {/* Astro icon — oversized, clipped by the glass card top. Pulled down
-          further so more of the face is visible inside the card. */}
-      <motion.div
-        className="relative flex w-full shrink-0 justify-center"
-        style={{
-          marginTop: `calc(${astroSize} * -0.20)`,
-        }}
-        initial={{ opacity: 0, scale: 0.94 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15, duration: 0.6, ease: "easeOut" }}
+    <div
+      className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px] text-[#001050]"
+      style={{ paddingTop: "clamp(2rem, 6vh, 4rem)" }}
+    >
+      {/* Title */}
+      <motion.h1
+        className="shrink-0 whitespace-nowrap text-center font-bold leading-[1.05] tracking-tight"
+        style={{ fontSize: "min(10vw, 6vh)" }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
       >
-        <Image
-          src="/loreal/agent-astro.png"
-          alt="Agent Astro"
-          width={720}
-          height={720}
-          priority
-          className="h-auto select-none"
-          style={{ width: astroSize }}
-        />
-      </motion.div>
+        Coucou,
+        <br />
+        I&apos;m Agent Astro.
+      </motion.h1>
 
-      {/* Content column — uses justify-center so the text block sits
-          equidistant between Astro above and the button below. */}
-      <div
-        className="flex w-full max-w-2xl flex-1 min-h-0 flex-col items-center justify-center px-8 text-center text-[#001050]"
+      {/* Body copy directly below title */}
+      <motion.p
+        className="mt-4 shrink-0 px-8 text-center leading-snug text-[#001050]/85"
         style={{
-          paddingBottom: "clamp(1.25rem, 6vh, 5rem)",
+          fontSize: "min(5vw, 2.4vh)",
+          maxWidth: "min(85vw, 42rem)",
+          fontFamily:
+            'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+          fontWeight: 400,
         }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
       >
-        {/* Wave divider — sits directly above the Coucou heading */}
+        I&rsquo;ll ask about your OOO vibe, you&rsquo;ll dial it in, and
+        we&rsquo;ll create your away status together.
+      </motion.p>
+
+      {/* Center region: wave + Astro, vertically centered between subtitle and CTA */}
+      <div className="flex flex-1 min-h-0 w-full flex-col items-center justify-center">
+        {/* Wave divider — directly above Astro */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="mb-6 shrink-0 px-2"
-          style={{ width: "min(80vw, 36vh)" }}
+          className="shrink-0 px-2"
+          style={{
+            width: "min(34vw, 18vh)",
+            marginBottom: "clamp(1rem, 3vh, 2rem)",
+          }}
         >
           <Image
             src="/loreal/divider-line.png"
@@ -74,41 +81,29 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        <motion.h1
-          className="shrink-0 whitespace-nowrap font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "min(8vw, 5.2vh)" }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+        {/* Astro — full image, large, centered */}
+        <motion.div
+          className="flex shrink-0 min-h-0 justify-center"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
+          style={{ width: "min(75vw, 50vh)" }}
         >
-          Coucou,
-          <br />
-          I&apos;m Agent Astro.
-        </motion.h1>
-
-        {/* Body copy — sits directly under "I'm Agent Astro." */}
-        <motion.p
-          className="mt-4 shrink-0 leading-snug text-[#001050]/85"
-          style={{
-            fontSize: "min(5vw, 2.4vh)",
-            maxWidth: "min(85vw, 42rem)",
-            fontFamily:
-              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-            fontWeight: 400,
-          }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5, ease: "easeOut" }}
-        >
-          I&rsquo;ll ask about your OOO vibe, you&rsquo;ll dial it in, and
-          we&rsquo;ll create your away status together.
-        </motion.p>
+          <Image
+            src="/loreal/agent-astro.png"
+            alt="Agent Astro"
+            width={2981}
+            height={2756}
+            priority
+            className="h-auto w-full select-none"
+          />
+        </motion.div>
       </div>
 
       {/* CTA */}
       <div
         className="shrink-0 flex justify-center"
-        style={{ paddingBottom: "clamp(1.5rem, 5vh, 4rem)" }}
+        style={{ paddingBottom: "clamp(2.5rem, 7vh, 5rem)" }}
       >
         <GlassyButton onClick={onStart} delay={0.85}>
           Let&apos;s go
