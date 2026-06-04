@@ -72,9 +72,9 @@ export function LorealVibingScreen({ onComplete }: Props) {
         iconRotation="none"
       />
 
-      {/* Water ring — middle, counter-clockwise, droplets face outward */}
+      {/* Beach chair ring — middle, counter-clockwise */}
       <OrbitalRing
-        src="/loreal/icon-water.png"
+        src="/loreal/icon-beach-chair.png"
         count={WATER_COUNT}
         radius="min(40vw, 28vh)"
         iconSize="min(18vw, 12vh)"
@@ -83,7 +83,7 @@ export function LorealVibingScreen({ onComplete }: Props) {
         phase={phase}
         delay={0.12}
         spiralTurns={0.8}
-        iconRotation="outward"
+        iconRotation="none"
       />
 
       {/* Tree ring — outermost, clockwise, trunks face inward */}
