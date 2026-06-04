@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -25,6 +25,22 @@ export function LorealPersonaScreen({
   agendaIndex,
   onFinish,
 }: Props) {
+  // QR code rendered as a fixed pixel size that scales with viewport.
+  // Computed in an effect so we don't access `window` during render
+  // (would mismatch the SSR pass and trigger a hydration warning).
+  const [qrSize, setQrSize] = useState(280);
+  useEffect(() => {
+    const compute = () =>
+      setQrSize(
+        Math.round(
+          Math.min(window.innerWidth * 0.62, window.innerHeight * 0.4, 360),
+        ),
+      );
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
   const { qrUrl } = useMemo(() => {
     const p = getPersona(sunStop, hydrationLevel, agendaIndex);
     const code = generateResultCode();
@@ -81,17 +97,18 @@ export function LorealPersonaScreen({
       />
 
       {/* Content stack */}
-      <div className="relative z-20 flex h-full w-full flex-col items-center px-6 pt-6 pb-8">
-        {/* Spacer so title clears the palm fronds */}
+      <div className="relative z-20 flex h-full w-full flex-col items-center px-6 pb-8">
+        {/* Spacer so the title clears the palm fronds and sits lower
+            on the screen, like the start screen's headline. */}
         <div
           aria-hidden
           className="shrink-0"
-          style={{ height: "clamp(7rem, 22vh, 14rem)" }}
+          style={{ height: "clamp(11rem, 32vh, 22rem)" }}
         />
 
         <motion.h1
           className="shrink-0 text-center font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 2.8rem)" }}
+          style={{ fontSize: "min(10vw, 6vh)" }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
@@ -103,65 +120,64 @@ export function LorealPersonaScreen({
           one step away
         </motion.h1>
 
-        {/* QR + crab cluster, vertically centered in the slack region */}
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
-          <motion.div
-            className="relative flex flex-col items-center"
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
-          >
-            {/* Crab — perched on top edge of the QR card, centered, upright */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/loreal/crab.png"
-              alt=""
-              draggable={false}
-              className="pointer-events-none relative z-10 select-none"
-              style={{
-                width: "clamp(60px, 14vw, 110px)",
-                marginBottom: "clamp(-22px, -3vh, -16px)",
-              }}
-            />
-
-            {/* QR card */}
-            <div
-              className="grid place-items-center rounded-[28px] bg-white"
-              style={{
-                padding: "clamp(14px, 3vw, 22px)",
-                boxShadow: [
-                  "0 0 0 1px rgba(0,16,80,0.06)",
-                  "0 18px 40px rgba(120,160,220,0.22)",
-                ].join(", "),
-              }}
-            >
-              <QRCodeSVG
-                value={qrUrl}
-                size={220}
-                bgColor="#FFFFFF"
-                fgColor="#001050"
-                level="M"
-              />
-            </div>
-          </motion.div>
-        </div>
-
-        <motion.p
-          className="shrink-0 max-w-md text-center leading-snug text-[#001050]"
-          style={{
-            fontSize: "clamp(1rem, min(4.2vw, 2.6vh), 1.3rem)",
-            fontFamily:
-              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-            fontWeight: 500,
-            marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
-          }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+        {/* QR + crab cluster — directly under the title, big */}
+        <motion.div
+          className="relative mt-6 flex shrink-0 flex-col items-center"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
         >
-          Scan this QR code and show it to our Brand Ambassadors to pick up
-          your gift.
-        </motion.p>
+          {/* Crab — perched on top edge of the QR card, centered, upright */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/loreal/crab.png"
+            alt=""
+            draggable={false}
+            className="pointer-events-none relative z-10 select-none"
+            style={{
+              width: "clamp(80px, 18vw, 140px)",
+              marginBottom: "clamp(-28px, -3.5vh, -20px)",
+            }}
+          />
+
+          {/* QR card */}
+          <div
+            className="grid place-items-center rounded-[32px] bg-white"
+            style={{
+              padding: "clamp(16px, 3.5vw, 26px)",
+              boxShadow: [
+                "0 0 0 1px rgba(0,16,80,0.06)",
+                "0 18px 40px rgba(120,160,220,0.22)",
+              ].join(", "),
+            }}
+          >
+            <QRCodeSVG
+              value={qrUrl}
+              size={qrSize}
+              bgColor="#FFFFFF"
+              fgColor="#001050"
+              level="M"
+            />
+          </div>
+
+          {/* Caption — directly under the QR */}
+          <motion.p
+            className="shrink-0 max-w-md text-center leading-snug text-[#001050]"
+            style={{
+              fontSize: "min(5.2vw, 2.8vh)",
+              fontFamily:
+                'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+              fontWeight: 500,
+              marginTop: "clamp(1rem, 3vh, 2rem)",
+            }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+          >
+            Scan this QR code and show it to our Brand Ambassadors to pick
+            up your gift.
+          </motion.p>
+        </motion.div>
       </div>
     </div>
   );

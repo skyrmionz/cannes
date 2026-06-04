@@ -118,10 +118,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   // Track fill (0..1) — same as `progress`, applied to strokeDashoffset.
   const trackFill = useTransform(progress, (p) => 1 - p);
 
-  // Snap targets — placed by their target vertical heights (0%, 50%, 100% of
-  // verticalSpan) so the middle stop sits exactly at the curve's midpoint
-  // and the top stop is at the plateau peak.
-  const stopTs = useMemo(() => [0, inversePlateau(0.5), 1], []);
+  // Snap targets — placed by their target vertical heights so the middle
+  // stop sits visually centered on the curve (0.58 of verticalSpan reads
+  // as the optical midpoint given the plateau's slow-down at the top) and
+  // the top stop is at the plateau peak.
+  const stopTs = useMemo(() => [0, inversePlateau(0.58), 1], []);
   const stopXs = useMemo(() => stopTs.map((t) => t * pathW), [stopTs, pathW]);
 
   // Whenever pathW changes (mount, resize, remount), preserve the sun's
