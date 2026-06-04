@@ -48,10 +48,13 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
 
   return (
     <div className="relative flex h-full w-full flex-col items-center overflow-hidden px-6 pt-16 pb-10 sm:pt-24">
-      {/* Title + subtitle */}
+      {/* Top spacer pushes the title cluster down toward the carousel */}
+      <div className="min-h-0 flex-1" />
+
+      {/* Title + subtitle — sized to match the Coucou intro screen */}
       <motion.h1
         className="shrink-0 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-        style={{ fontSize: "clamp(1.6rem, min(8vw, 5.5vh), 2.8rem)" }}
+        style={{ fontSize: "min(10vw, 6vh)" }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
@@ -61,12 +64,12 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         is almost ready
       </motion.h1>
       <motion.p
-        className="mt-3 max-w-2xl shrink-0 px-2 text-center leading-snug text-[#001050]/80"
+        className="mt-4 max-w-2xl shrink-0 px-2 text-center leading-snug text-[#001050]/85"
         style={{
-          fontSize: "clamp(0.9rem, min(3.4vw, 2.1vh), 1.15rem)",
+          fontSize: "min(5vw, 2.4vh)",
           fontFamily:
             'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-          fontWeight: 500,
+          fontWeight: 400,
         }}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -77,10 +80,15 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         everyday.
       </motion.p>
 
-      {/* Orbital ring animation — same pattern as vibing screen, scaled
-          down so it fits inside this screen alongside the title block and
-          loading caption. */}
-      <div className="relative flex min-h-0 flex-1 w-full items-center justify-center">
+      {/* Orbital ring animation — fixed height so the loading caption can
+          sit directly beneath it instead of pinning to the screen bottom. */}
+      <div
+        className="relative shrink-0 flex w-full items-center justify-center"
+        style={{
+          height: "min(80vw, 52vh)",
+          marginTop: "clamp(1rem, 3vh, 2rem)",
+        }}
+      >
         {/* Center astro */}
         <motion.div
           className="absolute z-30"
@@ -149,21 +157,20 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         />
       </div>
 
-      {/* Loading caption — crossfades between two strings at the 3s mark */}
+      {/* Loading caption — sits directly under the carousel.
+          Sized to match the start screen's "Protect your time" tagline. */}
       <div
         className="relative shrink-0 w-full text-center"
         style={{
-          minHeight: "2.4em",
+          minHeight: "2em",
           marginTop: "clamp(0.5rem, 2vh, 1.25rem)",
         }}
       >
         <AnimatePresence mode="wait">
           <motion.p
             key={loadingText}
-            className="font-bold tracking-tight text-[#001050]/70"
-            style={{
-              fontSize: "clamp(1rem, min(4.4vw, 2.6vh), 1.35rem)",
-            }}
+            className="font-semibold tracking-tight text-[#001050]/75"
+            style={{ fontSize: "min(5vw, 2.6vh)" }}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
@@ -173,6 +180,10 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
           </motion.p>
         </AnimatePresence>
       </div>
+
+      {/* Bottom spacer — balances the top spacer so the title/carousel/
+          caption cluster sits centered vertically. */}
+      <div className="min-h-0 flex-1" />
     </div>
   );
 }
