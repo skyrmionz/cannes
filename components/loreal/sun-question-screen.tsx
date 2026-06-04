@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useMotionValue, animate } from "motion/react";
+import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 type StopIndex = 0 | 1 | 2;
 
@@ -15,95 +15,132 @@ interface Props {
 }
 
 // Exponential-plateau curve: y(t) = 1 - exp(-k*t), normalized to [0,1].
-// Larger k → faster initial rise, longer plateau toward the end. The curve
-// gives the path a gentle hump on the left and flattens out to the right.
+// Larger k → faster initial rise, longer plateau toward the end.
 const PLATEAU_K = 3.4;
 function plateau(t: number): number {
   const norm = 1 - Math.exp(-PLATEAU_K);
   return (1 - Math.exp(-PLATEAU_K * t)) / norm;
 }
 
-// Glow intensity per stop. Stop 0 = subtle, stop 2 = brightest.
-const SUN_GLOWS: Record<StopIndex, string> = {
-  0: [
-    "0 0 24px rgba(255,210,140,0.35)",
-    "0 0 60px rgba(255,200,120,0.18)",
-  ].join(", "),
-  1: [
-    "0 0 40px rgba(255,210,120,0.55)",
-    "0 0 110px rgba(255,200,100,0.35)",
-    "0 0 180px rgba(255,180,80,0.2)",
-  ].join(", "),
-  2: [
-    "0 0 60px rgba(255,225,150,0.85)",
-    "0 0 140px rgba(255,200,100,0.7)",
-    "0 0 240px rgba(255,170,60,0.5)",
-    "0 0 360px rgba(255,150,40,0.3)",
-  ].join(", "),
-};
-
 export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyW = bodySize.w;
   const bodyH = bodySize.h;
 
-  // Path geometry. The plateau spans most of the body width, with side
-  // padding so the sun never gets clipped. Vertical span is the curve's
-  // travel — sun starts low-left and ends high-right.
-  const sidePad = 80;
-  const pathW = Math.max(160, bodyW - sidePad * 2);
-  const verticalSpan = Math.max(120, bodyH * 0.55);
-
-  // Sun size scales off body height but stays smaller than before so it
-  // sits cleanly on the curve.
+  // Sun size scales off body height. Kept conservative so sidePad can
+  // accommodate half the sun + a small buffer without crushing the curve.
   const sunPx = useMemo(
-    () => Math.max(140, Math.min(bodyH * 0.42, 360)),
+    () => Math.max(120, Math.min(bodyH * 0.34, 280)),
     [bodyH],
   );
 
-  // Compute the (x, y) of each stop along the plateau curve. Stop 0 is the
-  // left/low end; stop 2 is the right/high (plateau) end. y is measured
-  // from the curve's baseline upward — final CSS uses these as offsets
-  // from the body's bottom-center.
-  const stopXs = [0, 0.5, 1].map((t) => t * pathW);
-  const stopYs = [0, 0.5, 1].map((t) => plateau(t) * verticalSpan);
+  // Side padding = half the sun + buffer, so the sun never goes off-screen
+  // at either extreme of the curve.
+  const sidePad = sunPx / 2 + 16;
+  const pathW = Math.max(120, bodyW - sidePad * 2);
+  const verticalSpan = Math.max(100, bodyH * 0.42);
 
-  // Path baseline anchor (bottom of the curve at the left edge of pathW).
-  // The path is centered horizontally; baseline sits ~10% above body bottom
-  // so the sun at stop 0 doesn't sit directly on the body's edge.
-  const baselineFromBottom = bodyH * 0.18;
+  // Baseline (bottom of curve) sits high enough that the sun at stop 0 has
+  // headroom from the bottom of the body region.
+  const baselineFromBottom = sunPx / 2 + 12;
   const pathLeft = (bodyW - pathW) / 2;
 
-  // Build the SVG path for the curve (used both for the visible line and as
-  // the trajectory the sun rides on).
+  // SVG path for the curve.
   const samples = 64;
   const pathD = useMemo(() => {
     const pts: string[] = [];
     for (let i = 0; i <= samples; i++) {
       const t = i / samples;
-      const x = t * pathW;
+      const px = t * pathW;
       const yVal = plateau(t) * verticalSpan;
-      pts.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)} ${(verticalSpan - yVal).toFixed(2)}`);
+      pts.push(`${i === 0 ? "M" : "L"} ${px.toFixed(2)} ${(verticalSpan - yVal).toFixed(2)}`);
     }
     return pts.join(" ");
   }, [pathW, verticalSpan]);
 
-  // x and y motion values — animated together when the user picks a stop.
-  // CSS y is +down; we want the sun to rise as the stop increases, so we
-  // store the negative of the curve height.
-  const x = useMotionValue<number>(stopXs[0]);
-  const y = useMotionValue<number>(-stopYs[0]);
+  // x is the source of truth — drag controls x; y is derived from x via the
+  // plateau function so the sun always sits on the curve.
+  const x = useMotionValue<number>(0);
+  const y = useTransform(x, (xv) => {
+    const t = pathW > 0 ? Math.max(0, Math.min(1, xv / pathW)) : 0;
+    return -plateau(t) * verticalSpan;
+  });
 
+  // Continuous progress value (0..1) used to drive glow intensity smoothly
+  // as the user drags, even between stops.
+  const progress = useTransform(x, (xv) => {
+    const t = pathW > 0 ? Math.max(0, Math.min(1, xv / pathW)) : 0;
+    return plateau(t);
+  });
+
+  // Three drop-shadow layers that strengthen with progress; rendered as a
+  // CSS filter on the sun image so the glow follows the actual sun shape
+  // (not a rectangular halo around its bounding box).
+  const sunFilter = useTransform(progress, (p) => {
+    const r1 = (8 + p * 18).toFixed(1);
+    const r2 = (16 + p * 60).toFixed(1);
+    const r3 = (28 + p * 140).toFixed(1);
+    const a1 = (0.45 + p * 0.45).toFixed(2);
+    const a2 = (0.25 + p * 0.55).toFixed(2);
+    const a3 = (0.1 + p * 0.6).toFixed(2);
+    return [
+      `drop-shadow(0 0 ${r1}px rgba(255,235,160,${a1}))`,
+      `drop-shadow(0 0 ${r2}px rgba(255,200,100,${a2}))`,
+      `drop-shadow(0 0 ${r3}px rgba(255,150,40,${a3}))`,
+    ].join(" ");
+  });
+
+  // Subtle brightness/saturation pump on the sun pixels themselves — gives
+  // a "neon" feel that scales with progress.
+  const sunImgFilter = useTransform(progress, (p) => {
+    const b = (1 + p * 0.25).toFixed(2);
+    const s = (1 + p * 0.4).toFixed(2);
+    return `brightness(${b}) saturate(${s})`;
+  });
+
+  // Track fill (0..1) — same as `progress`, applied to strokeDashoffset.
+  const trackFill = useTransform(progress, (p) => 1 - p);
+
+  // Snap targets in path coords.
+  const stopXs = useMemo(() => [0, 0.5 * pathW, pathW], [pathW]);
+
+  // Initialise / reset x when geometry changes or the controlled value updates
+  // from outside (e.g. coming back from another screen).
+  const lastBodyW = useRef(0);
   useEffect(() => {
-    x.set(stopXs[value]);
-    y.set(-stopYs[value]);
+    if (bodyW !== lastBodyW.current) {
+      x.set(stopXs[value]);
+      lastBodyW.current = bodyW;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bodyW, bodyH]);
 
+  // External value change → animate to new stop.
+  useEffect(() => {
+    const target = stopXs[value];
+    if (Math.abs(x.get() - target) > 1) {
+      animate(x, target, { duration: 0.5, ease: [0.32, 0.72, 0, 1] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, pathW]);
+
   const goToStop = (i: StopIndex) => {
     onChange(i);
-    animate(x, stopXs[i], { duration: 0.6, ease: [0.32, 0.72, 0, 1] });
-    animate(y, -stopYs[i], { duration: 0.6, ease: [0.32, 0.72, 0, 1] });
+    animate(x, stopXs[i], { duration: 0.5, ease: [0.32, 0.72, 0, 1] });
+  };
+
+  const handleDragEnd = () => {
+    const cur = x.get();
+    let closest: StopIndex = 0;
+    let best = Infinity;
+    for (let i = 0; i < stopXs.length; i++) {
+      const d = Math.abs(stopXs[i] - cur);
+      if (d < best) {
+        best = d;
+        closest = i as StopIndex;
+      }
+    }
+    goToStop(closest);
   };
 
   return (
@@ -137,9 +174,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         </motion.p>
       </div>
 
-      {/* Body — exponential-plateau path with a draggable sun riding it.
-          The sun travels left→right and rises along the curve, with three
-          discrete snap stops. Glow intensity tracks the stop. */}
+      {/* Body — exponential-plateau curve with a draggable sun riding it. */}
       <div ref={bodyRef} className="relative min-h-0 flex-1">
         {/* SVG curve — the visible track */}
         <svg
@@ -162,7 +197,6 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
               <stop offset="100%" stopColor="rgba(255,140,40,1)" />
             </linearGradient>
           </defs>
-          {/* Track shadow / base */}
           <path
             d={pathD}
             stroke="rgba(255,255,255,0.7)"
@@ -170,55 +204,78 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             fill="none"
             strokeLinecap="round"
           />
-          {/* Track fill up to the sun */}
-          <path
+          <motion.path
             d={pathD}
             stroke="url(#sun-track-gradient)"
             strokeWidth={10}
             fill="none"
             strokeLinecap="round"
-            strokeDasharray={1}
             pathLength={1}
-            style={{
-              strokeDasharray: 1,
-              strokeDashoffset: 1 - value / 2,
-              transition: "stroke-dashoffset 600ms cubic-bezier(0.32,0.72,0,1)",
-            }}
+            strokeDasharray={1}
+            style={{ strokeDashoffset: trackFill }}
           />
         </svg>
 
-        {/* Stop markers — small dots so the user sees where the snap points are */}
-        {([0, 1, 2] as const).map((i) => (
-          <div
-            key={`stop-${i}`}
-            className="absolute z-30 rounded-full"
-            style={{
-              left: pathLeft + stopXs[i],
-              bottom: baselineFromBottom + stopYs[i],
-              width: 14,
-              height: 14,
-              transform: "translate(-50%, 50%)",
-              background:
-                value >= i
-                  ? "linear-gradient(180deg, #FFE08A 0%, #FF9A40 100%)"
-                  : "rgba(255,255,255,0.95)",
-              boxShadow: "0 0 0 2px rgba(0,16,80,0.08), 0 4px 10px rgba(120,160,220,0.18)",
-              transition: "background 300ms ease",
-            }}
-          />
-        ))}
+        {/* Stop markers — show the three snap points */}
+        {([0, 1, 2] as const).map((i) => {
+          const t = i / 2;
+          return (
+            <div
+              key={`stop-${i}`}
+              className="absolute z-30 rounded-full"
+              style={{
+                left: pathLeft + t * pathW,
+                bottom: baselineFromBottom + plateau(t) * verticalSpan,
+                width: 14,
+                height: 14,
+                transform: "translate(-50%, 50%)",
+                background:
+                  value >= i
+                    ? "linear-gradient(180deg, #FFE08A 0%, #FF9A40 100%)"
+                    : "rgba(255,255,255,0.95)",
+                boxShadow: "0 0 0 2px rgba(0,16,80,0.08), 0 4px 10px rgba(120,160,220,0.18)",
+                transition: "background 300ms ease",
+              }}
+            />
+          );
+        })}
 
-        {/* Sun — glows brighter as the user climbs the curve. The motion
-            x/y move the sun's center along the curve; margins offset by
-            half the sun size so its center sits exactly on (x, y). */}
-        <motion.button
-          type="button"
-          className="absolute z-40 rounded-full"
-          onClick={() => {
-            const next = ((value + 1) % 3) as StopIndex;
-            goToStop(next);
-          }}
-          aria-label="Cycle sun position"
+        {/* Tap zones for the three stops */}
+        {([0, 1, 2] as const).map((i) => {
+          const t = i / 2;
+          return (
+            <button
+              key={`tap-${i}`}
+              type="button"
+              onClick={() => goToStop(i)}
+              aria-label={`Sun stop ${i + 1}`}
+              className="absolute z-20"
+              style={{
+                left: pathLeft + t * pathW,
+                bottom: baselineFromBottom + plateau(t) * verticalSpan,
+                width: 64,
+                height: 64,
+                transform: "translate(-50%, 50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+            />
+          );
+        })}
+
+        {/* Sun — draggable along x; y is derived from the plateau so the sun
+            always rides the curve. Glow is rendered as a CSS filter on the
+            image (drop-shadow stack), so it follows the sun's actual shape
+            instead of a rectangular halo. A subtle pulse animation keeps it
+            feeling alive at higher levels. */}
+        <motion.div
+          className="absolute z-40"
+          drag="x"
+          dragConstraints={{ left: 0, right: pathW }}
+          dragElastic={0.04}
+          dragMomentum={false}
+          onDragEnd={handleDragEnd}
           style={{
             left: pathLeft,
             bottom: baselineFromBottom,
@@ -228,45 +285,40 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             height: sunPx,
             marginLeft: -sunPx / 2,
             marginBottom: -sunPx / 2,
-            cursor: "pointer",
-            boxShadow: SUN_GLOWS[value],
-            transition: "box-shadow 700ms cubic-bezier(0.32,0.72,0,1)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
+            cursor: "grab",
+            filter: sunFilter,
+            willChange: "transform, filter",
           }}
+          whileTap={{ cursor: "grabbing" }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/loreal/icon-sun.png"
-            alt="Sun"
-            draggable={false}
-            className="select-none"
-            style={{ width: "100%", height: "auto" }}
-          />
-        </motion.button>
-
-        {/* Tap zones — invisible buttons over each stop so the user can
-            jump directly to a position by clicking the dot or its area. */}
-        {([0, 1, 2] as const).map((i) => (
-          <button
-            key={`tap-${i}`}
-            type="button"
-            onClick={() => goToStop(i)}
-            aria-label={`Sun stop ${i + 1}`}
-            className="absolute z-20"
-            style={{
-              left: pathLeft + stopXs[i],
-              bottom: baselineFromBottom + stopYs[i],
-              width: 64,
-              height: 64,
-              transform: "translate(-50%, 50%)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
+          {/* Inner pulse: scales the sun pixels subtly so the sun "breathes"
+              (gives the neon feel). Loops continuously; faster + bigger
+              amplitude at higher progress, but small enough to never look
+              wobbly. */}
+          <motion.div
+            className="h-full w-full"
+            animate={{ scale: [1, 1.035, 1] }}
+            transition={{
+              duration: value === 2 ? 1.6 : value === 1 ? 2.2 : 3,
+              repeat: Infinity,
+              ease: "easeInOut",
             }}
-          />
-        ))}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <motion.img
+              src="/loreal/icon-sun.png"
+              alt="Sun"
+              draggable={false}
+              className="select-none"
+              style={{
+                width: "100%",
+                height: "auto",
+                filter: sunImgFilter,
+                pointerEvents: "none",
+              }}
+            />
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Hint text below the bar */}
@@ -280,7 +332,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Tap the sun to climb the curve
+        Drag the sun along the curve
       </motion.p>
 
       {/* Footer — glassy Back + Next text buttons */}

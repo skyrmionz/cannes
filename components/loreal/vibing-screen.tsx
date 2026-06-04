@@ -9,11 +9,10 @@ interface Props {
 }
 
 const HOLD_MS = 5000;
-// Wait this long after mount before kicking off the orbital animations so
-// the cross-zoom from the intro screen has finished compositing. Without
-// the delay, dozens of motion children animating concurrently with the
-// outgoing screen's exit caused visible jank on weaker devices.
-const ANIM_START_DELAY_MS = 700;
+// Small delay so the cross-zoom from the intro has compositing headroom
+// before the 30+ orbital children start tweening, but short enough that the
+// loading screen doesn't feel empty.
+const ANIM_START_DELAY_MS = 120;
 
 const SUN_COUNT = 10;
 const WATER_COUNT = 10;
@@ -25,11 +24,18 @@ export function LorealVibingScreen({ onComplete }: Props) {
   >("pre");
 
   useEffect(() => {
-    const t0 = setTimeout(() => setPhase("spiral-in"), ANIM_START_DELAY_MS);
+    // Use requestAnimationFrame to flip into spiral-in immediately after the
+    // first paint — the very small delay (~16ms) is enough to avoid layout
+    // collision with the outgoing intro, but doesn't leave the screen empty.
+    let raf = 0;
+    const t0 = setTimeout(() => {
+      raf = requestAnimationFrame(() => setPhase("spiral-in"));
+    }, ANIM_START_DELAY_MS);
     const t1 = setTimeout(() => setPhase("spin"), ANIM_START_DELAY_MS + 1000);
     const t2 = setTimeout(() => setPhase("spiral-out"), HOLD_MS - 800);
     const t3 = setTimeout(onComplete, HOLD_MS);
     return () => {
+      cancelAnimationFrame(raf);
       clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
