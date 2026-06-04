@@ -21,6 +21,14 @@ function plateau(t: number): number {
   const norm = 1 - Math.exp(-PLATEAU_K);
   return (1 - Math.exp(-PLATEAU_K * t)) / norm;
 }
+// Inverse: given a target normalized height h ∈ [0,1], return the t along
+// the curve where plateau(t) === h. Used to place snap stops by their
+// vertical position (so stop 1 sits at exact vertical midpoint).
+function inversePlateau(h: number): number {
+  const norm = 1 - Math.exp(-PLATEAU_K);
+  const v = 1 - h * norm;
+  return -Math.log(v) / PLATEAU_K;
+}
 
 export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Props) {
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
@@ -33,7 +41,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     () => Math.max(140, Math.min(bodyH * 0.4, 340)),
     [bodyH],
   );
-  const SUN_MIN_SCALE = 0.5;
+  const SUN_MIN_SCALE = 0.7;
 
   // Side padding = half the *largest* sun + buffer so the sun (at full size,
   // i.e. at the right end) never goes off-screen.
@@ -112,8 +120,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   // Track fill (0..1) — same as `progress`, applied to strokeDashoffset.
   const trackFill = useTransform(progress, (p) => 1 - p);
 
-  // Snap targets in path coords.
-  const stopXs = useMemo(() => [0, 0.5 * pathW, pathW], [pathW]);
+  // Snap targets — placed by their target vertical heights (0%, 50%, 100% of
+  // verticalSpan) so the middle stop sits exactly at the curve's midpoint
+  // and the top stop is at the plateau peak.
+  const stopTs = useMemo(() => [0, inversePlateau(0.5), 1], []);
+  const stopXs = useMemo(() => stopTs.map((t) => t * pathW), [stopTs, pathW]);
 
   // Initialise / reset x when geometry changes or the controlled value updates
   // from outside (e.g. coming back from another screen).
@@ -229,7 +240,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
 
         {/* Stop markers — show the three snap points */}
         {([0, 1, 2] as const).map((i) => {
-          const t = i / 2;
+          const t = stopTs[i];
           return (
             <div
               key={`stop-${i}`}
@@ -253,7 +264,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
 
         {/* Tap zones for the three stops */}
         {([0, 1, 2] as const).map((i) => {
-          const t = i / 2;
+          const t = stopTs[i];
           return (
             <button
               key={`tap-${i}`}

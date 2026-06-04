@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "motion/react";
 import { LorealProgressBar } from "./progress-bar";
 import {
@@ -17,6 +17,9 @@ interface Props {
   onChange: (next: DropletLevel) => void;
 }
 
+// Pixels of vertical pointer travel required to register a swipe up/down.
+const SWIPE_THRESHOLD = 30;
+
 export function LorealHydrationQuestionScreen({
   onNext,
   onBack,
@@ -29,19 +32,10 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-  // Responsive button size: smaller on phones so they don't dominate the body
-  // region. Same value drives both the absolute-positioned button and the
-  // droplet's "reserve" math, so they always agree.
-  const buttonSize = Math.max(64, Math.min(110, bodySize.w * 0.18));
-  // Each button column = left offset (16) + button + gap to droplet (16) = 32 + button
-  const buttonReserve = 32 + buttonSize;
+  // Droplet fills the body region with breathing room on top/bottom.
   const dropletPx = Math.max(
-    120,
-    Math.min(
-      bodySize.h - 24,
-      Math.max(120, bodySize.w - buttonReserve * 2),
-      640,
-    ),
+    140,
+    Math.min(bodySize.h - 24, bodySize.w - 48, 640),
   );
 
   const goToLevel = useCallback(
@@ -59,8 +53,32 @@ export function LorealHydrationQuestionScreen({
     setPhase("idle");
   }, [toLevel, onChange]);
 
-  const canGoUp = phase === "idle" && level < 2;
-  const canGoDown = phase === "idle" && level > 0;
+  // Swipe handling — pointer down on the droplet captures origin Y; pointer
+  // up resolves direction & magnitude. Disabled while a fill animation is
+  // running (phase !== "idle") so swipes can't queue mid-transition.
+  const startY = useRef<number | null>(null);
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (phase !== "idle") return;
+    startY.current = e.clientY;
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = startY.current;
+    startY.current = null;
+    if (start == null || phase !== "idle") return;
+    const dy = e.clientY - start;
+    if (Math.abs(dy) < SWIPE_THRESHOLD) return;
+    if (dy < 0) {
+      // Swipe up → fill (level goes up by 1, capped at 2).
+      if (level < 2) goToLevel((level + 1) as DropletLevel);
+    } else {
+      // Swipe down → empty (level goes down by 1, floored at 0).
+      if (level > 0) goToLevel((level - 1) as DropletLevel);
+    }
+  };
+  const handlePointerCancel = () => {
+    startY.current = null;
+  };
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -93,42 +111,34 @@ export function LorealHydrationQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — droplet centered in the body; up/down buttons absolutely
-          positioned on the left so they don't shift the droplet's center. */}
+      {/* Body — droplet centered. Pointer events on the droplet wrapper
+          drive swipe-up-to-fill / swipe-down-to-empty. */}
       <div
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 items-center justify-center"
       >
-        {/* Droplet — centered in the body region */}
-        <HydrationDroplet
-          width={`${dropletPx}px`}
-          level={level}
-          phase={phase}
-          fromLevel={fromLevel}
-          toLevel={toLevel}
-          onTransitionEnd={onTransitionEnd}
-        />
-
-        {/* Stacked level buttons — absolutely pinned to the left edge,
-            vertically centered. Outside the centering flow so they don't
-            push the droplet right. */}
-        <div className="absolute left-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3">
-          <LevelButton
-            direction="up"
-            size={buttonSize}
-            disabled={!canGoUp}
-            onClick={() => goToLevel((level + 1) as DropletLevel)}
-          />
-          <LevelButton
-            direction="down"
-            size={buttonSize}
-            disabled={!canGoDown}
-            onClick={() => goToLevel((level - 1) as DropletLevel)}
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          style={{
+            touchAction: "none",
+            cursor: phase === "idle" ? "grab" : "default",
+            width: dropletPx,
+          }}
+        >
+          <HydrationDroplet
+            width={`${dropletPx}px`}
+            level={level}
+            phase={phase}
+            fromLevel={fromLevel}
+            toLevel={toLevel}
+            onTransitionEnd={onTransitionEnd}
           />
         </div>
       </div>
 
-      {/* Hint text below the droplet — mirrors the sun question's hint */}
+      {/* Hint text below the droplet */}
       <motion.p
         className="relative z-30 shrink-0 text-center font-bold tracking-tight text-[#001050]/60 px-7"
         style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
@@ -136,7 +146,7 @@ export function LorealHydrationQuestionScreen({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Fill the water droplet and click Next
+        Swipe up or down on the droplet to fill or empty it
       </motion.p>
 
       {/* Footer — glassy Back + Next text buttons */}
@@ -193,81 +203,5 @@ export function LorealHydrationQuestionScreen({
         </motion.button>
       </div>
     </div>
-  );
-}
-
-function LevelButton({
-  direction,
-  size,
-  disabled,
-  onClick,
-}: {
-  direction: "up" | "down";
-  size: number;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  // Full arrows (shaft + head), not bare chevrons. Drawn vertically so the
-  // up arrow points up and the down arrow points down, like ↑ / ↓.
-  const path =
-    direction === "up"
-      ? "M12 20 L12 6 M5 13 L12 6 L19 13"
-      : "M12 4 L12 18 M5 11 L12 18 L19 11";
-  const gradientId = `hydration-arrow-${direction}`;
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      whileHover={!disabled ? { scale: 1.06 } : undefined}
-      whileTap={!disabled ? { scale: 0.94 } : undefined}
-      className="relative grid place-items-center rounded-[28px] disabled:cursor-not-allowed"
-      style={{
-        width: size,
-        height: size,
-        background: "rgba(255,255,255,0.45)",
-        boxShadow: [
-          "0 0 0 1px rgba(255,255,255,0.7) inset",
-          "0 1px 0 rgba(255,255,255,0.85) inset",
-          "0 12px 30px rgba(120,160,220,0.25)",
-        ].join(", "),
-        WebkitBackdropFilter: "blur(14px) saturate(150%)",
-        backdropFilter: "blur(14px) saturate(150%)",
-        opacity: disabled ? 0.4 : 1,
-        transition: "opacity 0.25s ease",
-      }}
-      aria-label={direction === "up" ? "Increase hydration" : "Decrease hydration"}
-    >
-      {/* SVG with linear blue gradient stroke */}
-      <svg
-        width={Math.round(size * 0.62)}
-        height={Math.round(size * 0.62)}
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden
-      >
-        <defs>
-          <linearGradient
-            id={gradientId}
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="24"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#7FC4FF" />
-            <stop offset="55%" stopColor="#1A6CF0" />
-            <stop offset="100%" stopColor="#0F3B8C" />
-          </linearGradient>
-        </defs>
-        <path
-          d={path}
-          stroke={`url(#${gradientId})`}
-          strokeWidth={3.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </motion.button>
   );
 }
