@@ -27,22 +27,24 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   const bodyW = bodySize.w;
   const bodyH = bodySize.h;
 
-  // Sun size scales off body height. Kept conservative so sidePad can
-  // accommodate half the sun + a small buffer without crushing the curve.
-  const sunPx = useMemo(
-    () => Math.max(120, Math.min(bodyH * 0.34, 280)),
+  // Sun size at the *top* of the curve (largest). At progress 0 the sun is
+  // SUN_MIN_SCALE × this; it grows continuously to full size at progress 1.
+  const sunPxMax = useMemo(
+    () => Math.max(140, Math.min(bodyH * 0.4, 340)),
     [bodyH],
   );
+  const SUN_MIN_SCALE = 0.5;
 
-  // Side padding = half the sun + buffer, so the sun never goes off-screen
-  // at either extreme of the curve.
-  const sidePad = sunPx / 2 + 16;
+  // Side padding = half the *largest* sun + buffer so the sun (at full size,
+  // i.e. at the right end) never goes off-screen.
+  const sidePad = sunPxMax / 2 + 18;
   const pathW = Math.max(120, bodyW - sidePad * 2);
-  const verticalSpan = Math.max(100, bodyH * 0.42);
+  // Taller curve so it covers more of the screen vertically.
+  const verticalSpan = Math.max(160, bodyH * 0.62);
 
-  // Baseline (bottom of curve) sits high enough that the sun at stop 0 has
-  // headroom from the bottom of the body region.
-  const baselineFromBottom = sunPx / 2 + 12;
+  // Baseline anchor — half the *smallest* sun + buffer so stop 0 has
+  // bottom headroom without wasting space.
+  const baselineFromBottom = (sunPxMax * SUN_MIN_SCALE) / 2 + 12;
   const pathLeft = (bodyW - pathW) / 2;
 
   // SVG path for the curve.
@@ -73,30 +75,39 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     return plateau(t);
   });
 
-  // Three drop-shadow layers that strengthen with progress; rendered as a
-  // CSS filter on the sun image so the glow follows the actual sun shape
-  // (not a rectangular halo around its bounding box).
+  // Drop-shadow stack on the sun image — follows the sun's actual shape
+  // (no rectangular halo). At p=1 the layers are very wide and bright so
+  // the sun reads as VERY luminous at the top of the curve.
   const sunFilter = useTransform(progress, (p) => {
-    const r1 = (8 + p * 18).toFixed(1);
-    const r2 = (16 + p * 60).toFixed(1);
-    const r3 = (28 + p * 140).toFixed(1);
-    const a1 = (0.45 + p * 0.45).toFixed(2);
-    const a2 = (0.25 + p * 0.55).toFixed(2);
-    const a3 = (0.1 + p * 0.6).toFixed(2);
+    // Ease the glow growth with a soft power so the brightness ramps hard
+    // toward the end (sun at level 3 is meant to feel intense).
+    const g = Math.pow(p, 0.7);
+    const r1 = (10 + g * 30).toFixed(1);
+    const r2 = (24 + g * 110).toFixed(1);
+    const r3 = (40 + g * 240).toFixed(1);
+    const r4 = (60 + g * 420).toFixed(1);
+    const a1 = (0.55 + g * 0.45).toFixed(2);
+    const a2 = (0.3 + g * 0.7).toFixed(2);
+    const a3 = (0.12 + g * 0.7).toFixed(2);
+    const a4 = (0.05 + g * 0.5).toFixed(2);
     return [
-      `drop-shadow(0 0 ${r1}px rgba(255,235,160,${a1}))`,
-      `drop-shadow(0 0 ${r2}px rgba(255,200,100,${a2}))`,
-      `drop-shadow(0 0 ${r3}px rgba(255,150,40,${a3}))`,
+      `drop-shadow(0 0 ${r1}px rgba(255,240,180,${a1}))`,
+      `drop-shadow(0 0 ${r2}px rgba(255,210,110,${a2}))`,
+      `drop-shadow(0 0 ${r3}px rgba(255,170,60,${a3}))`,
+      `drop-shadow(0 0 ${r4}px rgba(255,140,30,${a4}))`,
     ].join(" ");
   });
 
-  // Subtle brightness/saturation pump on the sun pixels themselves — gives
-  // a "neon" feel that scales with progress.
+  // Brightness / saturation lift on the sun pixels — strong by p=1 so the
+  // sun looks like it's actually emitting light, not just reflecting it.
   const sunImgFilter = useTransform(progress, (p) => {
-    const b = (1 + p * 0.25).toFixed(2);
-    const s = (1 + p * 0.4).toFixed(2);
+    const b = (1 + p * 0.45).toFixed(2);
+    const s = (1 + p * 0.6).toFixed(2);
     return `brightness(${b}) saturate(${s})`;
   });
+
+  // Sun size scales with progress: small at level 0, full at level 3.
+  const sunScale = useTransform(progress, (p) => SUN_MIN_SCALE + (1 - SUN_MIN_SCALE) * p);
 
   // Track fill (0..1) — same as `progress`, applied to strokeDashoffset.
   const trackFill = useTransform(progress, (p) => 1 - p);
@@ -281,43 +292,30 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             bottom: baselineFromBottom,
             x,
             y,
-            width: sunPx,
-            height: sunPx,
-            marginLeft: -sunPx / 2,
-            marginBottom: -sunPx / 2,
+            width: sunPxMax,
+            height: sunPxMax,
+            marginLeft: -sunPxMax / 2,
+            marginBottom: -sunPxMax / 2,
+            scale: sunScale,
             cursor: "grab",
             filter: sunFilter,
             willChange: "transform, filter",
           }}
           whileTap={{ cursor: "grabbing" }}
         >
-          {/* Inner pulse: scales the sun pixels subtly so the sun "breathes"
-              (gives the neon feel). Loops continuously; faster + bigger
-              amplitude at higher progress, but small enough to never look
-              wobbly. */}
-          <motion.div
-            className="h-full w-full"
-            animate={{ scale: [1, 1.035, 1] }}
-            transition={{
-              duration: value === 2 ? 1.6 : value === 1 ? 2.2 : 3,
-              repeat: Infinity,
-              ease: "easeInOut",
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <motion.img
+            src="/loreal/icon-sun.png"
+            alt="Sun"
+            draggable={false}
+            className="select-none"
+            style={{
+              width: "100%",
+              height: "auto",
+              filter: sunImgFilter,
+              pointerEvents: "none",
             }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <motion.img
-              src="/loreal/icon-sun.png"
-              alt="Sun"
-              draggable={false}
-              className="select-none"
-              style={{
-                width: "100%",
-                height: "auto",
-                filter: sunImgFilter,
-                pointerEvents: "none",
-              }}
-            />
-          </motion.div>
+          />
         </motion.div>
       </div>
 
