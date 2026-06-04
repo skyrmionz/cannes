@@ -65,8 +65,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           className="shrink-0 px-2"
           style={{
             width: "min(34vw, 18vh)",
-            marginTop: "clamp(1.5rem, 4.5vh, 3rem)",
-            marginBottom: "clamp(1.5rem, 4.5vh, 3rem)",
+            marginTop: "clamp(2.5rem, 7vh, 4.5rem)",
+            marginBottom: "clamp(2.5rem, 7vh, 4.5rem)",
           }}
         >
           <Image
@@ -105,8 +105,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
       <div
         className="shrink-0 flex justify-center"
         style={{
-          marginTop: "clamp(1rem, 3vh, 2rem)",
-          paddingBottom: "clamp(4rem, 12vh, 8rem)",
+          marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
+          paddingBottom: "clamp(2rem, 5vh, 4rem)",
         }}
       >
         <GlassyButton onClick={onStart} delay={0.85}>

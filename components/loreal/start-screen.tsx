@@ -76,9 +76,6 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             width: "min(82vw, 44vh)",
             marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
             marginBottom: "0.25rem",
-            // Source PNG's three O centers sit at avg x=470.7 in an 898-wide
-            // canvas (center=449), i.e. +2.4% right. Shift left to compensate.
-            transform: "translateX(-2.4%)",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
