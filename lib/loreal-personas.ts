@@ -1,7 +1,5 @@
-// L'Oréal flow — persona matrix + base64url encode/decode of the gift link
-// payload. Persona is determined by (agenda × sun); hydration adds a tail
-// flourish to the description so all 3 answers contribute without exploding
-// the matrix to 36 entries.
+// L'Oréal flow — 9 OOO statuses keyed off (sun × hydration). Agenda tail
+// adds one closing sentence so all three answers visibly shape the result.
 
 export type SunStop = 0 | 1 | 2;
 export type HydrationLevel = 0 | 1 | 2;
@@ -9,105 +7,114 @@ export type AgendaIndex = 0 | 1 | 2 | 3;
 
 export const LOREAL_RESULT_TTL_MS = 24 * 60 * 60 * 1000;
 
-interface PersonaCell {
-  name: string;
+export interface LorealStatus {
+  title: string;
   description: string;
+  image: string;
 }
 
-// Rows = agenda (Packed, Curated, Spontaneous, Salesforce Forever).
-// Cols = sun (Just a Peek, Healthy Dose, Bake Me).
-const PERSONA_MATRIX: ReadonlyArray<readonly [PersonaCell, PersonaCell, PersonaCell]> = [
-  // Packed
+// 3×3 matrix indexed as STATUS_MATRIX[sun][hydration].
+// Rows = sun (0 Just a Peek → 2 Bake Me).
+// Cols = hydration (0 Low → 2 Full).
+const STATUS_MATRIX: ReadonlyArray<readonly [LorealStatus, LorealStatus, LorealStatus]> = [
+  // Sun = Just a Peek
   [
     {
-      name: "The Sharp Closer",
+      title: "OOO Quiet mode. Full glow.",
       description:
-        "You're back-to-back, badge-on, espresso in hand, and skin that still reads camera-ready under conference lighting. The shade is the strategy.",
+        "Like a freshwater pearl, formed under pressure, unbothered at the surface. Your agents can handle the rest.",
+      image: "/loreal/status-7-pearl.png",
     },
     {
-      name: "The Power Networker",
+      title: "OOO In the shade. Back when it counts.",
       description:
-        "You move between the rooftop, the panel, and the after-party without breaking stride. A balanced glow signals you're playing the long game.",
+        "Like a fine bottle of wine, you know exactly when to surface. Your agents can handle the rest.",
+      image: "/loreal/status-1-shade.png",
     },
     {
-      name: "The Sun-Soaked Operator",
+      title: "OOO Offline and timeless.",
       description:
-        "Meetings on the terrace, calls on the beach — you let the sun catch up while the deals close themselves. SPF is a love language.",
+        "Like a vintage photograph, cool spaces and good people are where will find you. Your agents can handle the rest.",
+      image: "/loreal/status-2-offline.png",
     },
   ],
-  // Curated
+  // Sun = Healthy Dose
   [
     {
-      name: "The Insider",
+      title: "OOO Slow replies. Worth the wait.",
       description:
-        "You don't chase the lineup, you set it. A barely-there bronze is the calling card of someone who already knows where the night ends.",
+        "Like a drop of honey, everything moves better at your pace. Your agents can handle the rest.",
+      image: "/loreal/status-5-honey.png",
     },
     {
-      name: "The Tastemaker",
+      title: "OOO Sun, shade, perfectly calibrated.",
       description:
-        "Carefully chosen rooms, carefully chosen rosé, carefully chosen UV. Your skincare schedule is as curated as your dinner reservations.",
+        "Like a deep-sea creature, you do your best work below the noise. Your agents can handle the rest.",
+      image: "/loreal/status-3-deepsea.png",
     },
     {
-      name: "The Connoisseur",
+      title: "OOO Tuned to every frequency.",
       description:
-        "You don't just attend Cannes — you collect it. The deep, intentional tan is a souvenir from someone who knows which lounge has the best light.",
+        "Like a radiant coral reef, you thrive in complexity and always find the balance. Your agents can handle the rest.",
+      image: "/loreal/status-9-coral.png",
     },
   ],
-  // Spontaneous
+  // Sun = Bake Me
   [
     {
-      name: "The Quiet Romantic",
+      title: "OOO Gone with the breeze.",
       description:
-        "Last-minute boat invites, a book in your bag, sunsets you didn't plan but always seem to find. Your skin keeps it understated, just like you.",
+        "Like a twinkling wind chime, you move with everything and miss nothing. Your agents can handle the rest.",
+      image: "/loreal/status-8-windchime.png",
     },
     {
-      name: "The Free Spirit",
+      title: "OOO Reflecting good energy only.",
       description:
-        "The schedule is a suggestion. You'll follow the music, the friends-of-friends, and the warm sea breeze wherever they lead — gleam fully intact.",
+        "Like a disco ball, the Cannes sun just makes you hit harder. Your agents can handle the rest.",
+      image: "/loreal/status-6-disco.png",
     },
     {
-      name: "The Wildcard",
+      title: "OOO But fully operational.",
       description:
-        "Cannes happened to you, and you happened right back. The sun-kissed look is the story; the stories are how you ended up on the yacht.",
-    },
-  ],
-  // Salesforce Forever
-  [
-    {
-      name: "The Booth Captain",
-      description:
-        "If anyone asks, you're at the booth. If no one asks, you're still at the booth. A protected, lit-from-within glow says you came to demo, not to bake.",
-    },
-    {
-      name: "The Salesforce Believer",
-      description:
-        "Coffee, demos, networking lunches, and just enough Croisette sun to remember you're in France. You're here for the product and the product is here for you.",
-    },
-    {
-      name: "The Cloud Native",
-      description:
-        "Equal parts panels and pool deck — you found the booth shade in front of the booth, and you're working on a perfect tan while a perfect deck builds itself.",
+        "Like a solar paneled sweetheart, direct sun fuels everything you do. Your agents can handle the rest.",
+      image: "/loreal/status-4-solar.png",
     },
   ],
 ];
 
-const HYDRATION_TAIL: Record<HydrationLevel, string> = {
-  0: "Skin tip from the L'Oréal labs: a hyaluronic serum tonight will undo today.",
-  1: "A Vitamin-C boost in the morning will keep that glow on rotation.",
-  2: "Stay this hydrated and your skin barrier will thank you all weekend.",
+// One short closer per agenda — appended to the description so the user's
+// agenda answer is visibly reflected in the result without exploding the
+// matrix to 36 cells.
+const AGENDA_TAIL: Record<AgendaIndex, string> = {
+  0: "Cannes Week is yours — pack accordingly.",
+  1: "You picked your moments. The rest is noise.",
+  2: "Wherever the breeze takes you, it'll be worth it.",
+  3: "Your agents are running the booth — go enjoy France.",
 };
 
+export function getStatus(
+  sun: SunStop,
+  hydration: HydrationLevel,
+  agenda: AgendaIndex,
+): LorealStatus {
+  const cell = STATUS_MATRIX[sun][hydration];
+  const tail = AGENDA_TAIL[agenda];
+  return {
+    title: cell.title,
+    description: `${cell.description} ${tail}`,
+    image: cell.image,
+  };
+}
+
+// Backwards-compatible alias for the old call sites that still import
+// `getPersona`. Returns the same shape they used to consume.
 export function getPersona(
   sun: SunStop,
   hydration: HydrationLevel,
   agenda: AgendaIndex,
 ): { name: string; description: string } {
-  const cell = PERSONA_MATRIX[agenda][sun];
-  const tail = HYDRATION_TAIL[hydration];
-  return {
-    name: cell.name,
-    description: `${cell.description} ${tail}`,
-  };
+  const s = getStatus(sun, hydration, agenda);
+  return { name: s.title, description: s.description };
 }
 
 // 6-char alphanumeric (no ambiguous I/O/0/1) — easy to read off a phone screen.

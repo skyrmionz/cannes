@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import {
   decodeLorealResult,
+  getStatus,
   isLorealResultExpired,
 } from "@/lib/loreal-personas";
 
@@ -22,90 +23,127 @@ export default function ResultPage({
   const expired = data ? isLorealResultExpired(data.timestamp) : false;
 
   if (!data) {
-    return <Fallback message="This link is invalid. Please visit the L'Oréal booth to try again." />;
+    return (
+      <Fallback message="This link is invalid. Please visit the L'Oréal booth to try again." />
+    );
   }
   if (expired) {
-    return <Fallback message="This gift link has expired. Please visit the L'Oréal booth for a new one." />;
+    return (
+      <Fallback message="This gift link has expired. Please visit the L'Oréal booth for a new one." />
+    );
   }
+
+  // Re-derive status from the encoded answer trio so the page always paints
+  // the current matrix's title/description/image (instead of trusting the
+  // possibly-stale strings stored in the link payload).
+  const status = getStatus(data.sun, data.hydration, data.agenda);
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden"
+      className="min-h-screen w-full overflow-x-hidden text-[#001050]"
       style={{ background: LOREAL_GRADIENT }}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-5 pt-8 pb-8 text-[#001050] sm:px-6 sm:pt-10 sm:pb-10">
-        <motion.h1
-          className="mt-6 text-center font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: "clamp(1.4rem, 6.4vw, 2.4rem)" }}
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center px-5 pt-8 pb-10 sm:px-6 sm:pt-10 sm:pb-14">
+        {/* White status card */}
+        <motion.div
+          className="w-full rounded-[28px] bg-white"
+          style={{
+            padding: "20px 22px",
+            boxShadow: [
+              "0 0 0 1px rgba(0,16,80,0.05)",
+              "0 18px 40px rgba(120,160,220,0.22)",
+            ].join(", "),
+          }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.05, duration: 0.5, ease: "easeOut" }}
         >
-          Your persona is{" "}
-          <span className="whitespace-nowrap">{data.persona}.</span>
-        </motion.h1>
+          <div className="flex items-start gap-3">
+            <Image
+              src="/loreal/icon-sun.png"
+              alt=""
+              width={778}
+              height={774}
+              priority
+              draggable={false}
+              className="h-auto shrink-0 select-none"
+              style={{ width: "clamp(40px, 12vw, 56px)" }}
+            />
+            <div className="flex min-w-0 flex-col">
+              <span
+                className="font-semibold leading-tight text-[#001050]"
+                style={{
+                  fontSize: "clamp(0.95rem, 4vw, 1.1rem)",
+                  fontFamily:
+                    'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+                }}
+              >
+                Your status
+              </span>
+              <h1
+                className="mt-1 font-bold leading-[1.1] tracking-tight text-[#001050]"
+                style={{ fontSize: "clamp(1.5rem, 7vw, 2.1rem)" }}
+              >
+                {status.title.replace(/^OOO\s+/, "OOO ")}
+              </h1>
+            </div>
+          </div>
+        </motion.div>
 
+        {/* Status icon — large, centered */}
+        <motion.div
+          className="mt-6 flex w-full justify-center"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.18, duration: 0.55, ease: "easeOut" }}
+        >
+          <Image
+            src={status.image}
+            alt={status.title}
+            width={989}
+            height={989}
+            priority
+            unoptimized
+            draggable={false}
+            className="h-auto select-none"
+            style={{ width: "min(82vw, 420px)" }}
+          />
+        </motion.div>
+
+        {/* Description */}
         <motion.p
-          className="mt-3 w-full max-w-xl text-center leading-snug text-[#001050]/80"
+          className="mt-6 w-full text-center font-semibold leading-snug text-[#001050]"
           style={{
-            fontSize: "clamp(0.85rem, 3.2vw, 1.05rem)",
+            fontSize: "clamp(1.05rem, 4.4vw, 1.25rem)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            whiteSpace: "pre-line",
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.22, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.32, duration: 0.5, ease: "easeOut" }}
         >
-          {data.description}
+          {status.description}
         </motion.p>
 
+        {/* Salesforce Beach lockup */}
         <motion.div
-          className="mt-6 flex justify-center"
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.32, duration: 0.55, ease: "easeOut" }}
-        >
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Image
-              src="/loreal/sunscreen-tube.png"
-              alt="L'Oréal sunscreen"
-              width={720}
-              height={720}
-              priority
-              draggable={false}
-              className="h-auto select-none"
-              style={{ width: "min(56vw, 34vh)" }}
-            />
-          </motion.div>
-        </motion.div>
-
-        {/* Confirmation code — sits just below the icon. */}
-        <motion.div
-          className="mt-4 flex w-full flex-col items-center text-center"
-          initial={{ opacity: 0, y: 12 }}
+          className="mt-auto flex w-full justify-center pt-10"
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.5, duration: 0.5 }}
         >
-          <span
-            className="block font-bold tracking-[0.22em] text-[#001050]"
-            style={{ fontSize: "clamp(2rem, 9vw, 3.2rem)" }}
-          >
-            {data.code}
-          </span>
-          <span
-            className="mt-2 block text-[11px] uppercase tracking-[0.22em] text-[#001050]/55"
-            style={{
-              fontFamily:
-                'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-            }}
-          >
-            Your Confirmation Code
-          </span>
+          <Image
+            src="/loreal/salesforce-beach.png"
+            alt="Salesforce Beach"
+            width={416}
+            height={33}
+            priority
+            draggable={false}
+            className="h-auto select-none"
+            style={{ width: "min(60vw, 240px)" }}
+          />
         </motion.div>
-
       </div>
     </div>
   );
