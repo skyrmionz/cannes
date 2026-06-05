@@ -167,15 +167,34 @@ export default function ResultPage({
           {status.description}
         </motion.p>
 
-        {/* Salesforce Beach lockup w/ cloud separator */}
+        {/* Salesforce Beach lockup w/ cloud separator + customer-stories CTA */}
         <motion.div
-          className="mt-auto flex w-full shrink-0 items-center justify-center pt-4"
-          style={{ marginTop: "clamp(1rem, 3vh, 2rem)" }}
+          className="mt-auto flex w-full shrink-0 flex-col items-center justify-center pt-4"
+          style={{ marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)" }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
           <SalesforceBeachLockup />
+          <a
+            href="https://www.salesforce.com/customer-stories/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-1.5 font-semibold tracking-tight text-[#001050]/85 transition-colors hover:text-[#001050]"
+            style={{
+              fontSize: "clamp(0.85rem, 3.4vw, 1rem)",
+              marginTop: "clamp(0.6rem, 1.8vh, 1rem)",
+              fontFamily:
+                'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            }}
+          >
+            <span className="underline decoration-[#001050]/40 underline-offset-4 group-hover:decoration-[#001050]">
+              See how Agentforce powers our customers&rsquo; experiences
+            </span>
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
+          </a>
         </motion.div>
       </div>
     </div>
