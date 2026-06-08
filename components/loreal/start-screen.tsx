@@ -59,11 +59,11 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         style={{ height: "min(38vw, 30vh)" }}
       />
 
-      {/* Headline + tagline group — vertically centered between the umbrella
-          spacer above and the CTA group below, so spacing is equal. */}
+      {/* Headline + image + tagline group — vertically centered between the
+          umbrella spacer above and the CTA group below. */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
         <HeadlineWord
-          text="Find your"
+          text="Your"
           delay={0.7}
           fontSize="min(18vw, 10vh)"
         />
@@ -73,20 +73,19 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
           className="relative"
           style={{
-            width: "min(82vw, 44vh)",
-            marginTop: "clamp(0.75rem, 2.5vh, 1.5rem)",
-            marginBottom: "0.25rem",
+            width: "min(72vw, 38vh)",
+            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
+            marginBottom: "clamp(0.25rem, 0.8vh, 0.5rem)",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/loreal/ooo-beachy.png"
-            alt="OOO"
+            src="/loreal/spf-sand.png"
+            alt="SPF"
             draggable={false}
             className="h-auto w-full select-none"
           />
-          {/* Tiny crab perched on the sand divet in front of the right O,
-              tilted slightly so it doesn't sit dead-flat. */}
+          {/* Crab sitting on the sand, centered, upright */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/loreal/crab.png"
@@ -94,29 +93,35 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="pointer-events-none absolute select-none"
             style={{
-              width: "7%",
-              left: "67%",
-              bottom: "12%",
-              transform: "rotate(12deg)",
-              transformOrigin: "center bottom",
+              width: "10%",
+              left: "50%",
+              bottom: "8%",
+              transform: "translateX(-50%)",
             }}
           />
         </motion.div>
         <HeadlineWord
-          text="Status"
+          text="Status Protection"
           delay={1.0}
-          fontSize="min(18vw, 10vh)"
+          fontSize="min(11vw, 6vh)"
+        />
+        <HeadlineWord
+          text="Formulator"
+          delay={1.1}
+          fontSize="min(14vw, 7.5vh)"
         />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.15, duration: 0.5 }}
+          transition={{ delay: 1.25, duration: 0.5 }}
           className="mt-3 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
           style={{ fontSize: "min(5vw, 2.6vh)" }}
         >
-          We&rsquo;re at Cannes.
+          Answer three questions;
           <br />
-          Protect your time.
+          walk away with your Cannes status vibe...
+          <br />
+          and the SPF to match.
         </motion.p>
       </div>
 
@@ -146,7 +151,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           height={120}
           priority
           className="h-auto select-none"
-          style={{ width: "min(70vw, 28vh)" }}
+          style={{ width: "min(82vw, 38vh)" }}
         />
       </motion.div>
     </div>
