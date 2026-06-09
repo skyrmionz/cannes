@@ -165,7 +165,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     animate(x, stopXs[i], { duration: 0.5, ease: [0.32, 0.72, 0, 1] });
   };
 
-  const handleDragEnd = () => {
+  const snapToClosestStop = () => {
     const cur = x.get();
     let closest: StopIndex = 0;
     let best = Infinity;
@@ -179,6 +179,43 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     goToStop(closest);
   };
 
+  // Custom pointer-driven control: a touch anywhere on the body region
+  // projects horizontally onto the curve. We track where the user's
+  // finger lands (in pathW pixels) and write that to `x`. This makes
+  // the sun follow the user's natural diagonal/curving motion instead
+  // of only its horizontal component (Framer's `drag="x"` ignores
+  // vertical movement entirely, which was confusing on mobile).
+  const dragging = useRef(false);
+
+  const projectToPathX = (clientX: number, target: HTMLElement) => {
+    const bodyEl = target.closest("[data-sun-body]") as HTMLElement | null;
+    if (!bodyEl || pathW <= 0) return null;
+    const rect = bodyEl.getBoundingClientRect();
+    const localX = clientX - rect.left - pathLeft;
+    return Math.max(0, Math.min(pathW, localX));
+  };
+
+  const onPointerDownGrip = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    dragging.current = true;
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    const xv = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
+    if (xv != null) x.set(xv);
+  };
+
+  const onPointerMoveGrip = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    const xv = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
+    if (xv != null) x.set(xv);
+  };
+
+  const onPointerUpGrip = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    snapToClosestStop();
+  };
+
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header — progress bar + question text on TOP. Header text uses
@@ -188,7 +225,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "min(10vw, 6vh)" }}
+          style={{ fontSize: "min(8.5vw, 5.2vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -200,7 +237,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "min(5vw, 2.4vh)",
+            fontSize: "min(4.2vw, 2vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,
@@ -219,7 +256,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           between the header and the hint+footer below.
           We don't paint the curve / stops / sun until pathW has been
           measured so the user never sees stops at a fallback width. */}
-      <div ref={bodyRef} className="relative min-h-0 flex-1">
+      <div ref={bodyRef} data-sun-body className="relative min-h-0 flex-1">
         {bodyW > 0 && (
         <svg
           aria-hidden
@@ -285,42 +322,34 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           );
         })}
 
-        {/* Tap zones for the three stops */}
-        {bodyW > 0 && ([0, 1, 2] as const).map((i) => {
-          const t = stopTs[i];
-          return (
-            <button
-              key={`tap-${i}`}
-              type="button"
-              onClick={() => goToStop(i)}
-              aria-label={`Sun stop ${i + 1}`}
-              className="absolute z-20"
-              style={{
-                left: pathLeft + t * pathW,
-                bottom: baselineFromBottom + plateau(t) * verticalSpan,
-                width: 64,
-                height: 64,
-                transform: "translate(-50%, 50%)",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-              }}
-            />
-          );
-        })}
+        {/* Curve hit-zone — a transparent strip covering the full body
+            region that captures pointer events anywhere along/near the
+            curve. The user's finger position (any direction) projects
+            horizontally onto the curve, so a diagonal drag along the
+            arc works as expected. */}
+        {bodyW > 0 && (
+          <div
+            onPointerDown={onPointerDownGrip}
+            onPointerMove={onPointerMoveGrip}
+            onPointerUp={onPointerUpGrip}
+            onPointerCancel={onPointerUpGrip}
+            className="absolute inset-0 z-30"
+            style={{
+              cursor: "grab",
+              // Critical for mobile: disable browser default
+              // touch-as-scroll so we receive every pointermove
+              // regardless of finger direction.
+              touchAction: "none",
+            }}
+          />
+        )}
 
-        {/* Sun — draggable along x; y is derived from the plateau so the sun
-            always rides the curve. Glow is rendered as a CSS filter on the
-            image (drop-shadow stack), so it follows the sun's actual shape
-            instead of a rectangular halo. A subtle pulse animation keeps it
-            feeling alive at higher levels. */}
+        {/* Sun visual — rides the curve, position written directly
+            via x/y motion values. Pointer-events disabled so the
+            hit-zone above receives the gesture even when the finger
+            is on top of the sun. */}
         <motion.div
           className="absolute z-40"
-          drag="x"
-          dragConstraints={{ left: 0, right: pathW }}
-          dragElastic={0.04}
-          dragMomentum={false}
-          onDragEnd={handleDragEnd}
           style={{
             left: pathLeft,
             bottom: baselineFromBottom,
@@ -331,16 +360,10 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             marginLeft: -sunPxMax / 2,
             marginBottom: -sunPxMax / 2,
             scale: sunScale,
-            cursor: "grab",
             filter: sunFilter,
             willChange: "transform",
-            // Mobile: prevent the browser from hijacking vertical
-            // movement for page scroll. Without this, a user dragging
-            // diagonally up the curve gets their gesture interpreted
-            // as a scroll attempt and the sun barely moves.
-            touchAction: "none",
+            pointerEvents: "none",
           }}
-          whileTap={{ cursor: "grabbing" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <motion.img
