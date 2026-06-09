@@ -8,13 +8,6 @@ interface StartScreenProps {
   onStart: () => void;
 }
 
-// NOTE: background, glass card, and CornerTap live in app/loreal/page.tsx
-// as a persistent shell so they stay still while step content cross-zooms.
-//
-// Layout uses a flex column with three flex-1 sections (logo / headline+glasses
-// / powered-by + CTA) so the screen fills any viewport height proportionally.
-// All typography + image sizing uses min(N vw, M vh, Kpx) so things scale up
-// on tall/wide windows instead of capping at a small px maximum.
 export function LorealStartScreen({ onStart }: StartScreenProps) {
   return (
     <div
@@ -24,9 +17,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         paddingBottom: "clamp(1rem, 3vh, 2rem)",
       }}
     >
-      {/* Umbrella — anchored to the top-right, leans further left so the
-          canopy reaches the left edge. Pivot at the bottom-right so only
-          the top-left tip of the canopy visibly sways. */}
+      {/* Tap-anywhere to advance */}
+      <button
+        type="button"
+        aria-label="Start"
+        onClick={onStart}
+        className="absolute inset-0 z-30 cursor-default"
+        style={{ background: "transparent" }}
+      />
+
+      {/* Umbrella */}
       <motion.div
         className="umbrella-sway pointer-events-none absolute z-20 select-none"
         style={{
@@ -50,23 +50,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         />
       </motion.div>
 
-      {/* Spacer reserves room for the umbrella canopy so the headline never
-          sits under it. Sized smaller than half the screen so the headline
-          stays vertically centered between the umbrella and the CTA. */}
+      {/* Spacer for umbrella */}
       <div
         aria-hidden
         className="shrink-0"
         style={{ height: "min(38vw, 30vh)" }}
       />
 
-      {/* Headline + image + tagline group — vertically centered between the
-          umbrella spacer above and the CTA group below. */}
+      {/* Headline + image + tagline */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord
-          text="Your"
-          delay={0.7}
-          fontSize="min(18vw, 10vh)"
-        />
+        <HeadlineWord text="Your" delay={0.7} fontSize="min(18vw, 10vh)" />
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -74,8 +67,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           className="relative"
           style={{
             width: "min(72vw, 38vh)",
-            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
-            marginBottom: "clamp(0.25rem, 0.8vh, 0.5rem)",
+            marginTop: "-0.25rem",
+            marginBottom: "0rem",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -85,7 +78,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="h-auto w-full select-none"
           />
-          {/* Crab sitting on the sand, centered, upright */}
+          {/* Crab — in the sand divet between P and F, slightly tilted right */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/loreal/crab.png"
@@ -93,29 +86,25 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="pointer-events-none absolute select-none"
             style={{
-              width: "10%",
-              left: "50%",
-              bottom: "8%",
-              transform: "translateX(-50%)",
+              width: "9%",
+              left: "62%",
+              bottom: "18%",
+              transform: "rotate(5deg)",
+              transformOrigin: "center bottom",
             }}
           />
         </motion.div>
         <HeadlineWord
-          text="Status Protection"
+          text="Status Protection Formulator"
           delay={1.0}
-          fontSize="min(11vw, 6vh)"
-        />
-        <HeadlineWord
-          text="Formulator"
-          delay={1.1}
-          fontSize="min(14vw, 7.5vh)"
+          fontSize="min(7vw, 3.8vh)"
         />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.25, duration: 0.5 }}
-          className="mt-3 max-w-2xl text-center font-semibold leading-snug tracking-tight text-[#001050]"
-          style={{ fontSize: "min(5vw, 2.6vh)" }}
+          transition={{ delay: 1.2, duration: 0.5 }}
+          className="mt-2 text-center font-semibold leading-snug tracking-tight text-[#001050]"
+          style={{ fontSize: "min(4vw, 2.2vh)" }}
         >
           Answer three questions;
           <br />
@@ -125,19 +114,18 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         </motion.p>
       </div>
 
-      {/* CTA — explicit gap above the tagline and below to powered-by so the
-          button never touches either, on tall or short viewports. */}
+      {/* CTA */}
       <div
         className="relative z-10 shrink-0"
         style={{
-          marginTop: "clamp(1.5rem, 5vh, 3.5rem)",
-          marginBottom: "clamp(1.5rem, 5vh, 3.5rem)",
+          marginTop: "clamp(1rem, 3vh, 2rem)",
+          marginBottom: "clamp(1rem, 3vh, 2rem)",
         }}
       >
         <GlassyButton onClick={onStart}>I&apos;m in</GlassyButton>
       </div>
 
-      {/* Powered-by — pinned to the very bottom of the container */}
+      {/* Powered-by */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -170,10 +158,6 @@ function HeadlineWord({
   return (
     <motion.span
       className="block whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight"
-      // Scales with both viewport width AND height so it fills tall windows
-      // (e.g. 1920×1080) instead of capping at the previous 7.5rem. Multi-word
-      // lines (like "Find your") pass a smaller fontSize override so the
-      // whole line fits without wrapping.
       style={{ fontSize }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
@@ -183,4 +167,3 @@ function HeadlineWord({
     </motion.span>
   );
 }
-

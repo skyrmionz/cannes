@@ -24,6 +24,14 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
       className="absolute inset-3 flex flex-col items-center overflow-hidden rounded-[40px] text-[#001050]"
       style={{ paddingTop: "clamp(3.5rem, 10vh, 6rem)" }}
     >
+      {/* Tap-anywhere to advance */}
+      <button
+        type="button"
+        aria-label="Continue"
+        onClick={onStart}
+        className="absolute inset-0 z-30 cursor-default"
+        style={{ background: "transparent" }}
+      />
       {/* Title */}
       <motion.h1
         className="shrink-0 whitespace-nowrap text-center font-bold leading-[1.05] tracking-tight"
