@@ -90,7 +90,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Astro — bigger; sits lower in the column */}
+        {/* Astro winking video — loops seamlessly */}
         <motion.div
           className="flex shrink-0 min-h-0 justify-center"
           initial={{ opacity: 0, scale: 0.94 }}
@@ -101,14 +101,16 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             marginTop: "clamp(0.5rem, 2vh, 1.5rem)",
           }}
         >
-          <Image
-            src="/loreal/agent-astro.png"
-            alt="Agent Astro"
-            width={2981}
-            height={2756}
-            priority
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
             className="h-auto w-full select-none"
-          />
+            style={{ pointerEvents: "none" }}
+          >
+            <source src="/loreal/astro-wink.mp4" type="video/mp4" />
+          </video>
         </motion.div>
       </div>
 
