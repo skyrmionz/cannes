@@ -39,7 +39,7 @@ export function LorealHydrationQuestionScreen({
   // of empty space in the body.
   const dropletPx = Math.max(
     140,
-    Math.min(bodySize.h - 16, bodySize.w - 32),
+    Math.min(bodySize.h - 80, bodySize.w - 120),
   );
 
   const goToLevel = useCallback(
@@ -91,7 +91,7 @@ export function LorealHydrationQuestionScreen({
         <LorealProgressBar percent={50} label="50%" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "min(8.5vw, 5.2vh)" }}
+          style={{ fontSize: "min(7vw, 4.4vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -103,7 +103,7 @@ export function LorealHydrationQuestionScreen({
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "min(4.2vw, 2vh)",
+            fontSize: "min(3.6vw, 1.7vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,

@@ -206,7 +206,12 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   const onPointerMoveGrip = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
     const xv = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
-    if (xv != null) x.set(xv);
+    if (xv != null) {
+      // Ease toward the finger position with a snappy spring instead of
+      // jumping each frame — keeps the gesture responsive but smooths
+      // micro-jitter so the drag reads as fluid rather than abrupt.
+      animate(x, xv, { type: "spring", stiffness: 400, damping: 40, mass: 0.5 });
+    }
   };
 
   const onPointerUpGrip = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -225,7 +230,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         <LorealProgressBar percent={25} label="25%" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "min(8.5vw, 5.2vh)" }}
+          style={{ fontSize: "min(7vw, 4.4vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -237,7 +242,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "min(4.2vw, 2vh)",
+            fontSize: "min(3.6vw, 1.7vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,

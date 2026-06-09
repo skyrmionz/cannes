@@ -92,9 +92,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Top spacer — absorbs half the remaining slack so Astro
-            sits centered between the wave and the CTA. */}
-        <div aria-hidden className="min-h-0 flex-1" />
+        {/* Top spacer — much bigger than the bottom so Astro sits well
+            below center, hugging closer to the CTA. */}
+        <div aria-hidden className="min-h-0" style={{ flex: "3 1 0" }} />
 
         {/* Astro winking video — transparent bg, loops seamlessly */}
         <motion.div
@@ -102,7 +102,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{ width: "min(78vw, 52vh)" }}
+          style={{ width: "min(94vw, 66vh)" }}
         >
           <TransparentVideoLoop
             mp4Src="/loreal/astro-wink.mov"
@@ -114,8 +114,8 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Bottom spacer — absorbs the other half. */}
-        <div aria-hidden className="min-h-0 flex-1" />
+        {/* Bottom spacer — smaller, so Astro sits below the visual center. */}
+        <div aria-hidden className="min-h-0" style={{ flex: "1 1 0" }} />
       </div>
 
       {/* CTA */}
