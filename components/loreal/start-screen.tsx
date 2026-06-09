@@ -67,8 +67,8 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           className="relative"
           style={{
             width: "min(72vw, 38vh)",
-            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
-            marginBottom: "0rem",
+            marginTop: "-0.5rem",
+            marginBottom: "-0.5rem",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,7 +88,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             style={{
               width: "9%",
               left: "62%",
-              bottom: "26%",
+              bottom: "22%",
               transform: "rotate(5deg)",
               transformOrigin: "center bottom",
             }}
@@ -98,14 +98,14 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           text="Status Protection Formulator"
           delay={1.0}
           fontSize="min(7vw, 3.8vh)"
-          marginTop="-0.25rem"
+          marginTop="-0.75rem"
         />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
-          className="mt-3 text-center leading-snug tracking-tight text-[#001050]"
-          style={{ fontSize: "min(4vw, 2.2vh)", fontWeight: 400 }}
+          className="mt-2 text-center leading-snug tracking-tight text-[#001050]/75"
+          style={{ fontSize: "min(3.4vw, 1.8vh)", fontWeight: 400 }}
         >
           Answer three questions;
           <br />
