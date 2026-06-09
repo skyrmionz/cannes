@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Check } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useState } from "react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -14,44 +15,59 @@ interface Props {
   onChange: (next: AgendaIndex) => void;
 }
 
-type Corner = "tl" | "tr" | "bl" | "br";
-
-const OPTIONS: ReadonlyArray<{
-  title: string;
-  body: string;
-  image: string;
-  imageCorner: Corner;
-  imageScale: number; // size of the image relative to card width
-}> = [
-  {
-    title: "Packed",
-    body: "Panels, meetings, parties, repeat.",
-    image: "/loreal/agenda-packed.png",
-    imageCorner: "br",
-    imageScale: 0.7,
-  },
-  {
-    title: "Curated",
-    body: "I know exactly which parties are worth my time.",
-    image: "/loreal/agenda-curated.png",
-    imageCorner: "br",
-    imageScale: 0.6,
-  },
-  {
-    title: "Spontaneous",
-    body: "I'll see what kind of trouble I can find.",
-    image: "/loreal/agenda-spontaneous.png",
-    imageCorner: "br",
-    imageScale: 0.7,
-  },
-  {
-    title: "Salesforce Forever",
-    body: "Please don't make me leave this beach.",
-    image: "/loreal/agenda-salesforce-forever.png",
-    imageCorner: "br",
-    imageScale: 0.65,
-  },
+const TITLES: ReadonlyArray<string> = [
+  "Packed",
+  "Curated",
+  "Spontaneous",
+  "Salesforce Forever",
 ];
+
+const DESCRIPTIONS: ReadonlyArray<string> = [
+  "Panels, meetings, parties, repeat.",
+  "I know exactly which parties are worth my time.",
+  "I'll see what kind of trouble I can find.",
+  "Please don't make me leave this beach.",
+];
+
+const SWIPE_THRESHOLD = 40;
+
+const DAY_START = 9;
+const DAY_END = 19;
+const HOURS = DAY_END - DAY_START; // 10
+
+type Slot = { start: number; end: number; title: string; hue: number };
+
+const SCHEDULES: Record<AgendaIndex, ReadonlyArray<Slot>> = {
+  0: Array.from({ length: HOURS }, (_, idx) => {
+    const h = DAY_START + idx;
+    return {
+      start: h,
+      end: h + 1,
+      title: "Event " + (h - 8),
+      hue: ((h - 9) * 36) % 360,
+    };
+  }),
+  1: [
+    { start: 9, end: 10, title: "Morning panel", hue: 200 },
+    { start: 11, end: 12, title: "Coffee chat", hue: 30 },
+    { start: 13, end: 14, title: "Lunch", hue: 60 },
+    { start: 16, end: 17, title: "Demo", hue: 280 },
+    { start: 18, end: 19, title: "Sunset rosé", hue: 340 },
+  ],
+  2: [{ start: 9, end: 19, title: "OOO 😎", hue: 42 }],
+  3: [{ start: 9, end: 19, title: "Salesforce ☁️", hue: 215 }],
+};
+
+const GLASS_BUTTON: React.CSSProperties = {
+  background: "rgba(255,255,255,0.45)",
+  boxShadow: [
+    "0 0 0 1px rgba(255,255,255,0.6) inset",
+    "0 1px 0 rgba(255,255,255,0.8) inset",
+    "0 8px 24px rgba(120,160,220,0.2)",
+  ].join(", "),
+  WebkitBackdropFilter: "blur(12px) saturate(140%)",
+  backdropFilter: "blur(12px) saturate(140%)",
+};
 
 export function LorealAgendaQuestionScreen({
   onNext,
@@ -64,28 +80,58 @@ export function LorealAgendaQuestionScreen({
     onNext();
   };
 
-  // Measure the body region so the 2x2 grid fills it edge-to-edge regardless
-  // of viewport (phone, 1080x1920 portrait kiosk, desktop). Cards stretch
-  // along whichever axis has slack.
+  const displayIndex: AgendaIndex = value ?? 0;
+  const [touched, setTouched] = useState<boolean>(value !== null);
+  const [direction, setDirection] = useState<1 | -1>(1);
+
+  // Measure the body region so the day-view calendar can fill the slack.
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyW = bodySize.w || 360;
-  const bodyH = bodySize.h || 480;
-  const hintReserve = 56;
-  const verticalGap = 14;
-  const colGap = 14;
-  const horizPad = 16;
-  const availW = Math.max(160, bodyW - horizPad * 2);
-  const availH = Math.max(200, bodyH - hintReserve);
-  // Width per card if filling the row; height per card if filling the column.
-  const cardWFill = (availW - colGap) / 2;
-  const cardHFill = (availH - verticalGap) / 2;
-  // Cards fill the row but only ~88% of the available column height so they
-  // read as cards (not blocks). Cap aspect at min 1.0 (square) and max 1.15
-  // so the proportion stays consistent across resolutions.
-  const cardW = cardWFill;
-  const minH = cardW * 1.0;
-  const maxH = cardW * 1.15;
-  const cardH = Math.max(minH, Math.min(cardHFill * 0.88, maxH));
+
+  const isPhone = bodyW < 420;
+  const arrowSize = isPhone ? 36 : 48;
+  const arrowIcon = isPhone ? 16 : 18;
+
+  // Carousel title row height: floor min(72px, ~10vh).
+  const titleRowMinH = 72;
+  // Description row floor.
+  const descRowMinH = isPhone ? 32 : 48;
+
+  const goNext = () => {
+    setDirection(1);
+    setTouched(true);
+    const next = (((displayIndex + 1) % 4) as AgendaIndex);
+    onChange(next);
+  };
+
+  const goPrev = () => {
+    setDirection(-1);
+    setTouched(true);
+    const prev = (((displayIndex + 3) % 4) as AgendaIndex);
+    onChange(prev);
+  };
+
+  // Pointer-event swipe on the title + carousel area.
+  const startXRef = useRef<number | null>(null);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    startXRef.current = e.clientX;
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      // setPointerCapture can throw in older webkit; safe to ignore.
+    }
+  };
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const start = startXRef.current;
+    startXRef.current = null;
+    if (start === null) return;
+    const dx = e.clientX - start;
+    if (dx < -SWIPE_THRESHOLD) goNext();
+    else if (dx > SWIPE_THRESHOLD) goPrev();
+  };
+
+  // Keep linter happy if `touched` ever becomes meaningful for visuals later.
+  void touched;
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
@@ -119,52 +165,117 @@ export function LorealAgendaQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — 2x2 grid of cards + hint below. Cards are sized by their
-          aspect ratio; gridAutoRows keeps rows tight so the hint stays
-          within the body region. */}
+      {/* Body — carousel title + description + day-view calendar. */}
       <div
         ref={bodyRef}
-        className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
+        className="relative flex min-h-0 flex-1 flex-col"
         style={{
-          paddingInline: `${horizPad}px`,
+          paddingInline: "16px",
           paddingBlock: "clamp(0.5rem, 1.5vh, 1rem)",
-          gap: "clamp(0.5rem, 1.5vh, 1rem)",
+          gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
+        {/* Carousel title row + swipe gesture wrapper */}
         <div
-          className="grid"
+          className="relative shrink-0"
           style={{
-            gridTemplateColumns: `${cardW}px ${cardW}px`,
-            gridAutoRows: `${cardH}px`,
-            gap: `${verticalGap}px ${colGap}px`,
+            height: `min(${titleRowMinH}px, 10vh)`,
+            minHeight: titleRowMinH,
+            touchAction: "none",
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={() => {
+            startXRef.current = null;
           }}
         >
-          {OPTIONS.map((opt, i) => (
-            <AgendaCard
-              key={opt.title}
-              title={opt.title}
-              body={opt.body}
-              image={opt.image}
-              imageCorner={opt.imageCorner}
-              imageScale={opt.imageScale}
-              cardW={cardW}
-              cardH={cardH}
-              selected={value === i}
-              onClick={() => onChange(i as AgendaIndex)}
-            />
-          ))}
+          {/* Sliding title */}
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={displayIndex}
+                className="font-bold tracking-tight text-[#001050]"
+                style={{
+                  fontSize: "clamp(1.5rem, min(7vw, 4.4vh), 2.2rem)",
+                  whiteSpace: "nowrap",
+                }}
+                initial={{ x: 60 * direction, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -60 * direction, opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+              >
+                {TITLES[displayIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </div>
+
+          {/* Left arrow — half-overlapping the body's left edge. */}
+          <motion.button
+            type="button"
+            onClick={goPrev}
+            aria-label="Previous"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            className="absolute top-1/2 grid -translate-y-1/2 place-items-center rounded-full text-[#001050]"
+            style={{
+              ...GLASS_BUTTON,
+              left: -16,
+              width: arrowSize,
+              height: arrowSize,
+            }}
+          >
+            <ChevronLeft size={arrowIcon} strokeWidth={2.5} />
+          </motion.button>
+
+          {/* Right arrow — half-overlapping the body's right edge. */}
+          <motion.button
+            type="button"
+            onClick={goNext}
+            aria-label="Next"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            className="absolute top-1/2 grid -translate-y-1/2 place-items-center rounded-full text-[#001050]"
+            style={{
+              ...GLASS_BUTTON,
+              right: -16,
+              width: arrowSize,
+              height: arrowSize,
+            }}
+          >
+            <ChevronRight size={arrowIcon} strokeWidth={2.5} />
+          </motion.button>
         </div>
 
-        {/* Hint — single line, matching the sun/hydration hint style */}
-        <motion.p
-          className="shrink-0 whitespace-nowrap text-center font-bold leading-tight tracking-tight text-[#001050]/60"
-          style={{ fontSize: "clamp(1rem, min(4.6vw, 2.8vh), 1.55rem)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
+        {/* Description row */}
+        <div
+          className="relative shrink-0 overflow-hidden"
+          style={{ minHeight: descRowMinH }}
         >
-          Select and click next
-        </motion.p>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.p
+              key={displayIndex}
+              className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
+              style={{
+                fontSize: "clamp(1rem, min(4vw, 2.4vh), 1.4rem)",
+                fontFamily:
+                  'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+                fontWeight: 400,
+                paddingInline: 8,
+              }}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -18 }}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            >
+              {DESCRIPTIONS[displayIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* Day-view calendar — fills remaining slack */}
+        <div className="relative min-h-0 flex-1">
+          <CalendarColumn index={displayIndex} />
+        </div>
       </div>
 
       {/* Footer — glassy Back + Next text buttons (matching other questions) */}
@@ -226,161 +337,134 @@ export function LorealAgendaQuestionScreen({
   );
 }
 
-function AgendaCard({
-  title,
-  body,
-  image,
-  imageCorner,
-  imageScale,
-  cardW,
-  cardH,
-  selected,
-  onClick,
-}: {
-  title: string;
-  body: string;
-  image: string;
-  imageCorner: Corner;
-  imageScale: number;
-  cardW: number;
-  cardH: number;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  // Scale typography off the smaller card dimension so text fills the card
-  // proportionally at every viewport size (phone, 1080x1920, desktop).
-  const baseDim = Math.min(cardW, cardH);
-  const titleSize = Math.max(16, Math.min(baseDim * 0.18, 36));
-  const bodySize = Math.max(12, Math.min(baseDim * 0.095, 22));
-  const padTop = Math.max(12, baseDim * 0.08);
-  const padLeft = Math.max(14, baseDim * 0.09);
-  // Image sits flush against the card's corner, fully visible inside the card.
-  const cornerStyle: Record<Corner, React.CSSProperties> = {
-    tl: { top: 0, left: 0 },
-    tr: { top: 0, right: 0 },
-    bl: { bottom: 0, left: 0 },
-    br: { bottom: 0, right: 0 },
-  };
+function CalendarColumn({ index }: { index: AgendaIndex }) {
+  // Measure the calendar wrapper to derive pxPerHour. useElementSize is the
+  // shared hook used elsewhere in the file.
+  const { ref, size } = useElementSize<HTMLDivElement>();
+  const measuredH = size.h || 0;
+  const pxPerHour = Math.max(1, Math.floor(measuredH / HOURS));
+
+  const slots = SCHEDULES[index];
+  const hideTitle = pxPerHour < 22;
+
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 320, damping: 26 }}
-      className="relative h-full w-full overflow-hidden rounded-[28px] text-left"
-      style={{
-        background: "linear-gradient(180deg, #FFFFFF 0%, #EAF3FE 100%)",
-        boxShadow: [
-          "0 0 0 1px rgba(0,16,80,0.08)",
-          "0 14px 30px rgba(120,160,220,0.18)",
-          "0 1px 0 rgba(255,255,255,0.9) inset",
-        ].join(", "),
-      }}
-    >
-      {/* Image — anchored to a specific corner and translated past the
-          edge so the card's overflow-hidden clips it into the rounded
-          corner. Painted under the text via z-0. */}
-      <div
-        className="pointer-events-none absolute z-0"
-        style={{
-          ...cornerStyle[imageCorner],
-          width: `${imageScale * 100}%`,
-          aspectRatio: "1 / 1",
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image}
-          alt=""
-          draggable={false}
-          className="h-full w-full select-none object-contain"
-          style={{ objectPosition: cornerToObjectPosition(imageCorner) }}
-        />
-      </div>
+    <div ref={ref} className="relative h-full w-full overflow-hidden">
+      <AnimatePresence initial={false}>
+        {slots.map((slot, i) => {
+          const top = (slot.start - DAY_START) * pxPerHour;
+          const heightPx = (slot.end - slot.start) * pxPerHour - 4;
+          const blockSpan = slot.end - slot.start;
+          const isTall = heightPx > 80;
+          const titleSize = isTall ? 18 : 14;
+          const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
+          return (
+            <motion.div
+              key={`${index}-${slot.start}-${slot.end}`}
+              className="absolute"
+              style={{
+                top,
+                left: 0,
+                right: 0,
+                height: Math.max(0, heightPx),
+                background: `hsla(${slot.hue}, 75%, 62%, 0.72)`,
+                borderRadius: 24,
+                boxShadow: `0 0 0 1px rgba(255,255,255,0.5) inset, 0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 22px hsla(${slot.hue},65%,55%,0.32)`,
+                backdropFilter: "blur(8px) saturate(140%)",
+                WebkitBackdropFilter: "blur(8px) saturate(140%)",
+                pointerEvents: "none",
+                overflow: "hidden",
+              }}
+              initial={{ y: -pxPerHour * 2, opacity: 0 }}
+              animate={{
+                y: 0,
+                opacity: 1,
+                transition: {
+                  type: "spring",
+                  stiffness: 380,
+                  damping: blockSpan > 5 ? 26 : 22,
+                  delay: 0.25 + i * 0.08,
+                },
+              }}
+              exit={{
+                y: -24,
+                opacity: 0,
+                transition: {
+                  duration: 0.22,
+                  ease: "easeIn",
+                  delay: i * 0.025,
+                },
+              }}
+            >
+              {/* Top inner highlight strip */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 1,
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0))",
+                }}
+              />
+              {/* Time label */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 14,
+                  color: "rgba(255,255,255,0.8)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: 0.2,
+                }}
+              >
+                {timeLabel}
+              </div>
 
-      {/* Animated gradient border ring */}
-      {selected && (
-        <span
-          aria-hidden
-          className="agenda-selected-gradient pointer-events-none absolute inset-0 z-30 rounded-[28px]"
-          style={{
-            padding: 4,
-            WebkitMask:
-              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-            WebkitMaskComposite: "xor",
-            maskComposite: "exclude",
-          }}
-        />
-      )}
-
-      {/* Title + body — pushed down and right so they don't sit jammed
-          against the corner. Larger type per reference mockup. */}
-      <div
-        className="relative z-10 flex h-full flex-col"
-        style={{
-          color: "#001050",
-          paddingTop: padTop,
-          paddingLeft: padLeft,
-          paddingRight: Math.max(10, cardW * 0.06),
-        }}
-      >
-        <h2
-          className="font-bold leading-[1.05] tracking-tight"
-          style={{ fontSize: titleSize }}
-        >
-          {title}
-        </h2>
-        <p
-          className="font-bold leading-[1.2] tracking-tight"
-          style={{
-            fontSize: bodySize,
-            marginTop: Math.max(6, baseDim * 0.04),
-            opacity: 0.85,
-            maxWidth: "82%",
-          }}
-        >
-          {body}
-        </p>
-      </div>
-
-      {/* Confirmation check — top-right, gradient-filled when selected */}
-      {selected && (
-        <motion.div
-          className="pointer-events-none absolute right-3 top-3 z-40 grid place-items-center rounded-full"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 420, damping: 22 }}
-          style={{
-            width: 36,
-            height: 36,
-            boxShadow:
-              "0 0 0 2px #FFFFFF, 0 6px 14px rgba(15,84,200,0.45)",
-          }}
-        >
-          <span
-            aria-hidden
-            className="agenda-selected-gradient absolute inset-0 rounded-full"
-          />
-          <Check
-            className="relative h-5 w-5 text-white"
-            strokeWidth={3.5}
-          />
-        </motion.div>
-      )}
-    </motion.button>
+              {/* Title — hidden when block is too short to fit text */}
+              {!hideTitle &&
+                (isTall ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      color: "#FFFFFF",
+                      fontSize: titleSize,
+                      fontWeight: 700,
+                      letterSpacing: -0.2,
+                      paddingInline: 16,
+                      textAlign: "center",
+                    }}
+                  >
+                    {slot.title}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      left: 70,
+                      right: 14,
+                      color: "#FFFFFF",
+                      fontSize: titleSize,
+                      fontWeight: 700,
+                      letterSpacing: -0.2,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {slot.title}
+                  </div>
+                ))}
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </div>
   );
-}
-
-function cornerToObjectPosition(corner: Corner): string {
-  switch (corner) {
-    case "tl":
-      return "left top";
-    case "tr":
-      return "right top";
-    case "bl":
-      return "left bottom";
-    case "br":
-      return "right bottom";
-  }
 }
