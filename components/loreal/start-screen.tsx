@@ -67,7 +67,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           className="relative"
           style={{
             width: "min(72vw, 38vh)",
-            marginTop: "-0.25rem",
+            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
             marginBottom: "0rem",
           }}
         >
@@ -88,7 +88,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             style={{
               width: "9%",
               left: "62%",
-              bottom: "18%",
+              bottom: "26%",
               transform: "rotate(5deg)",
               transformOrigin: "center bottom",
             }}
@@ -98,13 +98,14 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           text="Status Protection Formulator"
           delay={1.0}
           fontSize="min(7vw, 3.8vh)"
+          marginTop="-0.25rem"
         />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
-          className="mt-2 text-center font-semibold leading-snug tracking-tight text-[#001050]"
-          style={{ fontSize: "min(4vw, 2.2vh)" }}
+          className="mt-3 text-center leading-snug tracking-tight text-[#001050]"
+          style={{ fontSize: "min(4vw, 2.2vh)", fontWeight: 400 }}
         >
           Answer three questions;
           <br />
@@ -150,15 +151,17 @@ function HeadlineWord({
   text,
   delay,
   fontSize = "min(26vw, 14vh)",
+  marginTop,
 }: {
   text: string;
   delay: number;
   fontSize?: string;
+  marginTop?: string;
 }) {
   return (
     <motion.span
       className="block whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight"
-      style={{ fontSize }}
+      style={{ fontSize, marginTop }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
