@@ -64,7 +64,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
         we&rsquo;ll create your away status together.
       </motion.p>
 
-      {/* Center region: tight gap between subtitle/wave/Astro */}
+      {/* Center region: wave anchors at the top, Astro is vertically
+          centered between the wave and the CTA via flex-1 spacers
+          above and below so the slack splits evenly. */}
       <div className="flex flex-1 min-h-0 w-full flex-col items-center">
         {/* Wave divider — small fixed gap below the subtitle */}
         <motion.div
@@ -75,7 +77,6 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           style={{
             width: "min(34vw, 18vh)",
             marginTop: "clamp(2.5rem, 7vh, 4.5rem)",
-            marginBottom: "clamp(3.5rem, 9vh, 5.5rem)",
           }}
         >
           <Image
@@ -91,16 +92,17 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
+        {/* Top spacer — absorbs half the remaining slack so Astro
+            sits centered between the wave and the CTA. */}
+        <div aria-hidden className="min-h-0 flex-1" />
+
         {/* Astro winking video — transparent bg, loops seamlessly */}
         <motion.div
-          className="flex shrink-0 min-h-0 justify-center"
+          className="flex shrink-0 justify-center"
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{
-            width: "min(78vw, 52vh)",
-            marginTop: "clamp(0.5rem, 2vh, 1.5rem)",
-          }}
+          style={{ width: "min(78vw, 52vh)" }}
         >
           <TransparentVideoLoop
             mp4Src="/loreal/astro-wink.mov"
@@ -111,6 +113,9 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             className="block"
           />
         </motion.div>
+
+        {/* Bottom spacer — absorbs the other half. */}
+        <div aria-hidden className="min-h-0 flex-1" />
       </div>
 
       {/* CTA */}
