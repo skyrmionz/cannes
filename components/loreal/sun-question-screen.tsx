@@ -47,12 +47,15 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   // i.e. at the right end) never goes off-screen.
   const sidePad = sunPxMax / 2 + 18;
   const pathW = Math.max(120, bodyW - sidePad * 2);
-  // Taller curve so it covers more of the screen vertically.
-  const verticalSpan = Math.max(160, bodyH * 0.62);
-
-  // Baseline anchor — half the *smallest* sun + buffer so stop 0 has
-  // bottom headroom without wasting space.
+  // Top padding from the body's top edge — leaves just enough room for the
+  // largest sun (at the plateau peak) to render fully without crossing the
+  // subtitle above. Half-sun + tiny buffer.
+  const topPad = sunPxMax / 2 + 8;
+  // Vertical span = remaining height after top padding and the smallest-sun
+  // bottom buffer, so the curve fills the body region without leaving slack.
   const baselineFromBottom = (sunPxMax * SUN_MIN_SCALE) / 2 + 12;
+  const verticalSpan = Math.max(160, bodyH - topPad - baselineFromBottom);
+
   const pathLeft = (bodyW - pathW) / 2;
 
   // SVG path for the curve.
@@ -178,12 +181,14 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
-      {/* Header — progress bar + question text on TOP */}
+      {/* Header — progress bar + question text on TOP. Header text uses
+          the larger Coucou-screen scale so it reads with the same weight
+          as the intro headline. */}
       <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={25} label="25% to glow" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
+          style={{ fontSize: "min(10vw, 6vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -193,11 +198,12 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           shade seeker?
         </motion.h1>
         <motion.p
-          className="mt-2 text-center leading-snug text-[#001050]/75"
+          className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
+            fontSize: "min(5vw, 2.4vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            fontWeight: 400,
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -208,8 +214,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
       </div>
 
       {/* Body — exponential-plateau curve with a draggable sun riding it.
+          The curve is anchored to the TOP of the body so the plateau peak
+          sits directly under the subtitle. The body fills the slack
+          between the header and the hint+footer below.
           We don't paint the curve / stops / sun until pathW has been
-          measured so the user never sees stops at a flooredfallback width. */}
+          measured so the user never sees stops at a fallback width. */}
       <div ref={bodyRef} className="relative min-h-0 flex-1">
         {bodyW > 0 && (
         <svg
@@ -325,6 +334,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
             cursor: "grab",
             filter: sunFilter,
             willChange: "transform",
+            // Mobile: prevent the browser from hijacking vertical
+            // movement for page scroll. Without this, a user dragging
+            // diagonally up the curve gets their gesture interpreted
+            // as a scroll attempt and the sun barely moves.
+            touchAction: "none",
           }}
           whileTap={{ cursor: "grabbing" }}
         >

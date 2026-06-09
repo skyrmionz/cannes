@@ -87,7 +87,7 @@ export function LorealHydrationQuestionScreen({
         <LorealProgressBar percent={50} label="50% to glow" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "clamp(1.8rem, min(9vw, 6vh), 3.2rem)" }}
+          style={{ fontSize: "min(10vw, 6vh)" }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -97,11 +97,12 @@ export function LorealHydrationQuestionScreen({
           how hydrated are you?
         </motion.h1>
         <motion.p
-          className="mt-3 text-center leading-snug text-[#001050]/75"
+          className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "clamp(1.05rem, min(4.5vw, 2.8vh), 1.35rem)",
+            fontSize: "min(5vw, 2.4vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            fontWeight: 400,
           }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
