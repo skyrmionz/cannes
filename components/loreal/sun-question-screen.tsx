@@ -222,7 +222,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
           the larger Coucou-screen scale so it reads with the same weight
           as the intro headline. */}
       <div className="relative z-30 shrink-0 px-7 pt-12">
-        <LorealProgressBar percent={25} label="25% to glow" />
+        <LorealProgressBar percent={25} label="25%" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "min(8.5vw, 5.2vh)" }}
@@ -392,7 +392,9 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Drag the sun along the curve
+        Drag the sun on the curve
+        <br />
+        and click Next
       </motion.p>
 
       {/* Footer — glassy Back + Next text buttons */}

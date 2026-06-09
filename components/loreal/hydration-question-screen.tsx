@@ -32,10 +32,14 @@ export function LorealHydrationQuestionScreen({
   const [toLevel, setToLevel] = useState<DropletLevel>(value);
 
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
-  // Droplet fills the body region with breathing room on top/bottom.
+  // Droplet fills the body region — bounded only by available width
+  // (with a small horizontal buffer) and available height (with a tiny
+  // vertical buffer). No hard pixel cap so the droplet scales up on
+  // tall kiosks (1080×1920) instead of stranding 600+ vertical pixels
+  // of empty space in the body.
   const dropletPx = Math.max(
     140,
-    Math.min(bodySize.h - 24, bodySize.w - 48, 640),
+    Math.min(bodySize.h - 16, bodySize.w - 32),
   );
 
   const goToLevel = useCallback(
@@ -84,7 +88,7 @@ export function LorealHydrationQuestionScreen({
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
       <div className="relative z-30 shrink-0 px-7 pt-12">
-        <LorealProgressBar percent={50} label="50% to glow" />
+        <LorealProgressBar percent={50} label="50%" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "min(8.5vw, 5.2vh)" }}
@@ -147,7 +151,9 @@ export function LorealHydrationQuestionScreen({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Swipe up or down on the droplet to fill or empty it
+        Slide your finger on the droplet
+        <br />
+        and click Next
       </motion.p>
 
       {/* Footer — glassy Back + Next text buttons */}

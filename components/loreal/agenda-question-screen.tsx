@@ -91,7 +91,7 @@ export function LorealAgendaQuestionScreen({
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header — matches sun/hydration question format */}
       <div className="relative z-30 shrink-0 px-7 pt-12">
-        <LorealProgressBar percent={75} label="75% to glow" />
+        <LorealProgressBar percent={75} label="75%" />
         <motion.h1
           className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{ fontSize: "min(8.5vw, 5.2vh)" }}
