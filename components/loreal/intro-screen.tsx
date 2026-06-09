@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { GlassyButton } from "./glassy-button";
+import { TransparentVideoLoop } from "@/components/ui/transparent-video-loop";
 
 interface IntroScreenProps {
   onStart: () => void;
@@ -90,7 +91,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           />
         </motion.div>
 
-        {/* Astro winking video — loops seamlessly */}
+        {/* Astro winking video — transparent bg, loops seamlessly */}
         <motion.div
           className="flex shrink-0 min-h-0 justify-center"
           initial={{ opacity: 0, scale: 0.94 }}
@@ -101,16 +102,14 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
             marginTop: "clamp(0.5rem, 2vh, 1.5rem)",
           }}
         >
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-auto w-full select-none"
-            style={{ pointerEvents: "none" }}
-          >
-            <source src="/loreal/astro-wink.mp4" type="video/mp4" />
-          </video>
+          <TransparentVideoLoop
+            mp4Src="/loreal/astro-wink.mov"
+            webmSrc="/loreal/astro-wink.webm"
+            width="100%"
+            fallbackSrc="/loreal/agent-astro.png"
+            fallbackAlt="Agent Astro"
+            className="block"
+          />
         </motion.div>
       </div>
 
