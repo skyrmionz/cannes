@@ -88,7 +88,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           {/* "Status Protection Formulator" — overlaid in the whitespace below the sand */}
           <motion.span
             className="absolute bottom-[1%] left-1/2 -translate-x-1/2 whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight text-[#001050]"
-            style={{ fontSize: "min(7vw, 3.8vh)" }}
+            style={{ fontSize: "min(6vw, 3.2vh)" }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
@@ -121,12 +121,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,
-            marginTop: "clamp(1.5rem, 4vh, 3rem)",
+            marginTop: "clamp(2.5rem, 6vh, 4.5rem)",
           }}
         >
-          Answer three questions;
+          Answer three questions.
           <br />
-          walk away with your Cannes status vibe...
+          Walk away with your Cannes status vibe...
           <br />
           and the SPF to match.
         </motion.p>
@@ -153,11 +153,12 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         <Image
           src="/loreal/powered-by-astro.png"
           alt="Powered by Agentforce from Salesforce"
-          width={1140}
-          height={120}
+          width={719}
+          height={63}
           priority
+          unoptimized
           className="h-auto select-none"
-          style={{ width: "min(82vw, 38vh)" }}
+          style={{ width: "min(72vw, 32vh, 480px)" }}
         />
       </motion.div>
     </div>

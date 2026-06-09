@@ -35,9 +35,9 @@ export function GlassyButton({ onClick, children, delay = 1.4 }: Props) {
         onClick={onClick}
         className="glassy-cta pointer-events-auto relative rounded-full font-semibold tracking-tight"
         style={{
-          paddingInline: "clamp(3rem, 9vw, 5.5rem)",
-          paddingBlock: "clamp(1.15rem, 2.8vh, 2rem)",
-          fontSize: "clamp(1.4rem, min(5.2vw, 3.6vh), 1.85rem)",
+          paddingInline: "clamp(3.5rem, 11vw, 6.5rem)",
+          paddingBlock: "clamp(1.3rem, 3.2vh, 2.2rem)",
+          fontSize: "clamp(1.5rem, min(5.8vw, 4vh), 2rem)",
         }}
       >
         <span className="glassy-cta-text">{children}</span>
