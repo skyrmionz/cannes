@@ -57,19 +57,16 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
         style={{ height: "min(38vw, 30vh)" }}
       />
 
-      {/* Headline + image + tagline */}
+      {/* Headline + image + tagline — "Your" and "Status Protection
+          Formulator" are absolutely positioned inside the SPF image's
+          whitespace so they visually merge with the image. */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-[#001050]">
-        <HeadlineWord text="Your" delay={0.7} fontSize="min(18vw, 10vh)" />
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
           className="relative"
-          style={{
-            width: "min(72vw, 38vh)",
-            marginTop: "-0.5rem",
-            marginBottom: "-0.5rem",
-          }}
+          style={{ width: "min(72vw, 38vh)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -78,6 +75,26 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             draggable={false}
             className="h-auto w-full select-none"
           />
+          {/* "Your" — overlaid in the whitespace above the SPF letters */}
+          <motion.span
+            className="absolute left-1/2 top-[2%] -translate-x-1/2 whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight text-[#001050]"
+            style={{ fontSize: "min(18vw, 10vh)" }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
+          >
+            Your
+          </motion.span>
+          {/* "Status Protection Formulator" — overlaid in the whitespace below the sand */}
+          <motion.span
+            className="absolute bottom-[1%] left-1/2 -translate-x-1/2 whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight text-[#001050]"
+            style={{ fontSize: "min(7vw, 3.8vh)" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
+          >
+            Status Protection Formulator
+          </motion.span>
           {/* Crab — in the sand divet between P and F, slightly tilted right */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -87,25 +104,24 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
             className="pointer-events-none absolute select-none"
             style={{
               width: "9%",
-              left: "62%",
-              bottom: "22%",
+              left: "59%",
+              bottom: "24%",
               transform: "rotate(5deg)",
               transformOrigin: "center bottom",
             }}
           />
         </motion.div>
-        <HeadlineWord
-          text="Status Protection Formulator"
-          delay={1.0}
-          fontSize="min(7vw, 3.8vh)"
-          marginTop="-0.75rem"
-        />
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
-          className="mt-2 text-center leading-snug tracking-tight text-[#001050]/75"
-          style={{ fontSize: "min(3.4vw, 1.8vh)", fontWeight: 400 }}
+          className="mt-3 px-8 text-center leading-snug text-[#001050]/85"
+          style={{
+            fontSize: "min(5vw, 2.4vh)",
+            fontFamily:
+              'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+            fontWeight: 400,
+          }}
         >
           Answer three questions;
           <br />
@@ -147,26 +163,3 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
   );
 }
 
-function HeadlineWord({
-  text,
-  delay,
-  fontSize = "min(26vw, 14vh)",
-  marginTop,
-}: {
-  text: string;
-  delay: number;
-  fontSize?: string;
-  marginTop?: string;
-}) {
-  return (
-    <motion.span
-      className="block whitespace-nowrap text-center font-bold leading-[0.95] tracking-tight"
-      style={{ fontSize, marginTop }}
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, ease: "easeOut" }}
-    >
-      {text}
-    </motion.span>
-  );
-}
