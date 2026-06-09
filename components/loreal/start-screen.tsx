@@ -115,12 +115,13 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
-          className="mt-3 px-8 text-center leading-snug text-[#001050]/85"
+          className="px-8 text-center leading-snug text-[#001050]/85"
           style={{
             fontSize: "min(5vw, 2.4vh)",
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,
+            marginTop: "clamp(1.5rem, 4vh, 3rem)",
           }}
         >
           Answer three questions;
