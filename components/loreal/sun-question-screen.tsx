@@ -88,9 +88,10 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   // (no rectangular halo). At p=1 the layers are very wide and bright so
   // the sun reads as VERY luminous at the top of the curve.
   const sunFilter = useTransform(progress, (p) => {
-    // Ease the glow growth with a soft power so the brightness ramps hard
-    // toward the end (sun at level 3 is meant to feel intense).
-    const g = Math.pow(p, 0.7);
+    // Power > 1 keeps the brightest glow concentrated near the top of
+    // the curve. At p≈0.58 (middle stop) g≈0.41 instead of 0.68, so the
+    // middle reads as a calm warm sun rather than already-blazing.
+    const g = Math.pow(p, 1.6);
     const r1 = (10 + g * 30).toFixed(1);
     const r2 = (24 + g * 110).toFixed(1);
     const r3 = (40 + g * 240).toFixed(1);
@@ -179,39 +180,47 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
     goToStop(closest);
   };
 
-  // Custom pointer-driven control: a touch anywhere on the body region
-  // projects horizontally onto the curve. We track where the user's
-  // finger lands (in pathW pixels) and write that to `x`. This makes
-  // the sun follow the user's natural diagonal/curving motion instead
-  // of only its horizontal component (Framer's `drag="x"` ignores
-  // vertical movement entirely, which was confusing on mobile).
+  // Pointer-driven drag: only starts when the user grabs the sun
+  // (i.e. pointerdown lands within GRAB_RADIUS of the sun's current
+  // position on the curve). Clicks far from the sun do nothing — the
+  // sun does NOT teleport to arbitrary curve clicks. While dragging,
+  // we preserve the initial grab offset so the sun moves WITH the
+  // finger instead of jumping under it.
+  const GRAB_RADIUS = 80; // px tolerance for grabbing the sun
   const dragging = useRef(false);
+  const grabOffsetX = useRef(0); // initial (sun_x - finger_x) at grab
 
   const projectToPathX = (clientX: number, target: HTMLElement) => {
     const bodyEl = target.closest("[data-sun-body]") as HTMLElement | null;
     if (!bodyEl || pathW <= 0) return null;
     const rect = bodyEl.getBoundingClientRect();
     const localX = clientX - rect.left - pathLeft;
-    return Math.max(0, Math.min(pathW, localX));
+    return localX;
   };
 
   const onPointerDownGrip = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
+    const fingerX = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
+    if (fingerX == null) return;
+    const sunX = x.get();
+    // Only grab the sun if the click is within radius of its current
+    // position. Outside that, the click is ignored (no teleport).
+    if (Math.abs(fingerX - sunX) > GRAB_RADIUS) return;
     dragging.current = true;
+    grabOffsetX.current = sunX - fingerX;
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    const xv = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
-    if (xv != null) x.set(xv);
   };
 
   const onPointerMoveGrip = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return;
-    const xv = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
-    if (xv != null) {
-      // Ease toward the finger position with a snappy spring instead of
-      // jumping each frame — keeps the gesture responsive but smooths
-      // micro-jitter so the drag reads as fluid rather than abrupt.
-      animate(x, xv, { type: "spring", stiffness: 400, damping: 40, mass: 0.5 });
-    }
+    const fingerX = projectToPathX(e.clientX, e.currentTarget as HTMLElement);
+    if (fingerX == null) return;
+    // Apply the original grab offset so the sun stays in the same
+    // relative spot under the finger throughout the drag.
+    const target = Math.max(0, Math.min(pathW, fingerX + grabOffsetX.current));
+    // Ease toward the target with a snappy critically-damped spring —
+    // smooths per-frame jitter without lagging behind the finger.
+    animate(x, target, { type: "spring", stiffness: 400, damping: 40, mass: 0.5 });
   };
 
   const onPointerUpGrip = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -390,7 +399,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
       <motion.p
         className="relative z-30 shrink-0 text-center font-bold tracking-tight text-[#001050]/60 px-7"
         style={{
-          fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)",
+          fontSize: "clamp(1.15rem, min(5.6vw, 3.4vh), 1.75rem)",
           marginTop: "clamp(1.25rem, 3.5vh, 2.5rem)",
         }}
         initial={{ opacity: 0 }}

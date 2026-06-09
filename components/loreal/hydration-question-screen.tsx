@@ -146,7 +146,7 @@ export function LorealHydrationQuestionScreen({
       {/* Hint text below the droplet */}
       <motion.p
         className="relative z-30 shrink-0 text-center font-bold tracking-tight text-[#001050]/60 px-7"
-        style={{ fontSize: "clamp(1rem, min(5vw, 3vh), 1.5rem)" }}
+        style={{ fontSize: "clamp(1.15rem, min(5.6vw, 3.4vh), 1.75rem)" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}

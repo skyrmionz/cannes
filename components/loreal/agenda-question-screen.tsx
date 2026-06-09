@@ -158,7 +158,7 @@ export function LorealAgendaQuestionScreen({
         {/* Hint — single line, matching the sun/hydration hint style */}
         <motion.p
           className="shrink-0 whitespace-nowrap text-center font-bold leading-tight tracking-tight text-[#001050]/60"
-          style={{ fontSize: "clamp(0.85rem, min(4vw, 2.4vh), 1.3rem)" }}
+          style={{ fontSize: "clamp(1rem, min(4.6vw, 2.8vh), 1.55rem)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.4 }}
