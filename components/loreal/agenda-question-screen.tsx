@@ -145,6 +145,7 @@ export function LorealAgendaQuestionScreen({
                 key={i}
                 index={i}
                 selected={value === i}
+                anySelected={value !== null}
                 onSelect={() => onChange(i)}
                 isPhone={isPhone}
               />
@@ -187,15 +188,16 @@ export function LorealAgendaQuestionScreen({
           </AnimatePresence>
         </div>
 
-        {/* Description row — only renders when a status is selected.
-            In null state we collapse the row so the calendar sits
-            directly beneath the title. */}
-        {value !== null && (
-          <div
-            className="relative shrink-0 overflow-hidden"
-            style={{ minHeight: isPhone ? 44 : 64 }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
+        {/* Description row — always mounted so the height collapse/expand
+            transitions smoothly. Height animates from 0 (null state) to
+            the natural row height when a status is selected. */}
+        <motion.div
+          className="relative shrink-0 overflow-hidden"
+          animate={{ height: value === null ? 0 : isPhone ? 44 : 64 }}
+          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {value !== null && (
               <motion.p
                 key={descKey}
                 className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
@@ -213,9 +215,9 @@ export function LorealAgendaQuestionScreen({
               >
                 {descText}
               </motion.p>
-            </AnimatePresence>
-          </div>
-        )}
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Day-view calendar — fills remaining slack */}
         <div className="relative min-h-0 flex-1">
@@ -302,11 +304,13 @@ export function LorealAgendaQuestionScreen({
 function CirclePick({
   index,
   selected,
+  anySelected,
   onSelect,
   isPhone,
 }: {
   index: AgendaIndex;
   selected: boolean;
+  anySelected: boolean;
   onSelect: () => void;
   isPhone: boolean;
 }) {
@@ -314,13 +318,20 @@ function CirclePick({
   // Outer ring is 6px thicker on each side when selected, so the circle
   // image stays the same size but the gradient ring wraps around it.
   const ringPad = 5;
+  // Dim + shrink unselected siblings when any circle is selected, so the
+  // chosen one reads as the focal point.
+  const dim = anySelected && !selected;
   return (
     <motion.button
       type="button"
       onClick={onSelect}
       aria-label={TITLES[index]}
       whileTap={{ scale: 0.94 }}
-      animate={{ y: selected ? -10 : 0 }}
+      animate={{
+        y: selected ? -10 : 0,
+        scale: dim ? 0.78 : 1,
+        opacity: dim ? 0.55 : 1,
+      }}
       transition={{ type: "spring", stiffness: 360, damping: 24 }}
       className="relative grid place-items-center rounded-full"
       style={{
@@ -373,8 +384,6 @@ function CirclePick({
             "0 1px 0 rgba(255,255,255,0.85) inset",
             "0 8px 24px rgba(120,160,220,0.22)",
           ].join(", "),
-          opacity: selected ? 1 : 0.9,
-          transition: "opacity 0.25s ease",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

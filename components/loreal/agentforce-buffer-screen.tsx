@@ -8,8 +8,8 @@ interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 5000;
-const LOADING_TEXT_SWITCH_MS = 3000;
+const HOLD_MS = 4500;
+const LOADING_TEXT_SWITCH_MS = 2700;
 const ANIM_START_DELAY_MS = 120;
 
 const SUN_COUNT = 8;
@@ -132,7 +132,7 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
           iconRotation="none"
         />
         <OrbitalRing
-          src="/loreal/icon-beach-chair.png"
+          src="/loreal/icon-water-droplet.png"
           count={WATER_COUNT}
           radius="min(25vw, 17vh)"
           iconSize="min(11vw, 7.5vh)"
@@ -144,7 +144,7 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
           iconRotation="none"
         />
         <OrbitalRing
-          src="/loreal/icon-tree.png"
+          src="/loreal/crab.png"
           count={TREE_COUNT}
           radius="min(36vw, 24vh)"
           iconSize="min(15vw, 10vh)"
@@ -153,7 +153,7 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
           phase={phase}
           delay={0.2}
           spiralTurns={1}
-          iconRotation="inward"
+          iconRotation="none"
         />
       </div>
 
