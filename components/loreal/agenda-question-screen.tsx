@@ -132,6 +132,27 @@ export function LorealAgendaQuestionScreen({
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
+        {/* Circle picker — 4 round image buttons (above the status title) */}
+        <div
+          className="relative shrink-0"
+          style={{
+            paddingTop: "clamp(0.25rem, 1vh, 0.75rem)",
+            paddingBottom: "clamp(0.5rem, 1.5vh, 1.25rem)",
+          }}
+        >
+          <div className="flex w-full items-end justify-center" style={{ gap: "clamp(8px, 2.5vw, 18px)" }}>
+            {([0, 1, 2, 3] as const).map((i) => (
+              <CirclePick
+                key={i}
+                index={i}
+                selected={value === i}
+                onSelect={() => onChange(i)}
+                isPhone={isPhone}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Status title row */}
         <div
           className="relative shrink-0 overflow-hidden"
@@ -147,10 +168,18 @@ export function LorealAgendaQuestionScreen({
               transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
             >
               <span
-                className="font-bold tracking-tight text-[#001050]"
+                className="font-bold tracking-tight"
                 style={{
                   fontSize: "clamp(1.7rem, min(8vw, 5vh), 2.6rem)",
                   whiteSpace: "nowrap",
+                  // Same purple→coral gradient as the progress-bar fill,
+                  // applied as gradient text via background-clip.
+                  background:
+                    "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
                 }}
               >
                 {titleText}
@@ -183,27 +212,6 @@ export function LorealAgendaQuestionScreen({
               {descText}
             </motion.p>
           </AnimatePresence>
-        </div>
-
-        {/* Circle picker — 4 round image buttons */}
-        <div
-          className="relative shrink-0"
-          style={{
-            paddingTop: "clamp(0.5rem, 1.5vh, 1.25rem)",
-            paddingBottom: "clamp(0.5rem, 1.5vh, 1.25rem)",
-          }}
-        >
-          <div className="flex w-full items-end justify-center" style={{ gap: "clamp(8px, 2.5vw, 18px)" }}>
-            {([0, 1, 2, 3] as const).map((i) => (
-              <CirclePick
-                key={i}
-                index={i}
-                selected={value === i}
-                onSelect={() => onChange(i)}
-                isPhone={isPhone}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Day-view calendar — fills remaining slack */}
@@ -384,22 +392,42 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
 
   return (
     <div ref={ref} className="relative h-full w-full overflow-hidden">
-      {/* Empty-state guide rows so the calendar doesn't look totally blank. */}
-      {index === null && pxPerHour > 0 && (
+      {/* Empty hour-slot containers — clear, just an outline + time label,
+          so the calendar always reads as a 9–19 day grid. Visible whether
+          or not a status is selected; selected events render on top. */}
+      {pxPerHour > 0 && index === null && (
         <div className="absolute inset-0">
-          {Array.from({ length: HOURS }).map((_, i) => (
-            <div
-              key={`guide-${i}`}
-              className="absolute inset-x-0"
-              style={{
-                top: i * pxPerHour,
-                height: pxPerHour - 4,
-                borderRadius: 18,
-                background: "rgba(255,255,255,0.18)",
-                boxShadow: "0 0 0 1px rgba(255,255,255,0.35) inset",
-              }}
-            />
-          ))}
+          {Array.from({ length: HOURS }).map((_, i) => {
+            const hour = DAY_START + i;
+            const label = `${String(hour).padStart(2, "0")}:00`;
+            return (
+              <div
+                key={`guide-${i}`}
+                className="absolute inset-x-0"
+                style={{
+                  top: i * pxPerHour,
+                  height: pxPerHour - 4,
+                  borderRadius: 18,
+                  background: "transparent",
+                  boxShadow: "0 0 0 1px rgba(0,16,80,0.12) inset",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: 16,
+                    color: "rgba(0,16,80,0.45)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {label}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -409,7 +437,11 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
           const heightPx = (slot.end - slot.start) * pxPerHour - 4;
           const blockSpan = slot.end - slot.start;
           const isTall = heightPx > 80;
-          const titleSize = isTall ? 22 : 18;
+          const isFullDay = blockSpan >= HOURS;
+          // Full-day blocks (Spontaneous + Salesforce Forever) get a much
+          // larger, center-aligned title because they're the marquee element
+          // of the calendar — a single statement, not a list item.
+          const titleSize = isFullDay ? 56 : isTall ? 22 : 18;
           const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
           // Mid-curve key includes index so changing agenda forces a remount
           // and the tetris-drop transition fires.
@@ -480,7 +512,8 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                 {timeLabel}
               </div>
 
-              {/* Event title — left-aligned, always next to or below time. */}
+              {/* Event title — left-aligned for ordinary slots; full-day
+                  blocks get a much larger center-aligned title. */}
               {!hideTitle && (
                 <div
                   style={{
@@ -492,12 +525,15 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                     color: "#FFFFFF",
                     fontSize: titleSize,
                     fontWeight: 700,
-                    letterSpacing: -0.2,
-                    textAlign: "left",
-                    paddingLeft: isTall ? 0 : 56,
+                    letterSpacing: isFullDay ? -1 : -0.2,
+                    textAlign: isFullDay ? "center" : "left",
+                    paddingLeft: isFullDay ? 0 : isTall ? 0 : 56,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    textShadow: isFullDay
+                      ? "0 2px 8px rgba(0,16,80,0.18)"
+                      : undefined,
                   }}
                 >
                   {slot.title}
