@@ -36,9 +36,7 @@ const IMAGES: ReadonlyArray<string> = [
 ];
 
 const NULL_TITLE = "Choose your status";
-// Null-state description is intentionally empty so the row collapses
-// before a user picks a circle.
-const NULL_DESCRIPTION = "";
+const NULL_DESCRIPTION = "Select your status above";
 
 const DAY_START = 9;
 const DAY_END = 19;
@@ -309,7 +307,7 @@ function CirclePick({
   onSelect: () => void;
   isPhone: boolean;
 }) {
-  const size = isPhone ? 88 : 124;
+  const size = isPhone ? 108 : 152;
   // Outer ring is 6px thicker on each side when selected, so the circle
   // image stays the same size but the gradient ring wraps around it.
   const ringPad = 5;
@@ -347,25 +345,32 @@ function CirclePick({
             style={{
               background:
                 "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
-              boxShadow: "0 8px 22px rgba(150,117,254,0.35)",
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* Circle image content — white background sits on top of the ring,
-          inset to reveal the gradient as a ring. */}
+      {/* Circle content — frosted glass surface (matches the question
+          screens' glassmorphism). Sits on top of the gradient ring;
+          ring is revealed only via the parent's padding. */}
       <div
         className="relative grid place-items-center overflow-hidden rounded-full"
         style={{
           width: size,
           height: size,
-          background: "rgba(255,255,255,0.92)",
-          boxShadow: selected
-            ? "0 6px 18px rgba(120,160,220,0.25)"
-            : "0 0 0 1px rgba(0,16,80,0.08), 0 4px 12px rgba(120,160,220,0.18)",
-          // Soft fade for unselected state
-          opacity: selected ? 1 : 0.85,
+          // Glassy fill — translucent white + saturate backdrop, two
+          // inset highlights, soft drop shadow. Mirrors the formula
+          // used by the back/next buttons and the progress bar.
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
+          backdropFilter: "blur(14px) saturate(140%)",
+          WebkitBackdropFilter: "blur(14px) saturate(140%)",
+          boxShadow: [
+            "0 0 0 1px rgba(255,255,255,0.55) inset",
+            "0 1px 0 rgba(255,255,255,0.85) inset",
+            "0 8px 24px rgba(120,160,220,0.22)",
+          ].join(", "),
+          opacity: selected ? 1 : 0.9,
           transition: "opacity 0.25s ease",
         }}
       >
