@@ -156,7 +156,7 @@ export function LorealAgendaQuestionScreen({
         {/* Status title row */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ minHeight: isPhone ? 44 : 56 }}
+          style={{ minHeight: isPhone ? 60 : 88 }}
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -170,7 +170,7 @@ export function LorealAgendaQuestionScreen({
               <span
                 className="font-bold tracking-tight"
                 style={{
-                  fontSize: "clamp(1.7rem, min(8vw, 5vh), 2.6rem)",
+                  fontSize: "clamp(2.1rem, min(10vw, 6.2vh), 3.4rem)",
                   whiteSpace: "nowrap",
                   // Same purple→coral gradient as the progress-bar fill,
                   // applied as gradient text via background-clip.
@@ -191,14 +191,14 @@ export function LorealAgendaQuestionScreen({
         {/* Description row */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ minHeight: isPhone ? 32 : 44 }}
+          style={{ minHeight: isPhone ? 44 : 64 }}
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
               key={descKey}
               className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
               style={{
-                fontSize: "clamp(1.05rem, min(4.4vw, 2.6vh), 1.5rem)",
+                fontSize: "clamp(1.25rem, min(5.4vw, 3.4vh), 1.9rem)",
                 fontFamily:
                   'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
                 fontWeight: 400,
@@ -304,7 +304,7 @@ function CirclePick({
   onSelect: () => void;
   isPhone: boolean;
 }) {
-  const size = isPhone ? 68 : 92;
+  const size = isPhone ? 88 : 124;
   // Outer ring is 6px thicker on each side when selected, so the circle
   // image stays the same size but the gradient ring wraps around it.
   const ringPad = 5;
