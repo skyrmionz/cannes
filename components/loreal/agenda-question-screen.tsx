@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -29,7 +28,15 @@ const DESCRIPTIONS: ReadonlyArray<string> = [
   "Please don't make me leave this beach.",
 ];
 
-const SWIPE_THRESHOLD = 40;
+const IMAGES: ReadonlyArray<string> = [
+  "/loreal/agenda-packed.png",
+  "/loreal/agenda-curated.png",
+  "/loreal/agenda-spontaneous.png",
+  "/loreal/agenda-salesforce-forever.png",
+];
+
+const NULL_TITLE = "Choose your status";
+const NULL_DESCRIPTION = "Select what your agenda feels like.";
 
 const DAY_START = 9;
 const DAY_END = 19;
@@ -38,15 +45,19 @@ const HOURS = DAY_END - DAY_START; // 10
 type Slot = { start: number; end: number; title: string; hue: number };
 
 const SCHEDULES: Record<AgendaIndex, ReadonlyArray<Slot>> = {
-  0: Array.from({ length: HOURS }, (_, idx) => {
-    const h = DAY_START + idx;
-    return {
-      start: h,
-      end: h + 1,
-      title: "Event " + (h - 8),
-      hue: ((h - 9) * 36) % 360,
-    };
-  }),
+  // Packed — every hour. Distinct event types instead of "Event N".
+  0: [
+    { start: 9, end: 10, title: "Keynote", hue: 200 },
+    { start: 10, end: 11, title: "Coffee chat", hue: 30 },
+    { start: 11, end: 12, title: "Founders panel", hue: 280 },
+    { start: 12, end: 13, title: "Lunch & roundtable", hue: 60 },
+    { start: 13, end: 14, title: "Press interview", hue: 340 },
+    { start: 14, end: 15, title: "Demo session", hue: 160 },
+    { start: 15, end: 16, title: "Investor mixer", hue: 100 },
+    { start: 16, end: 17, title: "Brand activation", hue: 320 },
+    { start: 17, end: 18, title: "Rooftop happy hour", hue: 20 },
+    { start: 18, end: 19, title: "Yacht after-party", hue: 250 },
+  ],
   1: [
     { start: 9, end: 10, title: "Morning panel", hue: 200 },
     { start: 11, end: 12, title: "Coffee chat", hue: 30 },
@@ -56,17 +67,6 @@ const SCHEDULES: Record<AgendaIndex, ReadonlyArray<Slot>> = {
   ],
   2: [{ start: 9, end: 19, title: "OOO 😎", hue: 42 }],
   3: [{ start: 9, end: 19, title: "Salesforce ☁️", hue: 215 }],
-};
-
-const GLASS_BUTTON: React.CSSProperties = {
-  background: "rgba(255,255,255,0.45)",
-  boxShadow: [
-    "0 0 0 1px rgba(255,255,255,0.6) inset",
-    "0 1px 0 rgba(255,255,255,0.8) inset",
-    "0 8px 24px rgba(120,160,220,0.2)",
-  ].join(", "),
-  WebkitBackdropFilter: "blur(12px) saturate(140%)",
-  backdropFilter: "blur(12px) saturate(140%)",
 };
 
 export function LorealAgendaQuestionScreen({
@@ -80,62 +80,18 @@ export function LorealAgendaQuestionScreen({
     onNext();
   };
 
-  const displayIndex: AgendaIndex = value ?? 0;
-  const [touched, setTouched] = useState<boolean>(value !== null);
-  const [direction, setDirection] = useState<1 | -1>(1);
-
-  // Measure the body region so the day-view calendar can fill the slack.
   const { ref: bodyRef, size: bodySize } = useElementSize<HTMLDivElement>();
   const bodyW = bodySize.w || 360;
-
   const isPhone = bodyW < 420;
-  const arrowSize = isPhone ? 36 : 48;
-  const arrowIcon = isPhone ? 16 : 18;
 
-  // Carousel title row height: floor min(72px, ~10vh).
-  const titleRowMinH = 72;
-  // Description row floor.
-  const descRowMinH = isPhone ? 32 : 48;
-
-  const goNext = () => {
-    setDirection(1);
-    setTouched(true);
-    const next = (((displayIndex + 1) % 4) as AgendaIndex);
-    onChange(next);
-  };
-
-  const goPrev = () => {
-    setDirection(-1);
-    setTouched(true);
-    const prev = (((displayIndex + 3) % 4) as AgendaIndex);
-    onChange(prev);
-  };
-
-  // Pointer-event swipe on the title + carousel area.
-  const startXRef = useRef<number | null>(null);
-  const handlePointerDown = (e: React.PointerEvent) => {
-    startXRef.current = e.clientX;
-    try {
-      (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    } catch {
-      // setPointerCapture can throw in older webkit; safe to ignore.
-    }
-  };
-  const handlePointerUp = (e: React.PointerEvent) => {
-    const start = startXRef.current;
-    startXRef.current = null;
-    if (start === null) return;
-    const dx = e.clientX - start;
-    if (dx < -SWIPE_THRESHOLD) goNext();
-    else if (dx > SWIPE_THRESHOLD) goPrev();
-  };
-
-  // Keep linter happy if `touched` ever becomes meaningful for visuals later.
-  void touched;
+  const titleText = value === null ? NULL_TITLE : TITLES[value];
+  const descText = value === null ? NULL_DESCRIPTION : DESCRIPTIONS[value];
+  const titleKey = value === null ? "null" : `t-${value}`;
+  const descKey = value === null ? "null" : `d-${value}`;
 
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
-      {/* Header — matches sun/hydration question format */}
+      {/* Header */}
       <div className="relative z-30 shrink-0 px-7 pt-12">
         <LorealProgressBar percent={75} label="75%" />
         <motion.h1
@@ -165,120 +121,112 @@ export function LorealAgendaQuestionScreen({
         </motion.p>
       </div>
 
-      {/* Body — carousel title + description + day-view calendar. */}
+      {/* Body */}
       <div
         ref={bodyRef}
         className="relative flex min-h-0 flex-1 flex-col"
         style={{
           paddingInline: "16px",
-          paddingBlock: "clamp(0.5rem, 1.5vh, 1rem)",
+          paddingTop: "clamp(0.75rem, 2vh, 1.5rem)",
+          paddingBottom: "clamp(0.5rem, 1.2vh, 1rem)",
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Carousel title row + swipe gesture wrapper */}
+        {/* Status title row */}
         <div
-          className="relative shrink-0"
-          style={{
-            height: `min(${titleRowMinH}px, 10vh)`,
-            minHeight: titleRowMinH,
-            touchAction: "none",
-          }}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={() => {
-            startXRef.current = null;
-          }}
+          className="relative shrink-0 overflow-hidden"
+          style={{ minHeight: isPhone ? 44 : 56 }}
         >
-          {/* Sliding title */}
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={displayIndex}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={titleKey}
+              className="absolute inset-0 flex items-center justify-center"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -18 }}
+              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <span
                 className="font-bold tracking-tight text-[#001050]"
                 style={{
-                  fontSize: "clamp(1.5rem, min(7vw, 4.4vh), 2.2rem)",
+                  fontSize: "clamp(1.7rem, min(8vw, 5vh), 2.6rem)",
                   whiteSpace: "nowrap",
                 }}
-                initial={{ x: 60 * direction, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -60 * direction, opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
               >
-                {TITLES[displayIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-
-          {/* Left arrow — half-overlapping the body's left edge. */}
-          <motion.button
-            type="button"
-            onClick={goPrev}
-            aria-label="Previous"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            className="absolute top-1/2 grid -translate-y-1/2 place-items-center rounded-full text-[#001050]"
-            style={{
-              ...GLASS_BUTTON,
-              left: -16,
-              width: arrowSize,
-              height: arrowSize,
-            }}
-          >
-            <ChevronLeft size={arrowIcon} strokeWidth={2.5} />
-          </motion.button>
-
-          {/* Right arrow — half-overlapping the body's right edge. */}
-          <motion.button
-            type="button"
-            onClick={goNext}
-            aria-label="Next"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            className="absolute top-1/2 grid -translate-y-1/2 place-items-center rounded-full text-[#001050]"
-            style={{
-              ...GLASS_BUTTON,
-              right: -16,
-              width: arrowSize,
-              height: arrowSize,
-            }}
-          >
-            <ChevronRight size={arrowIcon} strokeWidth={2.5} />
-          </motion.button>
+                {titleText}
+              </span>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Description row */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ minHeight: descRowMinH }}
+          style={{ minHeight: isPhone ? 32 : 44 }}
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.p
-              key={displayIndex}
+              key={descKey}
               className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
               style={{
-                fontSize: "clamp(1rem, min(4vw, 2.4vh), 1.4rem)",
+                fontSize: "clamp(1.05rem, min(4.4vw, 2.6vh), 1.5rem)",
                 fontFamily:
                   'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
                 fontWeight: 400,
-                paddingInline: 8,
+                paddingInline: 12,
               }}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
             >
-              {DESCRIPTIONS[displayIndex]}
+              {descText}
             </motion.p>
           </AnimatePresence>
         </div>
 
+        {/* Circle picker — 4 round image buttons */}
+        <div
+          className="relative shrink-0"
+          style={{
+            paddingTop: "clamp(0.5rem, 1.5vh, 1.25rem)",
+            paddingBottom: "clamp(0.5rem, 1.5vh, 1.25rem)",
+          }}
+        >
+          <div className="flex w-full items-end justify-center" style={{ gap: "clamp(8px, 2.5vw, 18px)" }}>
+            {([0, 1, 2, 3] as const).map((i) => (
+              <CirclePick
+                key={i}
+                index={i}
+                selected={value === i}
+                onSelect={() => onChange(i)}
+                isPhone={isPhone}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Day-view calendar — fills remaining slack */}
         <div className="relative min-h-0 flex-1">
-          <CalendarColumn index={displayIndex} />
+          <CalendarColumn index={value} />
         </div>
+
+        {/* Hint under the calendar */}
+        <motion.p
+          className="shrink-0 text-center font-bold tracking-tight text-[#001050]/60"
+          style={{
+            fontSize: "clamp(1rem, min(4.6vw, 2.8vh), 1.55rem)",
+            paddingTop: "clamp(0.25rem, 0.8vh, 0.6rem)",
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+        >
+          Tap a circle to choose your vibe
+        </motion.p>
       </div>
 
-      {/* Footer — glassy Back + Next text buttons (matching other questions) */}
+      {/* Footer */}
       <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
         <motion.button
           type="button"
@@ -337,29 +285,138 @@ export function LorealAgendaQuestionScreen({
   );
 }
 
-function CalendarColumn({ index }: { index: AgendaIndex }) {
-  // Measure the calendar wrapper to derive pxPerHour. useElementSize is the
-  // shared hook used elsewhere in the file.
+function CirclePick({
+  index,
+  selected,
+  onSelect,
+  isPhone,
+}: {
+  index: AgendaIndex;
+  selected: boolean;
+  onSelect: () => void;
+  isPhone: boolean;
+}) {
+  const size = isPhone ? 68 : 92;
+  // Outer ring is 6px thicker on each side when selected, so the circle
+  // image stays the same size but the gradient ring wraps around it.
+  const ringPad = 5;
+  return (
+    <motion.button
+      type="button"
+      onClick={onSelect}
+      aria-label={TITLES[index]}
+      whileTap={{ scale: 0.94 }}
+      animate={{ y: selected ? -10 : 0 }}
+      transition={{ type: "spring", stiffness: 360, damping: 24 }}
+      className="relative grid place-items-center rounded-full"
+      style={{
+        width: size + ringPad * 2,
+        height: size + ringPad * 2,
+        // Always reserve the ring space so circles don't shift position
+        // when selection changes.
+        padding: ringPad,
+        background: "transparent",
+        border: "none",
+      }}
+    >
+      {/* Gradient ring — only visible when selected. Uses the same
+          purple→coral palette as the progress bar. */}
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            key="ring"
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-full"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+            style={{
+              background:
+                "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
+              boxShadow: "0 8px 22px rgba(150,117,254,0.35)",
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Circle image content — white background sits on top of the ring,
+          inset to reveal the gradient as a ring. */}
+      <div
+        className="relative grid place-items-center overflow-hidden rounded-full"
+        style={{
+          width: size,
+          height: size,
+          background: "rgba(255,255,255,0.92)",
+          boxShadow: selected
+            ? "0 6px 18px rgba(120,160,220,0.25)"
+            : "0 0 0 1px rgba(0,16,80,0.08), 0 4px 12px rgba(120,160,220,0.18)",
+          // Soft fade for unselected state
+          opacity: selected ? 1 : 0.85,
+          transition: "opacity 0.25s ease",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={IMAGES[index]}
+          alt=""
+          draggable={false}
+          className="select-none"
+          style={{
+            width: "82%",
+            height: "82%",
+            objectFit: "contain",
+            objectPosition: "center",
+          }}
+        />
+      </div>
+    </motion.button>
+  );
+}
+
+function CalendarColumn({ index }: { index: AgendaIndex | null }) {
   const { ref, size } = useElementSize<HTMLDivElement>();
   const measuredH = size.h || 0;
   const pxPerHour = Math.max(1, Math.floor(measuredH / HOURS));
 
-  const slots = SCHEDULES[index];
+  const slots = index === null ? [] : SCHEDULES[index];
   const hideTitle = pxPerHour < 22;
 
   return (
     <div ref={ref} className="relative h-full w-full overflow-hidden">
+      {/* Empty-state guide rows so the calendar doesn't look totally blank. */}
+      {index === null && pxPerHour > 0 && (
+        <div className="absolute inset-0">
+          {Array.from({ length: HOURS }).map((_, i) => (
+            <div
+              key={`guide-${i}`}
+              className="absolute inset-x-0"
+              style={{
+                top: i * pxPerHour,
+                height: pxPerHour - 4,
+                borderRadius: 18,
+                background: "rgba(255,255,255,0.18)",
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.35) inset",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <AnimatePresence initial={false}>
         {slots.map((slot, i) => {
           const top = (slot.start - DAY_START) * pxPerHour;
           const heightPx = (slot.end - slot.start) * pxPerHour - 4;
           const blockSpan = slot.end - slot.start;
           const isTall = heightPx > 80;
-          const titleSize = isTall ? 18 : 14;
+          const titleSize = isTall ? 22 : 18;
           const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
+          // Mid-curve key includes index so changing agenda forces a remount
+          // and the tetris-drop transition fires.
+          const k = `${index}-${slot.start}-${slot.end}`;
           return (
             <motion.div
-              key={`${index}-${slot.start}-${slot.end}`}
+              key={k}
               className="absolute"
               style={{
                 top,
@@ -395,7 +452,7 @@ function CalendarColumn({ index }: { index: AgendaIndex }) {
                 },
               }}
             >
-              {/* Top inner highlight strip */}
+              {/* Top inner highlight */}
               <div
                 aria-hidden
                 style={{
@@ -412,10 +469,10 @@ function CalendarColumn({ index }: { index: AgendaIndex }) {
               <div
                 style={{
                   position: "absolute",
-                  top: 10,
-                  left: 14,
-                  color: "rgba(255,255,255,0.8)",
-                  fontSize: 13,
+                  top: isTall ? 12 : 8,
+                  left: 16,
+                  color: "rgba(255,255,255,0.85)",
+                  fontSize: isTall ? 14 : 13,
                   fontWeight: 600,
                   letterSpacing: 0.2,
                 }}
@@ -423,44 +480,29 @@ function CalendarColumn({ index }: { index: AgendaIndex }) {
                 {timeLabel}
               </div>
 
-              {/* Title — hidden when block is too short to fit text */}
-              {!hideTitle &&
-                (isTall ? (
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      display: "grid",
-                      placeItems: "center",
-                      color: "#FFFFFF",
-                      fontSize: titleSize,
-                      fontWeight: 700,
-                      letterSpacing: -0.2,
-                      paddingInline: 16,
-                      textAlign: "center",
-                    }}
-                  >
-                    {slot.title}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      left: 70,
-                      right: 14,
-                      color: "#FFFFFF",
-                      fontSize: titleSize,
-                      fontWeight: 700,
-                      letterSpacing: -0.2,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {slot.title}
-                  </div>
-                ))}
+              {/* Event title — left-aligned, always next to or below time. */}
+              {!hideTitle && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: isTall ? "50%" : 6,
+                    left: 16,
+                    right: 16,
+                    transform: isTall ? "translateY(-50%)" : "none",
+                    color: "#FFFFFF",
+                    fontSize: titleSize,
+                    fontWeight: 700,
+                    letterSpacing: -0.2,
+                    textAlign: "left",
+                    paddingLeft: isTall ? 0 : 56,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {slot.title}
+                </div>
+              )}
             </motion.div>
           );
         })}
