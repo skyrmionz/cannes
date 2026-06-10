@@ -36,7 +36,9 @@ const IMAGES: ReadonlyArray<string> = [
 ];
 
 const NULL_TITLE = "Choose your status";
-const NULL_DESCRIPTION = "Select what your agenda feels like.";
+// Null-state description is intentionally empty so the row collapses
+// before a user picks a circle.
+const NULL_DESCRIPTION = "";
 
 const DAY_START = 9;
 const DAY_END = 19;
@@ -219,18 +221,21 @@ export function LorealAgendaQuestionScreen({
           <CalendarColumn index={value} />
         </div>
 
-        {/* Hint under the calendar */}
+        {/* Hint under the calendar — matches sun/hydration screen format
+            (two-line, font-bold, navy 60% opacity, larger clamped scale). */}
         <motion.p
           className="shrink-0 text-center font-bold tracking-tight text-[#001050]/60"
           style={{
-            fontSize: "clamp(1rem, min(4.6vw, 2.8vh), 1.55rem)",
+            fontSize: "clamp(1.15rem, min(5.6vw, 3.4vh), 1.75rem)",
             paddingTop: "clamp(0.25rem, 0.8vh, 0.6rem)",
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.4 }}
         >
-          Tap a circle to choose your vibe
+          Tap an icon to choose your status
+          <br />
+          and click Next
         </motion.p>
       </div>
 
