@@ -8,7 +8,7 @@ interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 5000;
+const HOLD_MS = 3500;
 // Small delay so the cross-zoom from the intro has compositing headroom
 // before the 30+ orbital children start tweening, but short enough that the
 // loading screen doesn't feel empty.

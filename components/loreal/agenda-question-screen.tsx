@@ -35,8 +35,7 @@ const IMAGES: ReadonlyArray<string> = [
   "/loreal/agenda-salesforce-forever.png",
 ];
 
-const NULL_TITLE = "Choose your status";
-const NULL_DESCRIPTION = "Select your status above";
+const NULL_TITLE = "Choose your status above";
 
 const DAY_START = 9;
 const DAY_END = 19;
@@ -66,7 +65,7 @@ const SCHEDULES: Record<AgendaIndex, ReadonlyArray<Slot>> = {
     { start: 18, end: 19, title: "Sunset rosé", hue: 340 },
   ],
   2: [{ start: 9, end: 19, title: "OOO 😎", hue: 42 }],
-  3: [{ start: 9, end: 19, title: "Salesforce ☁️", hue: 215 }],
+  3: [{ start: 9, end: 19, title: "Salesforce All Day ☁️", hue: 215 }],
 };
 
 export function LorealAgendaQuestionScreen({
@@ -85,7 +84,7 @@ export function LorealAgendaQuestionScreen({
   const isPhone = bodyW < 420;
 
   const titleText = value === null ? NULL_TITLE : TITLES[value];
-  const descText = value === null ? NULL_DESCRIPTION : DESCRIPTIONS[value];
+  const descText = value === null ? "" : DESCRIPTIONS[value];
   const titleKey = value === null ? "null" : `t-${value}`;
   const descKey = value === null ? "null" : `d-${value}`;
 
@@ -188,31 +187,35 @@ export function LorealAgendaQuestionScreen({
           </AnimatePresence>
         </div>
 
-        {/* Description row */}
-        <div
-          className="relative shrink-0 overflow-hidden"
-          style={{ minHeight: isPhone ? 44 : 64 }}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.p
-              key={descKey}
-              className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
-              style={{
-                fontSize: "clamp(1.25rem, min(5.4vw, 3.4vh), 1.9rem)",
-                fontFamily:
-                  'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-                fontWeight: 400,
-                paddingInline: 12,
-              }}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -18 }}
-              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-            >
-              {descText}
-            </motion.p>
-          </AnimatePresence>
-        </div>
+        {/* Description row — only renders when a status is selected.
+            In null state we collapse the row so the calendar sits
+            directly beneath the title. */}
+        {value !== null && (
+          <div
+            className="relative shrink-0 overflow-hidden"
+            style={{ minHeight: isPhone ? 44 : 64 }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.p
+                key={descKey}
+                className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
+                style={{
+                  fontSize: "clamp(1.25rem, min(5.4vw, 3.4vh), 1.9rem)",
+                  fontFamily:
+                    'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+                  fontWeight: 400,
+                  paddingInline: 12,
+                }}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              >
+                {descText}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Day-view calendar — fills remaining slack */}
         <div className="relative min-h-0 flex-1">

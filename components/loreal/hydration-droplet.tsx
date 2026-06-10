@@ -99,6 +99,11 @@ export function HydrationDroplet({
             style={{
               visibility: visible ? "visible" : "hidden",
               pointerEvents: "none",
+              // Force a compositor layer so the GPU uses smooth
+              // subpixel resampling on scaled-up video frames.
+              // Hides chroma jitter that's baked into the encoded idle.
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden",
             }}
           >
             <TransparentVideoLoop
@@ -106,12 +111,12 @@ export function HydrationDroplet({
               webmSrc={`${src}.webm`}
               width="100%"
               className="block"
-              // Brightness only (no contrast/saturate). Contrast in
-              // particular amplifies frame-to-frame chroma differences in
-              // the HEVC alpha encode, which reads as a faint pulse on
-              // the low-idle loop. Plain brightness lifts the look without
-              // that side-effect.
-              filter="brightness(1.07)"
+              // Brightness + a touch of saturation hides the chroma noise
+              // baked into the lower-bitrate idle encodes (low-idle is
+              // ~3 Mbps vs the 5+ Mbps of the others) without making the
+              // droplet look soft. The contrast is small enough that it
+              // doesn't amplify frame-to-frame jitter.
+              filter="brightness(1.07) saturate(1.08) contrast(1.02)"
             />
           </div>
         );
