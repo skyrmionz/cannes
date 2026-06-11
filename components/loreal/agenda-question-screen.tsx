@@ -465,18 +465,27 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                 left: 0,
                 right: 0,
                 height: Math.max(0, heightPx),
-                // Top→bottom 3D-feeling bevel: lighter at the top, the
-                // base hue mid, slightly darker at the bottom. Two inset
-                // highlights (top + left) and one inset shadow (bottom)
-                // give the block faux-extruded depth without an outer
-                // drop-shadow leaking onto the calendar background.
-                background: `linear-gradient(180deg, hsla(${slot.hue}, 80%, 72%, 0.95) 0%, hsla(${slot.hue}, 75%, 62%, 0.92) 50%, hsla(${slot.hue}, 70%, 50%, 0.94) 100%)`,
+                // Translucent glass-tile material — looks like tinted
+                // acrylic. Lower-alpha gradient lets the page bg show
+                // through; backdrop-filter saturates+slightly blurs
+                // what's behind so the tile reads as colored glass.
+                background: `linear-gradient(180deg, hsla(${slot.hue}, 90%, 78%, 0.55) 0%, hsla(${slot.hue}, 80%, 60%, 0.5) 55%, hsla(${slot.hue}, 75%, 48%, 0.55) 100%)`,
+                backdropFilter: "blur(2px) saturate(160%)",
+                WebkitBackdropFilter: "blur(2px) saturate(160%)",
                 borderRadius: 22,
                 boxShadow: [
-                  "0 1px 0 rgba(255,255,255,0.85) inset",
-                  "0 -2px 0 rgba(0,16,80,0.18) inset",
-                  "1px 0 0 rgba(255,255,255,0.4) inset",
-                  "-1px 0 0 rgba(0,16,80,0.12) inset",
+                  // Top edge specular highlight (soft)
+                  "0 1px 0 rgba(255,255,255,0.95) inset",
+                  // Inner top sheen
+                  "0 6px 12px -6px rgba(255,255,255,0.85) inset",
+                  // Bottom rim shadow
+                  "0 -2px 0 rgba(0,16,80,0.22) inset",
+                  // Side highlights
+                  "1px 0 0 rgba(255,255,255,0.5) inset",
+                  "-1px 0 0 rgba(0,16,80,0.16) inset",
+                  // Outer 1px hairline that picks up the tile color
+                  // (very subtle, no outer blur shadow).
+                  `0 0 0 1px hsla(${slot.hue}, 70%, 55%, 0.35)`,
                 ].join(", "),
                 pointerEvents: "none",
                 overflow: "hidden",
@@ -502,7 +511,8 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                 },
               }}
             >
-              {/* Top inner highlight */}
+              {/* Top-half glare — diagonal highlight that fades as it
+                  goes down, so each block reads like a backlit gem. */}
               <div
                 aria-hidden
                 style={{
@@ -510,21 +520,39 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 1,
+                  height: "55%",
                   background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0))",
+                    "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 100%)",
+                  pointerEvents: "none",
                 }}
               />
-              {/* Time label */}
+              {/* Corner sheen — a soft radial spec mark in the top-left
+                  that mimics a curved-glass reflection. */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "65%",
+                  height: "70%",
+                  background:
+                    "radial-gradient(ellipse at top left, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 55%)",
+                  pointerEvents: "none",
+                }}
+              />
+              {/* Time label — shadow gives it readable contrast against
+                  the glassy top-half glare. */}
               <div
                 style={{
                   position: "absolute",
                   top: isTall ? 12 : 8,
                   left: 16,
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(255,255,255,0.95)",
                   fontSize: isTall ? 14 : 13,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   letterSpacing: 0.2,
+                  textShadow: "0 1px 2px rgba(0,16,80,0.45)",
                 }}
               >
                 {timeLabel}
@@ -549,9 +577,11 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    // Soft navy shadow on every event title so the white
+                    // text reads against the glassy glare overlay.
                     textShadow: isFullDay
-                      ? "0 2px 8px rgba(0,16,80,0.18)"
-                      : undefined,
+                      ? "0 2px 10px rgba(0,16,80,0.35), 0 1px 2px rgba(0,16,80,0.4)"
+                      : "0 1px 2px rgba(0,16,80,0.45)",
                   }}
                 >
                   {slot.title}
