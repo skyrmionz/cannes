@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Text, RoundedBox } from "@react-three/drei";
+import { Environment, Lightformer, Text, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -54,7 +54,8 @@ function hueToColor(hue: number, lightness = 0.62): THREE.Color {
 
 interface TileProps {
   slot: Slot;
-  slotIndex: number; // 0..schedule.length-1, used for stagger ordering
+  slotIndex: number; // 0..schedule.length-1
+  totalSlots: number; // schedule length, for reverse-stagger math
   pxPerHour: number; // for sizing text relative to viewport
   worldWidth: number; // tile X extent in world units
   worldYTop: number; // y of top of the calendar in world units
@@ -67,6 +68,7 @@ interface TileProps {
 function GlassTile({
   slot,
   slotIndex,
+  totalSlots,
   worldWidth,
   restTopY,
 }: TileProps) {
@@ -107,7 +109,10 @@ function GlassTile({
     const g = groupRef.current;
     if (!g) return;
     timeRef.current += dt;
-    const startAt = ENTRY_DELAY_S + slotIndex * SPAWN_STAGGER_S;
+    // Bottom slot (latest hour, highest array index) drops FIRST,
+    // top slot drops last. Stagger index reversed.
+    const reverseIndex = totalSlots - 1 - slotIndex;
+    const startAt = ENTRY_DELAY_S + reverseIndex * SPAWN_STAGGER_S;
 
     if (phaseRef.current === "idle") {
       if (timeRef.current >= startAt) {
@@ -188,51 +193,40 @@ function GlassTile({
           radius={TILE_RADIUS}
           smoothness={5}
         >
-          {/* MeshPhysicalMaterial with transmission composites with
-              the page (canvas alpha) properly — no need for a refraction
-              backbuffer, and it doesn't render black when there's no
-              scene behind the tile. Iridescence + clearcoat give the
-              squishy candy-glass look. */}
+          {/* Vibrant candy-jelly material:
+              - High emissive → tile looks self-lit / saturated even
+                without lots of incident light. This is the single
+                biggest vibrancy lever.
+              - Strong clearcoat so Lightformer rectangles paint a
+                clean white specular sweep across each tile.
+              - Iridescence boosted; needs env map to do anything
+                visible — the Lightformers in CalendarScene provide it.
+              - Transmission moderate (0.4) so the tile reads as
+                translucent gem without going invisible. */}
           <meshPhysicalMaterial
             color={tintColor}
-            transparent
-            opacity={0.78}
-            transmission={0.55}
-            thickness={1.4}
-            ior={1.45}
-            roughness={0.18}
+            emissive={tintColor}
+            emissiveIntensity={0.45}
+            transparent={false}
+            transmission={0.4}
+            thickness={1.2}
+            ior={1.42}
+            roughness={0.12}
             metalness={0}
             clearcoat={1}
-            clearcoatRoughness={0.08}
-            iridescence={0.35}
-            iridescenceIOR={1.35}
+            clearcoatRoughness={0.05}
+            iridescence={0.55}
+            iridescenceIOR={1.4}
             attenuationColor={tintColor}
-            attenuationDistance={1.4}
-            specularIntensity={0.85}
-            sheen={0.6}
-            sheenRoughness={0.4}
+            attenuationDistance={2.0}
+            specularIntensity={1}
+            sheen={0.4}
+            sheenRoughness={0.35}
             sheenColor={tintColorBright}
-            envMapIntensity={1.4}
+            envMapIntensity={2.2}
           />
         </RoundedBox>
 
-        {/* Inner highlight — slightly smaller box behind the front
-            face that shows through the translucent material as a
-            bright core, sells the "filled jelly" depth. */}
-        <mesh position={[0, 0, -TILE_DEPTH * 0.15]}>
-          <boxGeometry
-            args={[
-              worldWidth * 0.92,
-              tileHeight * 0.85,
-              TILE_DEPTH * 0.4,
-            ]}
-          />
-          <meshBasicMaterial
-            color={tintColorBright}
-            transparent
-            opacity={0.45}
-          />
-        </mesh>
       </group>
 
       {/* Time label — top-left, only on hourly tiles. Full-day blocks
@@ -303,25 +297,64 @@ function CalendarScene({
 
   const slots = schedules[index];
 
+  // Number of slots in current schedule, for reverse-stagger math
+  // (bottom slot drops first, top slot drops last).
+  const totalSlots = slots.length;
+
   return (
     <>
-      {/* Environment map — clearcoat and iridescence need real
-          reflections to shimmer. Drei ships a few preset HDRs;
-          "studio" is a clean white-light setup that doesn't tint
-          the tile colors. */}
-      <Environment preset="studio" environmentIntensity={0.9} />
-      {/* Direct lights stack on top of the env so each tile picks up
-          a discrete glossy highlight, not just diffused env lighting. */}
-      <ambientLight intensity={0.7} />
+      {/* Environment with custom Lightformer rectangles. Lightformers
+          are pure WebGL light planes that the material's clearcoat /
+          iridescence / specular reflections pick up — no external HDR
+          fetch, guaranteed to render. This is what gives each tile a
+          clean glossy highlight sweep across the top, the way product
+          renders look. */}
+      <Environment background={false} resolution={256}>
+        {/* Big top-down white plane — primary specular sweep across
+            the top of every tile. */}
+        <Lightformer
+          form="rect"
+          intensity={3}
+          color="#ffffff"
+          position={[0, 8, 4]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          scale={[14, 4, 1]}
+        />
+        {/* Side rims for edge highlights. */}
+        <Lightformer
+          form="rect"
+          intensity={1.2}
+          color="#fff7e0"
+          position={[-6, 2, 3]}
+          rotation={[0, Math.PI / 2, 0]}
+          scale={[6, 6, 1]}
+        />
+        <Lightformer
+          form="rect"
+          intensity={1.2}
+          color="#dceeff"
+          position={[6, 2, 3]}
+          rotation={[0, -Math.PI / 2, 0]}
+          scale={[6, 6, 1]}
+        />
+        {/* Front fill so the iridescence doesn't go too dark in the
+            tile interior. */}
+        <Lightformer
+          form="rect"
+          intensity={1}
+          color="#ffffff"
+          position={[0, 0, 7]}
+          rotation={[0, 0, 0]}
+          scale={[12, 8, 1]}
+        />
+      </Environment>
+      {/* Diffuse ambient + key for the diffuse channel. Lightformers
+          drive reflections; these drive shading. */}
+      <ambientLight intensity={1.1} />
       <directionalLight
-        position={[1.5, 6, 4]}
-        intensity={1.6}
+        position={[1.5, 6, 5]}
+        intensity={1.2}
         color="#ffffff"
-      />
-      <directionalLight
-        position={[-3, 1, 3]}
-        intensity={0.6}
-        color="#fff1d6"
       />
       {slots.map((slot, i) => {
         const restTopY =
@@ -331,6 +364,7 @@ function CalendarScene({
             key={`${index}-${slot.start}-${slot.end}`}
             slot={slot}
             slotIndex={i}
+            totalSlots={totalSlots}
             pxPerHour={pxPerHour}
             worldWidth={worldWidth}
             worldYTop={worldYTop}
@@ -412,6 +446,8 @@ export function CalendarColumn3D({
             alpha: true,
             premultipliedAlpha: false,
             powerPreference: "high-performance",
+            toneMapping: THREE.NoToneMapping,
+            toneMappingExposure: 1.2,
           }}
           style={{ background: "transparent" }}
         >
