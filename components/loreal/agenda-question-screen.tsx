@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { useState } from "react";
+import dynamic from "next/dynamic";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 import {
@@ -11,6 +11,16 @@ import {
   SUBTITLE_FONT_SIZE,
   TITLE_MARGIN_TOP,
 } from "./question-shell";
+
+// 3D calendar is lazy-loaded so the three.js bundle only ships when
+// the agenda screen actually mounts.
+const CalendarColumn3D = dynamic(
+  () =>
+    import("./agenda-calendar-3d").then((m) => ({
+      default: m.CalendarColumn3D,
+    })),
+  { ssr: false },
+);
 
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
@@ -46,7 +56,6 @@ const NULL_TITLE = "Choose your status above";
 
 const DAY_START = 9;
 const DAY_END = 19;
-const HOURS = DAY_END - DAY_START; // 10
 
 type Slot = { start: number; end: number; title: string; hue: number };
 
@@ -231,7 +240,12 @@ export function LorealAgendaQuestionScreen({
 
         {/* Day-view calendar — fills remaining slack */}
         <div className="relative min-h-0 flex-1">
-          <CalendarColumn index={value} />
+          <CalendarColumn3D
+            index={value}
+            schedules={SCHEDULES}
+            dayStart={DAY_START}
+            dayEnd={DAY_END}
+          />
         </div>
 
         {/* Hint under the calendar — matches sun/hydration screen format
@@ -392,205 +406,3 @@ function CirclePick({
   );
 }
 
-function CalendarColumn({ index }: { index: AgendaIndex | null }) {
-  const { ref, size } = useElementSize<HTMLDivElement>();
-  const measuredH = size.h || 0;
-  const pxPerHour = Math.max(1, Math.floor(measuredH / HOURS));
-
-  const slots = index === null ? [] : SCHEDULES[index];
-  const hideTitle = pxPerHour < 22;
-
-  return (
-    <div ref={ref} className="relative h-full w-full overflow-hidden">
-      {/* Empty hour-slot containers — clear, just an outline + time label,
-          so the calendar always reads as a 9–19 day grid. Visible whether
-          or not a status is selected; selected events render on top. */}
-      {pxPerHour > 0 && index === null && (
-        <div className="absolute inset-0">
-          {Array.from({ length: HOURS }).map((_, i) => {
-            const hour = DAY_START + i;
-            const label = `${String(hour).padStart(2, "0")}:00`;
-            return (
-              <div
-                key={`guide-${i}`}
-                className="absolute inset-x-0"
-                style={{
-                  top: i * pxPerHour,
-                  height: pxPerHour - 4,
-                  borderRadius: 18,
-                  background: "transparent",
-                  boxShadow: "0 0 0 1px rgba(0,16,80,0.12) inset",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 16,
-                    color: "rgba(0,16,80,0.45)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    letterSpacing: 0.2,
-                  }}
-                >
-                  {label}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <AnimatePresence initial={false}>
-        {slots.map((slot, i) => {
-          const top = (slot.start - DAY_START) * pxPerHour;
-          const heightPx = (slot.end - slot.start) * pxPerHour - 4;
-          const blockSpan = slot.end - slot.start;
-          const isTall = heightPx > 80;
-          const isFullDay = blockSpan >= HOURS;
-          // Full-day blocks (Spontaneous + Salesforce Forever) get a much
-          // larger, center-aligned title because they're the marquee element
-          // of the calendar — a single statement, not a list item.
-          const titleSize = isFullDay ? 56 : isTall ? 22 : 18;
-          const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
-          // Mid-curve key includes index so changing agenda forces a remount
-          // and the tetris-drop transition fires.
-          const k = `${index}-${slot.start}-${slot.end}`;
-          return (
-            <motion.div
-              key={k}
-              className="absolute"
-              style={{
-                top,
-                left: 0,
-                right: 0,
-                height: Math.max(0, heightPx),
-                // Translucent glass-tile material — looks like tinted
-                // acrylic. Lower-alpha gradient lets the page bg show
-                // through; backdrop-filter saturates+slightly blurs
-                // what's behind so the tile reads as colored glass.
-                background: `linear-gradient(180deg, hsla(${slot.hue}, 90%, 78%, 0.55) 0%, hsla(${slot.hue}, 80%, 60%, 0.5) 55%, hsla(${slot.hue}, 75%, 48%, 0.55) 100%)`,
-                backdropFilter: "blur(2px) saturate(160%)",
-                WebkitBackdropFilter: "blur(2px) saturate(160%)",
-                borderRadius: 22,
-                boxShadow: [
-                  // Top edge specular highlight (soft)
-                  "0 1px 0 rgba(255,255,255,0.95) inset",
-                  // Inner top sheen
-                  "0 6px 12px -6px rgba(255,255,255,0.85) inset",
-                  // Bottom rim shadow
-                  "0 -2px 0 rgba(0,16,80,0.22) inset",
-                  // Side highlights
-                  "1px 0 0 rgba(255,255,255,0.5) inset",
-                  "-1px 0 0 rgba(0,16,80,0.16) inset",
-                  // Outer 1px hairline that picks up the tile color
-                  // (very subtle, no outer blur shadow).
-                  `0 0 0 1px hsla(${slot.hue}, 70%, 55%, 0.35)`,
-                ].join(", "),
-                pointerEvents: "none",
-                overflow: "hidden",
-              }}
-              initial={{ y: -pxPerHour * 2, opacity: 0 }}
-              animate={{
-                y: 0,
-                opacity: 1,
-                transition: {
-                  type: "spring",
-                  stiffness: 380,
-                  damping: blockSpan > 5 ? 26 : 22,
-                  delay: 0.25 + i * 0.08,
-                },
-              }}
-              exit={{
-                y: -24,
-                opacity: 0,
-                transition: {
-                  duration: 0.22,
-                  ease: "easeIn",
-                  delay: i * 0.025,
-                },
-              }}
-            >
-              {/* Top-half glare — diagonal highlight that fades as it
-                  goes down, so each block reads like a backlit gem. */}
-              <div
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: "55%",
-                  background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 100%)",
-                  pointerEvents: "none",
-                }}
-              />
-              {/* Corner sheen — a soft radial spec mark in the top-left
-                  that mimics a curved-glass reflection. */}
-              <div
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "65%",
-                  height: "70%",
-                  background:
-                    "radial-gradient(ellipse at top left, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 55%)",
-                  pointerEvents: "none",
-                }}
-              />
-              {/* Time label — shadow gives it readable contrast against
-                  the glassy top-half glare. */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: isTall ? 12 : 8,
-                  left: 16,
-                  color: "rgba(255,255,255,0.95)",
-                  fontSize: isTall ? 14 : 13,
-                  fontWeight: 700,
-                  letterSpacing: 0.2,
-                  textShadow: "0 1px 2px rgba(0,16,80,0.45)",
-                }}
-              >
-                {timeLabel}
-              </div>
-
-              {/* Event title — left-aligned for ordinary slots; full-day
-                  blocks get a much larger center-aligned title. */}
-              {!hideTitle && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: isTall ? "50%" : 6,
-                    left: 16,
-                    right: 16,
-                    transform: isTall ? "translateY(-50%)" : "none",
-                    color: "#FFFFFF",
-                    fontSize: titleSize,
-                    fontWeight: 700,
-                    letterSpacing: isFullDay ? -1 : -0.2,
-                    textAlign: isFullDay ? "center" : "left",
-                    paddingLeft: isFullDay ? 0 : isTall ? 0 : 56,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    // Soft navy shadow on every event title so the white
-                    // text reads against the glassy glare overlay.
-                    textShadow: isFullDay
-                      ? "0 2px 10px rgba(0,16,80,0.35), 0 1px 2px rgba(0,16,80,0.4)"
-                      : "0 1px 2px rgba(0,16,80,0.45)",
-                  }}
-                >
-                  {slot.title}
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
-    </div>
-  );
-}
