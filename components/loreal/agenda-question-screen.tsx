@@ -465,11 +465,19 @@ function CalendarColumn({ index }: { index: AgendaIndex | null }) {
                 left: 0,
                 right: 0,
                 height: Math.max(0, heightPx),
-                background: `hsla(${slot.hue}, 75%, 62%, 0.72)`,
-                borderRadius: 24,
-                boxShadow: `0 0 0 1px rgba(255,255,255,0.5) inset, 0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 22px hsla(${slot.hue},65%,55%,0.32)`,
-                backdropFilter: "blur(8px) saturate(140%)",
-                WebkitBackdropFilter: "blur(8px) saturate(140%)",
+                // Top→bottom 3D-feeling bevel: lighter at the top, the
+                // base hue mid, slightly darker at the bottom. Two inset
+                // highlights (top + left) and one inset shadow (bottom)
+                // give the block faux-extruded depth without an outer
+                // drop-shadow leaking onto the calendar background.
+                background: `linear-gradient(180deg, hsla(${slot.hue}, 80%, 72%, 0.95) 0%, hsla(${slot.hue}, 75%, 62%, 0.92) 50%, hsla(${slot.hue}, 70%, 50%, 0.94) 100%)`,
+                borderRadius: 22,
+                boxShadow: [
+                  "0 1px 0 rgba(255,255,255,0.85) inset",
+                  "0 -2px 0 rgba(0,16,80,0.18) inset",
+                  "1px 0 0 rgba(255,255,255,0.4) inset",
+                  "-1px 0 0 rgba(0,16,80,0.12) inset",
+                ].join(", "),
                 pointerEvents: "none",
                 overflow: "hidden",
               }}

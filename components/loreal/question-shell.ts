@@ -28,8 +28,10 @@ export const FOOTER_BUTTON_STYLE: React.CSSProperties = {
 };
 
 // Subtitle (the description under the question) sized so it reads as
-// primary copy, not a quiet caption.
-export const SUBTITLE_FONT_SIZE = "clamp(1.05rem, min(4.6vw, 2.6vh), 1.5rem)";
+// primary copy, not a quiet caption. Notably wider clamp than the
+// hint underneath so it never collapses to phone-tiny size on a kiosk.
+export const SUBTITLE_FONT_SIZE =
+  "clamp(1.25rem, min(5.4vw, 3.2vh), 1.95rem)";
 
 // Margin between the progress bar and the question title — a noticeable
 // breathing room block so the bar doesn't crowd the title.
