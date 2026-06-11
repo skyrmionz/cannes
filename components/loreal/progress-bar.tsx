@@ -12,21 +12,22 @@ export function LorealProgressBar({ percent, label }: Props) {
   const clamped = Math.max(0, Math.min(100, percent));
   return (
     <div
-      className="relative h-14 w-full rounded-full"
+      className="relative mx-auto h-16 w-[88%] rounded-full"
       style={{
-        WebkitBackdropFilter: "blur(14px) saturate(140%)",
-        backdropFilter: "blur(14px) saturate(140%)",
-        background: "rgba(255,255,255,0.32)",
+        // Solid white pill (was glassy) with the same inset highlights
+        // and outer drop shadow as before so it still reads as part of
+        // the glass family without being translucent.
+        background: "#FFFFFF",
         boxShadow: [
-          "0 0 0 1px rgba(255,255,255,0.55) inset",
-          "0 1px 0 rgba(255,255,255,0.7) inset",
-          "0 4px 18px rgba(120,160,220,0.18)",
+          "0 0 0 1px rgba(0,16,80,0.06) inset",
+          "0 1px 0 rgba(255,255,255,0.95) inset",
+          "0 6px 22px rgba(120,160,220,0.22)",
         ].join(", "),
       }}
     >
-      {/* Inset track that hosts the gradient fill, leaving glass padding on
-          all sides between the gradient and the outer pill border. */}
-      <div className="absolute inset-[6px] overflow-hidden rounded-full">
+      {/* Inset track that hosts the gradient fill. Bumped from 6px to
+          10px on all sides so the gradient sits well off the border. */}
+      <div className="absolute inset-[10px] overflow-hidden rounded-full">
         <div
           className="h-full rounded-full transition-[width] duration-500 ease-out"
           style={{

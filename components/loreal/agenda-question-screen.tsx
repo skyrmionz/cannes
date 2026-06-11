@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
+import {
+  FOOTER_BUTTON_STYLE,
+  HINT_TEXT_CLASS,
+  HINT_TEXT_FONT_SIZE,
+  SUBTITLE_FONT_SIZE,
+  TITLE_MARGIN_TOP,
+} from "./question-shell";
 
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
@@ -91,11 +98,14 @@ export function LorealAgendaQuestionScreen({
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-12">
+      <div className="relative z-30 shrink-0 px-7 pt-20">
         <LorealProgressBar percent={75} label="75%" />
         <motion.h1
-          className="mt-12 text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
-          style={{ fontSize: "min(7vw, 4.4vh)" }}
+          className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
+          style={{
+            fontSize: "min(7vw, 4.4vh)",
+            marginTop: TITLE_MARGIN_TOP,
+          }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}
@@ -107,7 +117,7 @@ export function LorealAgendaQuestionScreen({
         <motion.p
           className="mt-3 text-center leading-snug text-[#001050]/85"
           style={{
-            fontSize: "min(3.6vw, 1.7vh)",
+            fontSize: SUBTITLE_FONT_SIZE,
             fontFamily:
               'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
             fontWeight: 400,
@@ -225,11 +235,11 @@ export function LorealAgendaQuestionScreen({
         </div>
 
         {/* Hint under the calendar — matches sun/hydration screen format
-            (two-line, font-bold, navy 60% opacity, larger clamped scale). */}
+            via the shared question-shell constants. */}
         <motion.p
-          className="shrink-0 text-center font-bold tracking-tight text-[#001050]/60"
+          className={HINT_TEXT_CLASS}
           style={{
-            fontSize: "clamp(1.15rem, min(5.6vw, 3.4vh), 1.75rem)",
+            fontSize: HINT_TEXT_FONT_SIZE,
             paddingTop: "clamp(0.25rem, 0.8vh, 0.6rem)",
           }}
           initial={{ opacity: 0 }}
@@ -243,26 +253,14 @@ export function LorealAgendaQuestionScreen({
       </div>
 
       {/* Footer */}
-      <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-6 pt-2">
+      <div className="relative z-30 flex shrink-0 items-center justify-between px-6 pb-8 pt-2">
         <motion.button
           type="button"
           onClick={onBack}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           className="rounded-full font-semibold text-[#001050] tracking-tight"
-          style={{
-            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
-            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
-            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
-            background: "rgba(255,255,255,0.45)",
-            boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.6) inset",
-              "0 1px 0 rgba(255,255,255,0.8) inset",
-              "0 8px 24px rgba(120,160,220,0.2)",
-            ].join(", "),
-            WebkitBackdropFilter: "blur(12px) saturate(140%)",
-            backdropFilter: "blur(12px) saturate(140%)",
-          }}
+          style={FOOTER_BUTTON_STYLE}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
@@ -277,17 +275,7 @@ export function LorealAgendaQuestionScreen({
           whileTap={value !== null ? { scale: 0.96 } : undefined}
           className="rounded-full font-semibold text-[#001050] tracking-tight disabled:cursor-not-allowed"
           style={{
-            paddingInline: "clamp(2rem, 6vw, 3.5rem)",
-            paddingBlock: "clamp(0.85rem, 2.2vh, 1.5rem)",
-            fontSize: "clamp(1.1rem, min(4.2vw, 3vh), 1.5rem)",
-            background: "rgba(255,255,255,0.45)",
-            boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.6) inset",
-              "0 1px 0 rgba(255,255,255,0.8) inset",
-              "0 8px 24px rgba(120,160,220,0.2)",
-            ].join(", "),
-            WebkitBackdropFilter: "blur(12px) saturate(140%)",
-            backdropFilter: "blur(12px) saturate(140%)",
+            ...FOOTER_BUTTON_STYLE,
             opacity: value !== null ? 1 : 0.4,
           }}
           initial={{ opacity: 0, y: 8 }}
