@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import {
-  MeshTransmissionMaterial,
-  Text,
-  RoundedBox,
-} from "@react-three/drei";
+import { Text, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -67,11 +63,11 @@ function GlassTile({
   slot,
   slotIndex,
   worldWidth,
-  worldYTop,
   restTopY,
   pxPerHour,
 }: TileProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<THREE.Group>(null);
   const tileHeight = (slot.end - slot.start) * HOUR_UNITS - TILE_GAP;
   const restCenterY = restTopY - tileHeight / 2;
 
@@ -82,17 +78,26 @@ function GlassTile({
   const yRef = useRef(restCenterY + SPAWN_OFFSET_Y);
   const vyRef = useRef(0);
   const scaleYRef = useRef(1);
-  const opacityRef = useRef(0);
+  const scaleXRef = useRef(1);
 
-  // Reset on slot remount.
-  useEffect(() => {
+  // Reset BEFORE first paint so the tile spawns at SPAWN_OFFSET_Y
+  // above its rest position, not popping in at rest. useLayoutEffect
+  // runs synchronously after DOM mutation, before the browser paints.
+  useLayoutEffect(() => {
     phaseRef.current = "idle";
     timeRef.current = 0;
     yRef.current = restCenterY + SPAWN_OFFSET_Y;
     vyRef.current = 0;
     scaleYRef.current = 1;
-    opacityRef.current = 0;
-  }, [restCenterY]);
+    scaleXRef.current = 1;
+    if (groupRef.current) {
+      groupRef.current.position.y = yRef.current;
+      // Hide until the spawn-stagger window opens so the tile doesn't
+      // visibly sit above the calendar before its drop begins.
+      groupRef.current.visible = false;
+      groupRef.current.scale.set(1, 1, 1);
+    }
+  }, [restCenterY, slot.start, slot.end, slotIndex]);
 
   useFrame((_, dt) => {
     const g = groupRef.current;
@@ -104,47 +109,64 @@ function GlassTile({
       if (timeRef.current >= startAt) {
         phaseRef.current = "falling";
         vyRef.current = 0;
-        opacityRef.current = 1;
+        g.visible = true;
       }
     } else if (phaseRef.current === "falling") {
-      // Gravity (world units / s^2). Tuned so the drop lands in
-      // ~400ms from a 4-unit initial offset.
       const gravity = 50;
       vyRef.current -= gravity * dt;
       yRef.current += vyRef.current * dt;
       if (yRef.current <= restCenterY) {
         yRef.current = restCenterY;
         phaseRef.current = "squash";
-        timeRef.current = 0; // re-purpose timer for squash phase
+        timeRef.current = 0;
         vyRef.current = 0;
       }
     } else if (phaseRef.current === "squash") {
-      // 220ms vertical squash + bounce.
-      const t = Math.min(1, timeRef.current / 0.22);
-      // Squash: 1 → 0.92 → 1.04 → 1 via two ease curves.
-      let s = 1;
-      if (t < 0.4) {
-        const k = t / 0.4;
-        s = 1 - 0.08 * k;
+      // 280ms 2-axis squash + bounce — squishy jelly impact.
+      const t = Math.min(1, timeRef.current / 0.28);
+      // Vertical: compress, overshoot, settle.
+      let sy = 1;
+      // Horizontal: expand inversely so it reads as squishy
+      // (volume conservation), settle.
+      let sx = 1;
+      if (t < 0.35) {
+        const k = t / 0.35;
+        sy = 1 - 0.16 * k;
+        sx = 1 + 0.1 * k;
       } else if (t < 0.7) {
-        const k = (t - 0.4) / 0.3;
-        s = 0.92 + 0.12 * k;
+        const k = (t - 0.35) / 0.35;
+        sy = 0.84 + 0.22 * k;
+        sx = 1.1 - 0.13 * k;
       } else {
         const k = (t - 0.7) / 0.3;
-        s = 1.04 - 0.04 * k;
+        sy = 1.06 - 0.06 * k;
+        sx = 0.97 + 0.03 * k;
       }
-      scaleYRef.current = s;
+      scaleYRef.current = sy;
+      scaleXRef.current = sx;
       if (t >= 1) {
         phaseRef.current = "rest";
         scaleYRef.current = 1;
+        scaleXRef.current = 1;
       }
+    } else if (phaseRef.current === "rest") {
+      // Idle squish breathing — very subtle so the tiles feel alive.
+      const t = timeRef.current;
+      const offset = slotIndex * 0.4;
+      scaleYRef.current = 1 + Math.sin((t + offset) * 1.6) * 0.012;
+      scaleXRef.current = 1 - Math.sin((t + offset) * 1.6) * 0.012;
     }
 
     g.position.y = yRef.current;
     g.scale.y = scaleYRef.current;
+    g.scale.x = scaleXRef.current;
   });
 
-  const tintColor = useMemo(() => hueToColor(slot.hue, 0.6), [slot.hue]);
+  const tintColor = useMemo(() => hueToColor(slot.hue, 0.62), [slot.hue]);
+  const tintColorBright = useMemo(
+    () => hueToColor(slot.hue, 0.78),
+    [slot.hue],
+  );
   const isFullDay = slot.end - slot.start >= HOURS;
 
   // Text size scales off the available calendar pixel resolution so
@@ -164,63 +186,89 @@ function GlassTile({
 
   return (
     <group ref={groupRef}>
-      <RoundedBox
-        args={[worldWidth, tileHeight, TILE_DEPTH]}
-        radius={TILE_RADIUS}
-        smoothness={4}
-      >
-        <MeshTransmissionMaterial
-          // Tint
-          color={tintColor}
-          // Real glass-ish parameters
-          transmission={1}
-          thickness={0.55}
-          ior={1.45}
-          roughness={0.05}
-          chromaticAberration={0.04}
-          anisotropy={0.18}
-          distortion={0.05}
-          distortionScale={0.4}
-          temporalDistortion={0}
-          // Background tint comes through. Lower samples to keep
-          // perf reasonable on 10 simultaneous tiles.
-          samples={4}
-          resolution={256}
-          backside={false}
-          // Slight self-tint on the glass surface itself so the slot's
-          // hue still reads even when the page bg behind is light.
-          attenuationColor={tintColor}
-          attenuationDistance={1.6}
-        />
-      </RoundedBox>
+      <group ref={meshRef}>
+        <RoundedBox
+          args={[worldWidth, tileHeight, TILE_DEPTH]}
+          radius={TILE_RADIUS}
+          smoothness={5}
+        >
+          {/* MeshPhysicalMaterial with transmission composites with
+              the page (canvas alpha) properly — no need for a refraction
+              backbuffer, and it doesn't render black when there's no
+              scene behind the tile. Iridescence + clearcoat give the
+              squishy candy-glass look. */}
+          <meshPhysicalMaterial
+            color={tintColor}
+            transparent
+            opacity={0.78}
+            transmission={0.55}
+            thickness={1.4}
+            ior={1.45}
+            roughness={0.18}
+            metalness={0}
+            clearcoat={1}
+            clearcoatRoughness={0.08}
+            iridescence={0.35}
+            iridescenceIOR={1.35}
+            attenuationColor={tintColor}
+            attenuationDistance={1.4}
+            specularIntensity={0.85}
+            sheen={0.6}
+            sheenRoughness={0.4}
+            sheenColor={tintColorBright}
+            envMapIntensity={1.4}
+          />
+        </RoundedBox>
 
-      {/* Time label — top-left of tile */}
+        {/* Inner highlight — slightly smaller box behind the front
+            face that shows through the translucent material as a
+            bright core, sells the "filled jelly" depth. */}
+        <mesh position={[0, 0, -TILE_DEPTH * 0.15]}>
+          <boxGeometry
+            args={[
+              worldWidth * 0.92,
+              tileHeight * 0.85,
+              TILE_DEPTH * 0.4,
+            ]}
+          />
+          <meshBasicMaterial
+            color={tintColorBright}
+            transparent
+            opacity={0.45}
+          />
+        </mesh>
+      </group>
+
+      {/* Time label — top-left of tile, lifted off the front face
+          so the transmission shader doesn't muddy it. */}
       <Text
         position={[
-          -worldWidth / 2 + 0.12,
+          -worldWidth / 2 + 0.14,
           tileHeight / 2 - 0.13,
-          TILE_DEPTH / 2 + 0.001,
+          TILE_DEPTH / 2 + 0.04,
         ]}
         fontSize={timeLabelSize}
         color="#FFFFFF"
         anchorX="left"
         anchorY="top"
-        outlineWidth={0.005}
+        outlineWidth={0.018}
         outlineColor="#001050"
-        outlineOpacity={0.4}
+        outlineOpacity={0.85}
+        outlineBlur={0.01}
       >
         {timeLabel}
       </Text>
 
-      {/* Title — left-aligned for hourly, centered for full-day */}
+      {/* Title — left-aligned for hourly, centered for full-day.
+          Thicker navy outline so it reads against any tile color. */}
       <Text
         position={
           isFullDay
-            ? [0, 0, TILE_DEPTH / 2 + 0.001]
+            ? [0, 0, TILE_DEPTH / 2 + 0.04]
             : [
-                -worldWidth / 2 + 0.6,
+                -worldWidth / 2 + 0.7,
                 tileHeight / 2 - 0.13,
-                TILE_DEPTH / 2 + 0.001,
+                TILE_DEPTH / 2 + 0.04,
               ]
         }
         fontSize={titleSize}
@@ -229,9 +277,10 @@ function GlassTile({
         anchorY={isFullDay ? "middle" : "top"}
         maxWidth={worldWidth * (isFullDay ? 0.92 : 0.7)}
         textAlign={isFullDay ? "center" : "left"}
-        outlineWidth={isFullDay ? 0.012 : 0.006}
+        outlineWidth={isFullDay ? 0.04 : 0.022}
         outlineColor="#001050"
-        outlineOpacity={0.45}
+        outlineOpacity={0.9}
+        outlineBlur={isFullDay ? 0.02 : 0.012}
       >
         {slot.title}
       </Text>
@@ -249,7 +298,6 @@ function CalendarScene({
   pxPerHour: number;
 }) {
   const { viewport } = useThree();
-  // Use viewport so the camera frames the exact bounds of the canvas.
   const worldWidth = viewport.width * 0.96;
   const worldYTop = (HOURS * HOUR_UNITS) / 2;
 
@@ -257,9 +305,29 @@ function CalendarScene({
 
   return (
     <>
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[2, 4, 5]} intensity={0.9} />
-      <directionalLight position={[-3, 2, 3]} intensity={0.4} />
+      {/* Bright top-key + soft warm fill + cool back-rim. The strong
+          key on top is what gives every tile its glossy specular
+          highlight; the warm fill keeps shadows from muddying. */}
+      <ambientLight intensity={1.15} />
+      <directionalLight
+        position={[1.5, 6, 4]}
+        intensity={1.4}
+        color="#ffffff"
+      />
+      <directionalLight
+        position={[-3, 1, 3]}
+        intensity={0.55}
+        color="#fff1d6"
+      />
+      <directionalLight
+        position={[0, -2, 5]}
+        intensity={0.4}
+        color="#cfe7ff"
+      />
+      {/* Hemispheric env helps the iridescence + clearcoat catch
+          something to shimmer against (we don't load a big HDR; this
+          fakes one for free). */}
+      <hemisphereLight args={["#ffffff", "#a0c0ff", 0.6]} />
       {slots.map((slot, i) => {
         const restTopY =
           worldYTop - (slot.start - 9) * HOUR_UNITS - TILE_GAP / 2;
@@ -347,6 +415,7 @@ export function CalendarColumn3D({
           gl={{
             antialias: true,
             alpha: true,
+            premultipliedAlpha: false,
             powerPreference: "high-performance",
           }}
           style={{ background: "transparent" }}
