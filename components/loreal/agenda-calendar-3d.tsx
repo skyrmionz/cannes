@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Text, RoundedBox } from "@react-three/drei";
+import { Environment, Text, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -33,12 +33,17 @@ const TILE_GAP = 0.06; // vertical gap between adjacent tiles
 const TILE_DEPTH = 0.18;
 const TILE_RADIUS = 0.07;
 
-// Stagger between consecutive tile drops, in seconds. Roughly matches
-// the previous Framer 80ms cadence.
-const SPAWN_STAGGER_S = 0.08;
-const ENTRY_DELAY_S = 0.25;
+// Stagger between consecutive tile drops, in seconds. Long enough
+// that the previous tile lands before the next one spawns — serialized
+// drop, not a parallel waterfall. Tuned alongside FALL_GRAVITY so the
+// total Packed sequence (10 tiles) wraps in ~2s.
+const SPAWN_STAGGER_S = 0.2;
+const ENTRY_DELAY_S = 0.18;
 // Initial drop offset (in world units, ABOVE the target slot).
-const SPAWN_OFFSET_Y = 4;
+const SPAWN_OFFSET_Y = 2.8;
+// Gravity in world-units / s². Higher = quicker fall; tuned so a
+// 2.8-unit drop lands in ~180ms.
+const FALL_GRAVITY = 175;
 
 // Convert a slot's hue (0-360) to an HSL THREE.Color tuned for the
 // transmission material's color slot. Saturation/lightness matched to
@@ -64,7 +69,6 @@ function GlassTile({
   slotIndex,
   worldWidth,
   restTopY,
-  pxPerHour,
 }: TileProps) {
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Group>(null);
@@ -112,8 +116,7 @@ function GlassTile({
         g.visible = true;
       }
     } else if (phaseRef.current === "falling") {
-      const gravity = 50;
-      vyRef.current -= gravity * dt;
+      vyRef.current -= FALL_GRAVITY * dt;
       yRef.current += vyRef.current * dt;
       if (yRef.current <= restCenterY) {
         yRef.current = restCenterY;
@@ -149,13 +152,8 @@ function GlassTile({
         scaleYRef.current = 1;
         scaleXRef.current = 1;
       }
-    } else if (phaseRef.current === "rest") {
-      // Idle squish breathing — very subtle so the tiles feel alive.
-      const t = timeRef.current;
-      const offset = slotIndex * 0.4;
-      scaleYRef.current = 1 + Math.sin((t + offset) * 1.6) * 0.012;
-      scaleXRef.current = 1 - Math.sin((t + offset) * 1.6) * 0.012;
     }
+    // No idle breathing — tiles stay still after landing.
 
     g.position.y = yRef.current;
     g.scale.y = scaleYRef.current;
@@ -169,17 +167,15 @@ function GlassTile({
   );
   const isFullDay = slot.end - slot.start >= HOURS;
 
-  // Text size scales off the available calendar pixel resolution so
-  // titles stay legible across kiosk vs phone widths.
+  // Text size in world units. Hourly tiles are ~1 unit tall, so 0.32
+  // is roughly 32% of tile height — readable. Full-day tiles get the
+  // marquee treatment.
   const titleSize = useMemo(() => {
-    if (isFullDay) return Math.max(0.18, Math.min(pxPerHour / 280, 0.36));
-    return Math.max(0.1, Math.min(pxPerHour / 700, 0.18));
-  }, [isFullDay, pxPerHour]);
+    if (isFullDay) return 0.7;
+    return 0.32;
+  }, [isFullDay]);
 
-  const timeLabelSize = useMemo(
-    () => Math.max(0.07, Math.min(pxPerHour / 1100, 0.11)),
-    [pxPerHour],
-  );
+  const timeLabelSize = useMemo(() => 0.18, []);
 
   // Time label in HH:MM.
   const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
@@ -239,48 +235,52 @@ function GlassTile({
         </mesh>
       </group>
 
-      {/* Time label — top-left of tile, lifted off the front face
-          so the transmission shader doesn't muddy it. */}
-      <Text
-        position={[
-          -worldWidth / 2 + 0.14,
-          tileHeight / 2 - 0.13,
-          TILE_DEPTH / 2 + 0.04,
-        ]}
-        fontSize={timeLabelSize}
-        color="#FFFFFF"
-        anchorX="left"
-        anchorY="top"
-        outlineWidth={0.018}
-        outlineColor="#001050"
-        outlineOpacity={0.85}
-        outlineBlur={0.01}
-      >
-        {timeLabel}
-      </Text>
+      {/* Time label — top-left, only on hourly tiles. Full-day blocks
+          use the title as the marquee; the time label would be redundant. */}
+      {!isFullDay && (
+        <Text
+          position={[
+            -worldWidth / 2 + 0.18,
+            0,
+            TILE_DEPTH / 2 + 0.04,
+          ]}
+          fontSize={timeLabelSize}
+          color="#FFFFFF"
+          anchorX="left"
+          anchorY="middle"
+          outlineWidth={0.022}
+          outlineColor="#001050"
+          outlineOpacity={0.9}
+          outlineBlur={0.012}
+        >
+          {timeLabel}
+        </Text>
+      )}
 
-      {/* Title — left-aligned for hourly, centered for full-day.
-          Thicker navy outline so it reads against any tile color. */}
+      {/* Title — vertically centered. Hourly tiles get the title to
+          the right of the time label; full-day blocks center across
+          the whole tile. Heavy navy outline + outline blur so the
+          glyphs read clearly against any tile color. */}
       <Text
         position={
           isFullDay
             ? [0, 0, TILE_DEPTH / 2 + 0.04]
             : [
-                -worldWidth / 2 + 0.7,
-                tileHeight / 2 - 0.13,
+                -worldWidth / 2 + 1.05,
+                0,
                 TILE_DEPTH / 2 + 0.04,
               ]
         }
         fontSize={titleSize}
         color="#FFFFFF"
         anchorX={isFullDay ? "center" : "left"}
-        anchorY={isFullDay ? "middle" : "top"}
-        maxWidth={worldWidth * (isFullDay ? 0.92 : 0.7)}
+        anchorY="middle"
+        maxWidth={worldWidth * (isFullDay ? 0.92 : 0.78)}
         textAlign={isFullDay ? "center" : "left"}
-        outlineWidth={isFullDay ? 0.04 : 0.022}
+        outlineWidth={isFullDay ? 0.05 : 0.03}
         outlineColor="#001050"
-        outlineOpacity={0.9}
-        outlineBlur={isFullDay ? 0.02 : 0.012}
+        outlineOpacity={0.92}
+        outlineBlur={isFullDay ? 0.025 : 0.018}
       >
         {slot.title}
       </Text>
@@ -305,29 +305,24 @@ function CalendarScene({
 
   return (
     <>
-      {/* Bright top-key + soft warm fill + cool back-rim. The strong
-          key on top is what gives every tile its glossy specular
-          highlight; the warm fill keeps shadows from muddying. */}
-      <ambientLight intensity={1.15} />
+      {/* Environment map — clearcoat and iridescence need real
+          reflections to shimmer. Drei ships a few preset HDRs;
+          "studio" is a clean white-light setup that doesn't tint
+          the tile colors. */}
+      <Environment preset="studio" environmentIntensity={0.9} />
+      {/* Direct lights stack on top of the env so each tile picks up
+          a discrete glossy highlight, not just diffused env lighting. */}
+      <ambientLight intensity={0.7} />
       <directionalLight
         position={[1.5, 6, 4]}
-        intensity={1.4}
+        intensity={1.6}
         color="#ffffff"
       />
       <directionalLight
         position={[-3, 1, 3]}
-        intensity={0.55}
+        intensity={0.6}
         color="#fff1d6"
       />
-      <directionalLight
-        position={[0, -2, 5]}
-        intensity={0.4}
-        color="#cfe7ff"
-      />
-      {/* Hemispheric env helps the iridescence + clearcoat catch
-          something to shimmer against (we don't load a big HDR; this
-          fakes one for free). */}
-      <hemisphereLight args={["#ffffff", "#a0c0ff", 0.6]} />
       {slots.map((slot, i) => {
         const restTopY =
           worldYTop - (slot.start - 9) * HOUR_UNITS - TILE_GAP / 2;
