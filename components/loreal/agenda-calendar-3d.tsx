@@ -2,7 +2,12 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Lightformer, Text, RoundedBox } from "@react-three/drei";
+import {
+  Environment,
+  Html,
+  Lightformer,
+  RoundedBox,
+} from "@react-three/drei";
 import * as THREE from "three";
 import { useElementSize } from "@/lib/use-element-size";
 
@@ -33,16 +38,15 @@ const TILE_GAP = 0.06; // vertical gap between adjacent tiles
 const TILE_DEPTH = 0.18;
 const TILE_RADIUS = 0.07;
 
-// Stagger between consecutive tile drops, in seconds. Long enough
-// that the previous tile lands before the next one spawns — serialized
-// drop, not a parallel waterfall. Tuned alongside FALL_GRAVITY so the
-// total Packed sequence (10 tiles) wraps in ~2s.
+// Stagger between consecutive tile drops. Long enough that the
+// previous tile lands before the next spawns. Tuned with FALL_GRAVITY
+// so the total Packed sequence wraps in ~2s.
 const SPAWN_STAGGER_S = 0.2;
-const ENTRY_DELAY_S = 0.18;
-// Initial drop offset (in world units, ABOVE the target slot).
-const SPAWN_OFFSET_Y = 2.8;
-// Gravity in world-units / s². Higher = quicker fall; tuned so a
-// 2.8-unit drop lands in ~180ms.
+const ENTRY_DELAY_S = 0.06;
+// Buffer above the visible canvas top so tiles spawn off-screen and
+// look like they're entering from above the calendar.
+const SPAWN_OFFSCREEN_BUFFER = 1.5;
+// Gravity in world-units / s².
 const FALL_GRAVITY = 175;
 
 // Convert a slot's hue (0-360) to an HSL THREE.Color tuned for the
@@ -69,30 +73,37 @@ function GlassTile({
   slot,
   slotIndex,
   totalSlots,
+  pxPerHour,
   worldWidth,
+  worldYTop,
   restTopY,
 }: TileProps) {
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Group>(null);
   const tileHeight = (slot.end - slot.start) * HOUR_UNITS - TILE_GAP;
   const restCenterY = restTopY - tileHeight / 2;
+  // Spawn ABOVE the canvas top edge so the tile looks like it's
+  // entering from above the calendar. Half the tile is above the
+  // top so even the top-of-day slot has visible travel distance.
+  const spawnY =
+    worldYTop + SPAWN_OFFSCREEN_BUFFER + tileHeight / 2;
 
   // Drop simulation state held in refs so we don't re-render every
   // frame — useFrame mutates the group transform directly.
   const phaseRef = useRef<"idle" | "falling" | "squash" | "rest">("idle");
   const timeRef = useRef(0);
-  const yRef = useRef(restCenterY + SPAWN_OFFSET_Y);
+  const yRef = useRef(spawnY);
   const vyRef = useRef(0);
   const scaleYRef = useRef(1);
   const scaleXRef = useRef(1);
 
-  // Reset BEFORE first paint so the tile spawns at SPAWN_OFFSET_Y
-  // above its rest position, not popping in at rest. useLayoutEffect
-  // runs synchronously after DOM mutation, before the browser paints.
+  // Reset BEFORE first paint so the tile spawns at spawnY (above the
+  // visible canvas), not popping in at rest. useLayoutEffect runs
+  // synchronously after DOM mutation, before the browser paints.
   useLayoutEffect(() => {
     phaseRef.current = "idle";
     timeRef.current = 0;
-    yRef.current = restCenterY + SPAWN_OFFSET_Y;
+    yRef.current = spawnY;
     vyRef.current = 0;
     scaleYRef.current = 1;
     scaleXRef.current = 1;
@@ -103,7 +114,7 @@ function GlassTile({
       groupRef.current.visible = false;
       groupRef.current.scale.set(1, 1, 1);
     }
-  }, [restCenterY, slot.start, slot.end, slotIndex]);
+  }, [restCenterY, spawnY, slot.start, slot.end, slotIndex]);
 
   useFrame((_, dt) => {
     const g = groupRef.current;
@@ -172,15 +183,18 @@ function GlassTile({
   );
   const isFullDay = slot.end - slot.start >= HOURS;
 
-  // Text size in world units. Hourly tiles are ~1 unit tall, so 0.32
-  // is roughly 32% of tile height — readable. Full-day tiles get the
-  // marquee treatment.
-  const titleSize = useMemo(() => {
-    if (isFullDay) return 0.7;
-    return 0.32;
-  }, [isFullDay]);
-
-  const timeLabelSize = useMemo(() => 0.18, []);
+  // Text overlay sizing in CSS pixels. Orthographic camera zoom puts
+  // 1 world unit = pxPerHour CSS pixels, so the tile measures
+  // worldWidth*pxPerHour by tileHeight*pxPerHour pixels on screen.
+  const textBoxWidthPx = Math.max(0, worldWidth * pxPerHour);
+  const textBoxHeightPx = Math.max(0, tileHeight * pxPerHour);
+  const titlePxSize = isFullDay
+    ? Math.max(28, Math.min(textBoxHeightPx * 0.32, 84))
+    : Math.max(14, Math.min(textBoxHeightPx * 0.42, 26));
+  const timeLabelPxSize = Math.max(
+    11,
+    Math.min(textBoxHeightPx * 0.32, 20),
+  );
 
   // Time label in HH:MM.
   const timeLabel = `${String(slot.start).padStart(2, "0")}:00`;
@@ -193,91 +207,96 @@ function GlassTile({
           radius={TILE_RADIUS}
           smoothness={5}
         >
-          {/* Vibrant candy-jelly material:
-              - High emissive → tile looks self-lit / saturated even
-                without lots of incident light. This is the single
-                biggest vibrancy lever.
-              - Strong clearcoat so Lightformer rectangles paint a
-                clean white specular sweep across each tile.
-              - Iridescence boosted; needs env map to do anything
-                visible — the Lightformers in CalendarScene provide it.
-              - Transmission moderate (0.4) so the tile reads as
-                translucent gem without going invisible. */}
+          {/* Slime / squishy gel material:
+              - High transmission (0.92) so light passes through and
+                the tile reads as see-through, not painted.
+              - Thick volume + short attenuation distance: the slot's
+                hue stains the light passing through.
+              - Low emissive (0.18) gives a soft inner glow without
+                the "neon" overshoot the prior version had.
+              - Clearcoat + Lightformer reflections give the wet
+                glossy surface highlights that sell "slime". */}
           <meshPhysicalMaterial
             color={tintColor}
             emissive={tintColor}
-            emissiveIntensity={0.45}
-            transparent={false}
-            transmission={0.4}
-            thickness={1.2}
-            ior={1.42}
-            roughness={0.12}
+            emissiveIntensity={0.18}
+            transparent
+            opacity={0.95}
+            transmission={0.92}
+            thickness={2.0}
+            ior={1.4}
+            roughness={0.08}
             metalness={0}
             clearcoat={1}
-            clearcoatRoughness={0.05}
-            iridescence={0.55}
-            iridescenceIOR={1.4}
+            clearcoatRoughness={0.03}
+            iridescence={0.25}
+            iridescenceIOR={1.35}
             attenuationColor={tintColor}
-            attenuationDistance={2.0}
+            attenuationDistance={0.9}
             specularIntensity={1}
-            sheen={0.4}
-            sheenRoughness={0.35}
+            sheen={0.3}
+            sheenRoughness={0.3}
             sheenColor={tintColorBright}
-            envMapIntensity={2.2}
+            envMapIntensity={1.8}
           />
         </RoundedBox>
 
       </group>
 
-      {/* Time label — top-left, only on hourly tiles. Full-day blocks
-          use the title as the marquee; the time label would be redundant. */}
-      {!isFullDay && (
-        <Text
-          position={[
-            -worldWidth / 2 + 0.18,
-            0,
-            TILE_DEPTH / 2 + 0.04,
-          ]}
-          fontSize={timeLabelSize}
-          color="#FFFFFF"
-          anchorX="left"
-          anchorY="middle"
-          outlineWidth={0.022}
-          outlineColor="#001050"
-          outlineOpacity={0.9}
-          outlineBlur={0.012}
-        >
-          {timeLabel}
-        </Text>
-      )}
-
-      {/* Title — vertically centered. Hourly tiles get the title to
-          the right of the time label; full-day blocks center across
-          the whole tile. Heavy navy outline + outline blur so the
-          glyphs read clearly against any tile color. */}
-      <Text
-        position={
-          isFullDay
-            ? [0, 0, TILE_DEPTH / 2 + 0.04]
-            : [
-                -worldWidth / 2 + 1.05,
-                0,
-                TILE_DEPTH / 2 + 0.04,
-              ]
-        }
-        fontSize={titleSize}
-        color="#FFFFFF"
-        anchorX={isFullDay ? "center" : "left"}
-        anchorY="middle"
-        maxWidth={worldWidth * (isFullDay ? 0.92 : 0.78)}
-        textAlign={isFullDay ? "center" : "left"}
-        outlineWidth={isFullDay ? 0.05 : 0.03}
-        outlineColor="#001050"
-        outlineOpacity={0.92}
-        outlineBlur={isFullDay ? 0.025 : 0.018}
+      {/* Text overlay — drei <Html> in screen-space mode projects
+          this DOM at the 3D position. Inherits the page's font stack
+          (system-ui, same as question text). No outline; white with
+          a soft navy drop-shadow for legibility on any hue. */}
+      <Html
+        position={[0, 0, TILE_DEPTH / 2 + 0.001]}
+        center
+        zIndexRange={[10, 0]}
+        style={{
+          pointerEvents: "none",
+          width: textBoxWidthPx,
+          height: textBoxHeightPx,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: isFullDay ? "center" : "flex-start",
+          paddingInline: isFullDay ? 16 : 22,
+          color: "#FFFFFF",
+          fontFamily:
+            'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+          fontWeight: 700,
+          letterSpacing: isFullDay ? "-0.02em" : "-0.005em",
+          textShadow: isFullDay
+            ? "0 2px 14px rgba(0,16,80,0.4)"
+            : "0 1px 6px rgba(0,16,80,0.35)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
       >
-        {slot.title}
-      </Text>
+        {!isFullDay && (
+          <span
+            style={{
+              fontSize: timeLabelPxSize,
+              fontWeight: 700,
+              opacity: 0.92,
+              marginRight: 14,
+              flexShrink: 0,
+            }}
+          >
+            {timeLabel}
+          </span>
+        )}
+        <span
+          style={{
+            fontSize: titlePxSize,
+            fontWeight: 800,
+            flex: 1,
+            textAlign: isFullDay ? "center" : "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {slot.title}
+        </span>
+      </Html>
     </group>
   );
 }
@@ -287,7 +306,7 @@ function CalendarScene({
   schedules,
   pxPerHour,
 }: {
-  index: AgendaIndex;
+  index: AgendaIndex | null;
   schedules: Record<AgendaIndex, ReadonlyArray<Slot>>;
   pxPerHour: number;
 }) {
@@ -295,7 +314,9 @@ function CalendarScene({
   const worldWidth = viewport.width * 0.96;
   const worldYTop = (HOURS * HOUR_UNITS) / 2;
 
-  const slots = schedules[index];
+  // Null-state: render the env + lights but no tiles, so WebGL is
+  // already warmed up by the time the user picks a status.
+  const slots = index === null ? [] : schedules[index];
 
   // Number of slots in current schedule, for reverse-stagger math
   // (bottom slot drops first, top slot drops last).
@@ -431,7 +452,11 @@ export function CalendarColumn3D({
         </div>
       )}
 
-      {index !== null && size.w > 0 && size.h > 0 && (
+      {/* Canvas mounts as soon as the body is measured — even in null
+          state — so the WebGL context, env map, and shader compilation
+          all complete BEFORE the user picks a status. First tile drop
+          is then instant. */}
+      {size.w > 0 && size.h > 0 && (
         <Canvas
           orthographic
           camera={{

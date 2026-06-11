@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import dynamic from "next/dynamic";
 import { LorealProgressBar } from "./progress-bar";
@@ -90,6 +91,13 @@ export function LorealAgendaQuestionScreen({
   value,
   onChange,
 }: Props) {
+  // Preload the 3D calendar bundle as soon as the agenda screen
+  // mounts so the first circle tap doesn't pay a chunk-load + WebGL
+  // init delay.
+  useEffect(() => {
+    void import("./agenda-calendar-3d");
+  }, []);
+
   const handleNext = () => {
     if (value === null) return;
     onNext();
