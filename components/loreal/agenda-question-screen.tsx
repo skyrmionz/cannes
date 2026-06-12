@@ -136,11 +136,11 @@ export function LorealAgendaQuestionScreen({
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Day-view calendar — thinner, capped height so circles/status
-            below have more room. */}
+        {/* Day-view calendar — thinner, capped height. Extra top margin
+            for spacing from the caption/question above. */}
         <div
           className="relative min-h-0 flex-1"
-          style={{ maxHeight: "30vh" }}
+          style={{ maxHeight: "30vh", marginTop: "clamp(0.75rem, 2vh, 1.5rem)" }}
         >
           <CalendarColumn2D
             index={value}
@@ -150,10 +150,11 @@ export function LorealAgendaQuestionScreen({
         </div>
 
         {/* Status title — sits right above the circle picker.
-            Reserved height so layout never shifts. */}
+            Reserved height so layout never shifts. Extra top margin
+            for breathing room from the calendar above. */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ height: isPhone ? 56 : 80 }}
+          style={{ height: isPhone ? 56 : 80, marginTop: "clamp(0.75rem, 2vh, 1.5rem)" }}
         >
           <AnimatePresence mode="wait" initial={false}>
             {value !== null && (
@@ -357,16 +358,16 @@ function CirclePick({
         )}
       </AnimatePresence>
 
-      {/* Circle content — just a clean outline, no inner fill/highlight.
-          The gradient ring around it (when selected) provides enough
-          visual emphasis. */}
+      {/* Circle content — transparent background so the page gradient
+          shows through. Only an outline when unselected; when selected
+          the gradient ring behind provides the visual ring. */}
       <div
         className="relative grid place-items-center overflow-hidden rounded-full"
         style={{
           width: size,
           height: size,
-          background: "rgba(255,255,255,0.15)",
-          boxShadow: "0 0 0 2px rgba(0,16,80,0.12)",
+          background: "transparent",
+          boxShadow: selected ? "none" : "0 0 0 2px rgba(0,16,80,0.15)",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -456,19 +457,20 @@ function CalendarColumn2D({
               style={{
                 top,
                 height: Math.max(0, height),
-                borderRadius: 16,
-                // Liquid glass: translucent vibrant fill, slight blur
-                background: `hsla(${slot.hue}, 80%, 62%, 0.65)`,
-                backdropFilter: "blur(6px) saturate(150%)",
-                WebkitBackdropFilter: "blur(6px) saturate(150%)",
+                borderRadius: 18,
+                // Liquid glass: more translucent, stronger blur,
+                // visible inner highlight + outer colored glow.
+                background: `hsla(${slot.hue}, 85%, 68%, 0.45)`,
+                backdropFilter: "blur(12px) saturate(180%)",
+                WebkitBackdropFilter: "blur(12px) saturate(180%)",
                 boxShadow: [
-                  `0 0 0 1.5px hsla(${slot.hue}, 70%, 50%, 0.5)`,
-                  "0 1px 0 rgba(255,255,255,0.6) inset",
-                  `0 4px 12px hsla(${slot.hue}, 60%, 45%, 0.2)`,
+                  `0 0 0 1.5px hsla(${slot.hue}, 75%, 55%, 0.6)`,
+                  "0 2px 0 rgba(255,255,255,0.7) inset",
+                  "0 -1px 0 rgba(0,16,80,0.1) inset",
+                  `0 6px 16px hsla(${slot.hue}, 65%, 50%, 0.25)`,
                 ].join(", "),
                 overflow: "hidden",
               }}
-              // Drop in from above
               initial={{ y: -measuredH, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: measuredH * 0.6, opacity: 0 }}
@@ -476,11 +478,10 @@ function CalendarColumn2D({
                 type: "spring",
                 stiffness: 340,
                 damping: 24,
-                // Bottom slot (highest index) enters first
                 delay: (slots.length - 1 - i) * 0.08,
               }}
             >
-              {/* Top glare strip */}
+              {/* Top glare — wide highlight for the "wet glass" look */}
               <div
                 aria-hidden
                 style={{
@@ -488,13 +489,14 @@ function CalendarColumn2D({
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: "45%",
+                  height: "50%",
                   background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)",
+                    "linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.15) 40%, rgba(255,255,255,0) 100%)",
+                  borderRadius: "18px 18px 0 0",
                   pointerEvents: "none",
                 }}
               />
-              {/* Event label */}
+              {/* Time + event label */}
               <div
                 style={{
                   position: "absolute",
@@ -502,23 +504,31 @@ function CalendarColumn2D({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: isFullDay ? "center" : "flex-start",
-                  paddingInline: isFullDay ? 12 : 14,
+                  paddingInline: isFullDay ? 12 : 12,
+                  gap: 8,
                   color: "#FFFFFF",
                   fontFamily:
                     'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
                   fontWeight: 700,
                   fontSize: isFullDay
-                    ? Math.max(20, Math.min(height * 0.28, 48))
-                    : Math.max(12, Math.min(height * 0.4, 20)),
-                  textShadow: "0 1px 3px rgba(0,16,80,0.5)",
-                  WebkitTextStroke: "0.3px rgba(0,16,80,0.25)",
+                    ? Math.max(18, Math.min(height * 0.28, 42))
+                    : Math.max(11, Math.min(height * 0.38, 18)),
+                  textShadow: "0 1px 4px rgba(0,16,80,0.55)",
+                  WebkitTextStroke: "0.4px rgba(0,16,80,0.3)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   letterSpacing: isFullDay ? "-0.02em" : "0",
                 }}
               >
-                {slot.title}
+                {!isFullDay && (
+                  <span style={{ opacity: 0.85, flexShrink: 0 }}>
+                    {`${String(slot.start).padStart(2, "0")}:00`}
+                  </span>
+                )}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {slot.title}
+                </span>
               </div>
             </motion.div>
           );
