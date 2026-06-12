@@ -193,18 +193,19 @@ function GlassTile({
           scaleXRef.current = 1;
         }
       } else if (phaseRef.current === "exiting") {
-        // Staggered exit: top slot (index 0) exits first, bottom last.
-        // Each tile waits slotIndex * 0.06s before starting to fall.
-        const exitDelay = slotIndex * 0.06;
+        // Staggered exit: BOTTOM slot drops out first, then up to top.
+        // reverseIndex puts the bottom tile (highest slotIndex) at
+        // delay 0, and the top tile at the longest delay.
+        const exitDelay = (totalSlots - 1 - slotIndex) * 0.04;
         if (timeRef.current < exitDelay) {
           // Waiting for stagger — hold position
         } else {
-          // Accelerate downward + fade out
-          vyRef.current -= FALL_GRAVITY * 1.8 * dt;
+          // Fast downward acceleration + quick fade
+          vyRef.current -= FALL_GRAVITY * 2.5 * dt;
           yRef.current += vyRef.current * dt;
-          opacityRef.current = Math.max(0, opacityRef.current - dt * 3.5);
+          opacityRef.current = Math.max(0, opacityRef.current - dt * 5);
         }
-        // Once well below the screen, mark as done
+        // Once below the screen, mark as done
         if (yRef.current < -(worldYTop * 2)) {
           phaseRef.current = "rest";
           g.visible = false;
@@ -367,7 +368,7 @@ function GlassTile({
   );
 }
 
-const EXIT_DURATION_MS = 500;
+const EXIT_DURATION_MS = 320;
 
 function CalendarScene({
   index,
