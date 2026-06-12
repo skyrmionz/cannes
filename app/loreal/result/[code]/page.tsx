@@ -71,13 +71,32 @@ export default function ResultPage({
   const status = getStatus(data.sun, data.hydration, data.agenda);
 
   const [saved, setSaved] = useState(false);
-  const handleSave = () => {
-    const a = document.createElement("a");
-    a.href = status.download;
-    a.download = `cannes-ooo-${data.code}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleSave = async () => {
+    try {
+      // Try the Web Share API with a file — on iOS/Android this opens
+      // the native share sheet where "Save Image" puts it in the
+      // camera roll. Falls back to <a download> on desktop.
+      const res = await fetch(status.download);
+      const blob = await res.blob();
+      const file = new File([blob], `cannes-ooo-${data.code}.jpg`, {
+        type: "image/jpeg",
+      });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        // Fallback: trigger a download (saves to Files on phone)
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+    } catch {
+      // User cancelled share sheet or fetch failed — still show saved
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -182,7 +201,7 @@ export default function ResultPage({
             draggable={false}
             className="h-auto select-none"
             style={{
-              width: "min(70vw, 38vh, 380px)",
+              width: "min(62vw, 34vh, 340px)",
               height: "auto",
               objectFit: "contain",
             }}
