@@ -102,7 +102,7 @@ export function LorealIntroScreen({ onStart }: IntroScreenProps) {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.6, ease: "easeOut" }}
-          style={{ width: "min(94vw, 66vh)" }}
+          style={{ width: "min(94vw, 66vh)", filter: "brightness(1.05) contrast(1.02)" }}
         >
           <TransparentVideoLoop
             mp4Src="/loreal/astro-wink.mov"

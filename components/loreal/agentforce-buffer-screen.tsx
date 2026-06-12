@@ -12,9 +12,9 @@ const HOLD_MS = 7000;
 const LOADING_TEXT_SWITCH_MS = 4200;
 const ANIM_START_DELAY_MS = 120;
 
-const SUN_COUNT = 8;
-const WATER_COUNT = 8;
-const TREE_COUNT = 8;
+const SUN_COUNT = 6;
+const WATER_COUNT = 5;
+const TREE_COUNT = 4;
 
 export function LorealAgentforceBufferScreen({ onComplete }: Props) {
   const [phase, setPhase] = useState<
