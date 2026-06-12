@@ -99,24 +99,24 @@ export function LorealPersonaScreen({
           style={{ width: "min(72vw, 38vh, 400px)" }}
         />
 
-        {/* Glassy header card — taller, more top padding to space
-            away from the logo. Vibe name larger + left aligned. */}
+        {/* Vibe name card — more padding inside to increase height,
+            less frost (lower blur), more spacing from the logo above. */}
         <div
           className="flex w-full shrink-0 items-center rounded-[36px]"
           style={{
-            paddingInline: "clamp(1.5rem, 5vw, 2.5rem)",
-            paddingTop: "clamp(1.75rem, 5vh, 3rem)",
-            paddingBottom: "clamp(1.5rem, 4vh, 2.5rem)",
-            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
+            paddingInline: "clamp(1.75rem, 5vw, 2.5rem)",
+            paddingTop: "clamp(2.25rem, 6vh, 3.5rem)",
+            paddingBottom: "clamp(2rem, 5vh, 3rem)",
+            marginTop: "clamp(1.25rem, 3.5vh, 2.5rem)",
             gap: "clamp(0.75rem, 2vw, 1.25rem)",
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
-            backdropFilter: "blur(14px) saturate(140%)",
-            WebkitBackdropFilter: "blur(14px) saturate(140%)",
+              "linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.3) 100%)",
+            backdropFilter: "blur(8px) saturate(120%)",
+            WebkitBackdropFilter: "blur(8px) saturate(120%)",
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.55) inset",
-              "0 1px 0 rgba(255,255,255,0.85) inset",
-              "0 12px 36px rgba(120,160,220,0.22)",
+              "0 0 0 1px rgba(255,255,255,0.4) inset",
+              "0 1px 0 rgba(255,255,255,0.6) inset",
+              "0 12px 36px rgba(120,160,220,0.18)",
             ].join(", "),
           }}
         >
@@ -157,10 +157,13 @@ export function LorealPersonaScreen({
           </div>
         </div>
 
-        {/* Hero vibe image — fills most of the middle. The PNGs have
-            baked-in whitespace so we scale up aggressively and let
-            object-fit: contain handle the aspect ratio. */}
-        <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+        {/* Hero vibe image — slightly smaller than full, pushed up
+            toward the card above so the description has room below
+            without touching the QR container. */}
+        <div
+          className="flex min-h-0 w-full flex-1 items-start justify-center"
+          style={{ marginTop: "clamp(-1rem, -2vh, -0.5rem)" }}
+        >
           <Image
             src={status.image}
             alt={status.title}
@@ -171,17 +174,16 @@ export function LorealPersonaScreen({
             draggable={false}
             className="mx-auto select-none"
             style={{
-              width: "100%",
-              height: "100%",
+              width: "90%",
+              height: "90%",
               objectFit: "contain",
             }}
           />
         </div>
 
-        {/* Description — center-aligned, overlaps into the image's
-            bottom whitespace via negative marginTop so it reads as
-            "right under the subject" not "under the PNG bounding box".
-            Large font with paragraph breaks via whiteSpace: pre-line. */}
+        {/* Description — center-aligned, pulled up into the image's
+            bottom whitespace. Enough bottom margin to not touch the
+            QR container below. */}
         <p
           className="w-full shrink-0 text-center text-[#001050]/90"
           style={{
@@ -190,7 +192,8 @@ export function LorealPersonaScreen({
             fontWeight: 400,
             whiteSpace: "pre-line",
             lineHeight: 1.35,
-            marginTop: "clamp(-3rem, -4vh, -1.5rem)",
+            marginTop: "clamp(-2.5rem, -3.5vh, -1.5rem)",
+            marginBottom: "clamp(0.5rem, 1.5vh, 1rem)",
           }}
         >
           {status.description}
