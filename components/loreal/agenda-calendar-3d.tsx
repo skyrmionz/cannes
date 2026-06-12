@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Environment,
@@ -52,7 +52,7 @@ function hueToColor(hue: number, lightness = 0.62): THREE.Color {
   return new THREE.Color().setHSL(hue / 360, 0.8, lightness);
 }
 
-type TilePhase = "idle" | "falling" | "squash" | "rest";
+type TilePhase = "idle" | "falling" | "squash" | "rest" | "exiting";
 
 interface TileFrameHandle {
   advance: (dt: number) => void;
@@ -72,6 +72,7 @@ interface TileProps {
   restTopY: number;
   resetKey: string;
   registerTile: (handle: TileFrameHandle) => () => void;
+  exiting?: boolean;
 }
 
 function GlassTile({
@@ -84,6 +85,7 @@ function GlassTile({
   worldYTop,
   restTopY,
   registerTile,
+  exiting = false,
 }: TileProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tileHeight =
@@ -99,6 +101,8 @@ function GlassTile({
   const scaleYRef = useRef(1);
   const scaleXRef = useRef(1);
 
+  const opacityRef = useRef(1);
+
   useLayoutEffect(() => {
     phaseRef.current = "idle";
     timeRef.current = 0;
@@ -106,12 +110,28 @@ function GlassTile({
     vyRef.current = 0;
     scaleYRef.current = 1;
     scaleXRef.current = 1;
+    opacityRef.current = 1;
     if (groupRef.current) {
       groupRef.current.position.y = yRef.current;
       groupRef.current.visible = false;
       groupRef.current.scale.set(1, 1, 1);
     }
   }, [restCenterY, spawnY, slot.start, slot.end, slotIndex]);
+
+  // When the exiting prop flips to true, switch phase to "exiting"
+  // and give the tile a downward velocity.
+  const prevExitingRef = useRef(false);
+  useLayoutEffect(() => {
+    if (exiting && !prevExitingRef.current) {
+      if (phaseRef.current === "rest" || phaseRef.current === "squash") {
+        phaseRef.current = "exiting";
+        vyRef.current = 0;
+        timeRef.current = 0;
+        opacityRef.current = 1;
+      }
+    }
+    prevExitingRef.current = exiting;
+  }, [exiting]);
 
   // Frame advance closure — invoked by the parent CalendarScene's
   // single useFrame. Each tile reports its own phase; parent decides
