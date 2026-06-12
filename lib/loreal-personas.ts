@@ -1,4 +1,4 @@
-// L'Oréal flow — 36 OOO personas keyed off the full (sun × hydration × agenda)
+// Salesforce SPF flow — 36 OOO personas keyed off the full (sun × hydration × agenda)
 // matrix. Each persona has a matching vibe image and a downloadable SPF card.
 
 export type SunStop = 0 | 1 | 2;

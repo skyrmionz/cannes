@@ -61,7 +61,7 @@ export function LorealPersonaScreen({
     });
     const origin =
       typeof window !== "undefined" ? window.location.origin : "";
-    return `${origin}/loreal/result/${encoded}`;
+    return `${origin}/spf/${encoded}`;
   }, [status, sunStop, hydrationLevel, agendaIndex]);
 
   return (
