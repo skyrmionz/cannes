@@ -6,6 +6,7 @@ import {
   Environment,
   Html,
   MeshTransmissionMaterial,
+  Preload,
   RoundedBox,
 } from "@react-three/drei";
 import * as THREE from "three";
@@ -44,8 +45,11 @@ const ENTRY_DELAY_S = 0.06;
 const SPAWN_OFFSCREEN_BUFFER = 1.5;
 const FALL_GRAVITY = 175;
 
-function hueToColor(hue: number, lightness = 0.6): THREE.Color {
-  return new THREE.Color().setHSL(hue / 360, 0.85, lightness);
+function hueToColor(hue: number, lightness = 0.7): THREE.Color {
+  // Saturation 1.0 (was 0.85) for max vibrance; lightness pushed up
+  // so the transmitted/attenuated color still reads bright through
+  // the glass.
+  return new THREE.Color().setHSL(hue / 360, 1, lightness);
 }
 
 type TilePhase = "idle" | "falling" | "squash" | "rest";
@@ -178,7 +182,7 @@ function GlassTile({
     return cleanup;
   }, [registerTile, advance, getPhase]);
 
-  const tintColor = useMemo(() => hueToColor(slot.hue, 0.62), [slot.hue]);
+  const tintColor = useMemo(() => hueToColor(slot.hue, 0.72), [slot.hue]);
   const isFullDay = slot.end - slot.start >= slotCount * 2;
 
   // Text overlay sizing in CSS pixels — must match the rendered tile
@@ -209,30 +213,41 @@ function GlassTile({
           radius={TILE_RADIUS}
           smoothness={5}
         >
-          {/* Params verbatim from drei's official storybook
-              (MeshTransmissionMaterial.stories.tsx — the
-              "Gelatinous Cube" demo) at github.com/pmndrs/drei.
-              Per-tile we override `color` and `attenuationColor`
-              with the slot's hue. Everything else matches the
-              demo defaults that produce the photoreal jelly look. */}
+          {/* Based on drei's "Gelatinous Cube" storybook demo, with
+              three deliberate departures for our case:
+              1) background → bright white instead of the demo's sage
+                 #839681. Sage was muddying our slot hues; white lets
+                 the saturated tint read clean and vibrant.
+              2) attenuationDistance → 1.4 (was 0.5). Longer distance
+                 = paler interior = brighter, less inky tint.
+              3) iridescence + iridescenceIOR — the demo doesn't use
+                 these, but MeshTransmissionMaterial extends
+                 MeshPhysicalMaterial so the props pass through. Adds
+                 the colored sheen the user asked for.
+              4) samples 10 → 6, resolution 1024 → 512. Halves the
+                 first-paint compile cost and the per-frame transmission
+                 sampler size — main cause of the click-then-lag delay.
+                 At our tile size the visual difference is invisible. */}
           <MeshTransmissionMaterial
             color={tintColor}
-            background={new THREE.Color("#839681")}
+            background={new THREE.Color("#ffffff")}
             backside={false}
-            samples={10}
-            resolution={1024}
+            samples={6}
+            resolution={512}
             transmission={1}
             roughness={0}
             thickness={3.5}
             ior={1.5}
-            chromaticAberration={0.06}
-            anisotropy={0.1}
+            chromaticAberration={0.08}
+            anisotropy={0.12}
             distortion={0.0}
             distortionScale={0.3}
             temporalDistortion={0.5}
             clearcoat={1}
-            attenuationDistance={0.5}
+            attenuationDistance={1.4}
             attenuationColor={tintColor}
+            iridescence={0.4}
+            iridescenceIOR={1.3}
           />
         </RoundedBox>
       </group>
@@ -325,9 +340,11 @@ function CalendarScene({
     };
   }, [invalidate]);
 
-  // Kick a render whenever the selection changes so any new tiles get
-  // a chance to start their entry animation even if the canvas was
-  // previously parked in "rest".
+  // Kick a render whenever the selection changes so any new tiles
+  // get a chance to start their entry animation even if the canvas
+  // was previously parked in "rest". Also runs on first mount with
+  // index === null so the shader warm-up tile compiles its programs
+  // before the user's first click.
   useLayoutEffect(() => {
     invalidate();
   }, [index, invalidate]);
@@ -379,6 +396,37 @@ function CalendarScene({
           />
         );
       })}
+
+      {/* Shader warm-up — when no status is selected, mount a
+          1px-tiny mesh far behind the camera with the same
+          MeshTransmissionMaterial config. This forces the shader
+          to compile + allocate the transmission render target on
+          mount, so the user's first circle tap doesn't pay that
+          cost. Invisible because it's tiny + behind the camera. */}
+      {index === null && (
+        <mesh position={[0, 0, -10]} scale={0.01}>
+          <boxGeometry args={[1, 1, 1]} />
+          <MeshTransmissionMaterial
+            background={new THREE.Color("#ffffff")}
+            backside={false}
+            samples={6}
+            resolution={512}
+            transmission={1}
+            roughness={0}
+            thickness={3.5}
+            ior={1.5}
+            chromaticAberration={0.08}
+            anisotropy={0.12}
+            distortion={0.0}
+            distortionScale={0.3}
+            temporalDistortion={0.5}
+            clearcoat={1}
+            attenuationDistance={1.4}
+          />
+        </mesh>
+      )}
+
+      <Preload all />
     </>
   );
 }

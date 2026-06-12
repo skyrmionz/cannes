@@ -210,7 +210,7 @@ export function LorealAgendaQuestionScreen({
             Reserved height so layout never shifts when it appears. */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ height: isPhone ? 40 : 56 }}
+          style={{ height: isPhone ? 50 : 72 }}
         >
           <AnimatePresence mode="wait" initial={false}>
             {value !== null && (
@@ -218,7 +218,7 @@ export function LorealAgendaQuestionScreen({
                 key={descKey}
                 className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
                 style={{
-                  fontSize: "clamp(1.05rem, min(4.4vw, 2.6vh), 1.5rem)",
+                  fontSize: "clamp(1.3rem, min(5.4vw, 3.2vh), 1.8rem)",
                   fontFamily:
                     'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
                   fontWeight: 400,
