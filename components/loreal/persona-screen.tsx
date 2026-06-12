@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -75,10 +76,12 @@ export function LorealPersonaScreen({
         style={{ background: "transparent" }}
       />
 
-      {/* Content sits directly against the screen — no glass shell
-          behind. Full inset with padding for breathing room. */}
-      <div
+      {/* Content fades in smoothly like the other page transitions. */}
+      <motion.div
         className="absolute inset-0 z-10 flex flex-col items-center overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         style={{
           paddingTop: "clamp(1.5rem, 4vh, 2.5rem)",
           paddingBottom: "clamp(1.25rem, 3vh, 2rem)",
@@ -86,18 +89,26 @@ export function LorealPersonaScreen({
           gap: "clamp(0.25rem, 1vh, 0.75rem)",
         }}
       >
-        {/* Salesforce Beach logo — larger */}
-        <Image
-          src="/loreal/salesforce-beach-logo.png"
-          alt="Salesforce Beach"
-          width={1200}
-          height={240}
-          priority
-          unoptimized
-          draggable={false}
-          className="h-auto shrink-0 select-none"
-          style={{ width: "min(72vw, 38vh, 400px)" }}
-        />
+        {/* Salesforce Beach logo — tapping restarts the experience */}
+        <button
+          type="button"
+          onClick={onFinish}
+          aria-label="Restart"
+          className="shrink-0"
+          style={{ background: "transparent", border: "none", cursor: "pointer" }}
+        >
+          <Image
+            src="/loreal/salesforce-beach-logo.png"
+            alt="Salesforce Beach"
+            width={1200}
+            height={240}
+            priority
+            unoptimized
+            draggable={false}
+            className="h-auto select-none"
+            style={{ width: "min(72vw, 38vh, 400px)" }}
+          />
+        </button>
 
         {/* Vibe name card — more padding inside to increase height,
             less frost (lower blur), more spacing from the logo above. */}
@@ -236,7 +247,7 @@ export function LorealPersonaScreen({
             {"Scan to take your vibe with you.\nClaim your SPF gift at the counter."}
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

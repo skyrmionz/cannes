@@ -242,9 +242,10 @@ export default function ResultPage({
             style={{
               ...GLASS_BUTTON_STYLE,
               background: saved
-                ? "rgba(150, 220, 150, 0.7)"
+                ? "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)"
                 : GLASS_BUTTON_STYLE.background,
-              transition: "background 0.3s ease",
+              color: saved ? "#FFFFFF" : "#001050",
+              transition: "background 0.3s ease, color 0.3s ease",
             }}
           >
             {saved ? (
