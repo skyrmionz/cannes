@@ -168,12 +168,12 @@ export function LorealPersonaScreen({
           </div>
         </div>
 
-        {/* Hero vibe image — slightly smaller than full, pushed up
-            toward the card above so the description has room below
-            without touching the QR container. */}
+        {/* Hero vibe image — object-position: top so the subject
+            anchors to the top and bottom whitespace collapses into
+            the negative-marginTop description below. */}
         <div
-          className="flex min-h-0 w-full flex-1 items-start justify-center"
-          style={{ marginTop: "clamp(-1rem, -2vh, -0.5rem)" }}
+          className="min-h-0 w-full flex-1"
+          style={{ marginTop: "clamp(-0.5rem, -1vh, -0.25rem)" }}
         >
           <Image
             src={status.image}
@@ -183,11 +183,10 @@ export function LorealPersonaScreen({
             priority
             unoptimized
             draggable={false}
-            className="mx-auto select-none"
+            className="mx-auto block h-full w-full select-none"
             style={{
-              width: "90%",
-              height: "90%",
               objectFit: "contain",
+              objectPosition: "center top",
             }}
           />
         </div>
