@@ -73,7 +73,7 @@ export default function ResultPage({
   const handleDownload = () => {
     const a = document.createElement("a");
     a.href = status.download;
-    a.download = `cannes-ooo-${data.code}.png`;
+    a.download = `cannes-ooo-${data.code}.jpg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
