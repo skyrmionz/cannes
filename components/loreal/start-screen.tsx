@@ -66,7 +66,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.5, ease: "easeOut" }}
           className="relative"
-          style={{ width: "min(72vw, 38vh)" }}
+          style={{ width: "min(72vw, 38vh)", transform: "translateX(-2px)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
