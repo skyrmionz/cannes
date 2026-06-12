@@ -61,27 +61,23 @@ const DAY_END = 19;
 type Slot = { start: number; end: number; title: string; hue: number };
 
 const SCHEDULES: Record<AgendaIndex, ReadonlyArray<Slot>> = {
-  // Packed — every hour. Distinct event types instead of "Event N".
+  // Packed: 5 events back-to-back across the day, every 2 hours.
   0: [
-    { start: 9, end: 10, title: "Keynote", hue: 200 },
-    { start: 10, end: 11, title: "Coffee chat", hue: 30 },
-    { start: 11, end: 12, title: "Founders panel", hue: 280 },
-    { start: 12, end: 13, title: "Lunch & roundtable", hue: 60 },
-    { start: 13, end: 14, title: "Press interview", hue: 340 },
-    { start: 14, end: 15, title: "Demo session", hue: 160 },
-    { start: 15, end: 16, title: "Investor mixer", hue: 100 },
-    { start: 16, end: 17, title: "Brand activation", hue: 320 },
-    { start: 17, end: 18, title: "Rooftop happy hour", hue: 20 },
-    { start: 18, end: 19, title: "Yacht after-party", hue: 250 },
+    { start: 9, end: 11, title: "Keynote", hue: 8 },
+    { start: 11, end: 13, title: "Founders panel", hue: 80 },
+    { start: 13, end: 15, title: "Press interview", hue: 152 },
+    { start: 15, end: 17, title: "Brand activation", hue: 224 },
+    { start: 17, end: 19, title: "Yacht after-party", hue: 296 },
   ],
+  // Curated: 3 sparse events with two empty 2-hour gaps.
   1: [
-    { start: 9, end: 10, title: "Morning panel", hue: 200 },
-    { start: 11, end: 12, title: "Coffee chat", hue: 30 },
-    { start: 13, end: 14, title: "Lunch", hue: 60 },
-    { start: 16, end: 17, title: "Demo", hue: 280 },
-    { start: 18, end: 19, title: "Sunset rosé", hue: 340 },
+    { start: 9, end: 11, title: "Morning panel", hue: 200 },
+    { start: 13, end: 15, title: "Lunch", hue: 60 },
+    { start: 17, end: 19, title: "Sunset rosé", hue: 340 },
   ],
+  // Spontaneous: full-day OOO block.
   2: [{ start: 9, end: 19, title: "OOO 😎", hue: 42 }],
+  // Salesforce Forever: full-day Salesforce block.
   3: [{ start: 9, end: 19, title: "Salesforce All Day ☁️", hue: 215 }],
 };
 
@@ -158,28 +154,6 @@ export function LorealAgendaQuestionScreen({
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Circle picker — 4 round image buttons (above the status title) */}
-        <div
-          className="relative shrink-0"
-          style={{
-            paddingTop: "clamp(0.25rem, 1vh, 0.75rem)",
-            paddingBottom: "clamp(0.5rem, 1.5vh, 1.25rem)",
-          }}
-        >
-          <div className="flex w-full items-end justify-center" style={{ gap: "clamp(8px, 2.5vw, 18px)" }}>
-            {([0, 1, 2, 3] as const).map((i) => (
-              <CirclePick
-                key={i}
-                index={i}
-                selected={value === i}
-                anySelected={value !== null}
-                onSelect={() => onChange(i)}
-                isPhone={isPhone}
-              />
-            ))}
-          </div>
-        </div>
-
         {/* Status title row */}
         <div
           className="relative shrink-0 overflow-hidden"
@@ -246,17 +220,45 @@ export function LorealAgendaQuestionScreen({
           </AnimatePresence>
         </motion.div>
 
-        {/* Day-view calendar — fills remaining slack */}
-        <div className="relative min-h-0 flex-1">
+        {/* Day-view calendar — capped at 38vh so it never crowds the
+            circles below. */}
+        <div
+          className="relative min-h-0 flex-1"
+          style={{ maxHeight: "38vh" }}
+        >
           <CalendarColumn3D
             index={value}
             schedules={SCHEDULES}
             dayStart={DAY_START}
             dayEnd={DAY_END}
+            slotCount={5}
           />
         </div>
 
-        {/* Hint under the calendar — matches sun/hydration screen format
+        {/* Circle picker — 4 round image buttons, sits between the
+            calendar and the hint. */}
+        <div
+          className="relative shrink-0"
+          style={{
+            paddingTop: "clamp(0.25rem, 1vh, 0.75rem)",
+            paddingBottom: "clamp(0.5rem, 1.5vh, 1.25rem)",
+          }}
+        >
+          <div className="flex w-full items-end justify-center" style={{ gap: "clamp(8px, 2.5vw, 18px)" }}>
+            {([0, 1, 2, 3] as const).map((i) => (
+              <CirclePick
+                key={i}
+                index={i}
+                selected={value === i}
+                anySelected={value !== null}
+                onSelect={() => onChange(i)}
+                isPhone={isPhone}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Hint under the circles — matches sun/hydration screen format
             via the shared question-shell constants. */}
         <motion.p
           className={HINT_TEXT_CLASS}

@@ -8,8 +8,8 @@ interface Props {
   onComplete: () => void;
 }
 
-const HOLD_MS = 4500;
-const LOADING_TEXT_SWITCH_MS = 2700;
+const HOLD_MS = 7000;
+const LOADING_TEXT_SWITCH_MS = 4200;
 const ANIM_START_DELAY_MS = 120;
 
 const SUN_COUNT = 8;

@@ -1,12 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Environment,
   Html,
   Lightformer,
-  MeshTransmissionMaterial,
   RoundedBox,
 } from "@react-three/drei";
 import * as THREE from "three";
@@ -28,9 +27,10 @@ interface Props {
   schedules: Record<AgendaIndex, ReadonlyArray<Slot>>;
   dayStart: number;
   dayEnd: number;
+  slotCount?: number;
 }
 
-const HOURS = 10;
+const DEFAULT_SLOT_COUNT = 5;
 const HOUR_UNITS = 1;
 const TILE_GAP = 0.06;
 const TILE_DEPTH = 0.5; // deeper for proper refraction sampling
@@ -48,33 +48,45 @@ function hueToColor(hue: number, lightness = 0.6): THREE.Color {
   return new THREE.Color().setHSL(hue / 360, 0.85, lightness);
 }
 
+type TilePhase = "idle" | "falling" | "squash" | "rest";
+
+interface TileFrameHandle {
+  advance: (dt: number) => void;
+  getPhase: () => TilePhase;
+}
+
 interface TileProps {
   slot: Slot;
   slotIndex: number;
   totalSlots: number;
+  slotCount: number;
   pxPerHour: number;
   worldWidth: number;
   worldYTop: number;
   restTopY: number;
   resetKey: string;
+  registerTile: (handle: TileFrameHandle) => () => void;
 }
 
 function GlassTile({
   slot,
   slotIndex,
   totalSlots,
+  slotCount,
   pxPerHour,
   worldWidth,
   worldYTop,
   restTopY,
+  registerTile,
 }: TileProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const tileHeight = (slot.end - slot.start) * HOUR_UNITS - TILE_GAP;
+  const tileHeight =
+    ((slot.end - slot.start) / 2) * HOUR_UNITS - TILE_GAP;
   const restCenterY = restTopY - tileHeight / 2;
   const spawnY =
     worldYTop + SPAWN_OFFSCREEN_BUFFER + tileHeight / 2;
 
-  const phaseRef = useRef<"idle" | "falling" | "squash" | "rest">("idle");
+  const phaseRef = useRef<TilePhase>("idle");
   const timeRef = useRef(0);
   const yRef = useRef(spawnY);
   const vyRef = useRef(0);
@@ -95,64 +107,81 @@ function GlassTile({
     }
   }, [restCenterY, spawnY, slot.start, slot.end, slotIndex]);
 
-  useFrame((_, dt) => {
-    const g = groupRef.current;
-    if (!g) return;
-    timeRef.current += dt;
-    const reverseIndex = totalSlots - 1 - slotIndex;
-    const startAt = ENTRY_DELAY_S + reverseIndex * SPAWN_STAGGER_S;
+  // Frame advance closure — invoked by the parent CalendarScene's
+  // single useFrame. Each tile reports its own phase; parent decides
+  // whether to keep the canvas redrawing.
+  const advance = useCallback(
+    (dt: number) => {
+      const g = groupRef.current;
+      if (!g) return;
+      timeRef.current += dt;
+      const reverseIndex = totalSlots - 1 - slotIndex;
+      const startAt = ENTRY_DELAY_S + reverseIndex * SPAWN_STAGGER_S;
 
-    if (phaseRef.current === "idle") {
-      if (timeRef.current >= startAt) {
-        phaseRef.current = "falling";
-        vyRef.current = 0;
-        g.visible = true;
+      if (phaseRef.current === "idle") {
+        if (timeRef.current >= startAt) {
+          phaseRef.current = "falling";
+          vyRef.current = 0;
+          g.visible = true;
+        }
+      } else if (phaseRef.current === "falling") {
+        vyRef.current -= FALL_GRAVITY * dt;
+        yRef.current += vyRef.current * dt;
+        if (yRef.current <= restCenterY) {
+          yRef.current = restCenterY;
+          phaseRef.current = "squash";
+          timeRef.current = 0;
+          vyRef.current = 0;
+        }
+      } else if (phaseRef.current === "squash") {
+        const t = Math.min(1, timeRef.current / 0.28);
+        let sy = 1;
+        let sx = 1;
+        if (t < 0.35) {
+          const k = t / 0.35;
+          sy = 1 - 0.18 * k;
+          sx = 1 + 0.12 * k;
+        } else if (t < 0.7) {
+          const k = (t - 0.35) / 0.35;
+          sy = 0.82 + 0.26 * k;
+          sx = 1.12 - 0.16 * k;
+        } else {
+          const k = (t - 0.7) / 0.3;
+          sy = 1.08 - 0.08 * k;
+          sx = 0.96 + 0.04 * k;
+        }
+        scaleYRef.current = sy;
+        scaleXRef.current = sx;
+        if (t >= 1) {
+          phaseRef.current = "rest";
+          scaleYRef.current = 1;
+          scaleXRef.current = 1;
+        }
       }
-    } else if (phaseRef.current === "falling") {
-      vyRef.current -= FALL_GRAVITY * dt;
-      yRef.current += vyRef.current * dt;
-      if (yRef.current <= restCenterY) {
-        yRef.current = restCenterY;
-        phaseRef.current = "squash";
-        timeRef.current = 0;
-        vyRef.current = 0;
-      }
-    } else if (phaseRef.current === "squash") {
-      const t = Math.min(1, timeRef.current / 0.28);
-      let sy = 1;
-      let sx = 1;
-      if (t < 0.35) {
-        const k = t / 0.35;
-        sy = 1 - 0.18 * k;
-        sx = 1 + 0.12 * k;
-      } else if (t < 0.7) {
-        const k = (t - 0.35) / 0.35;
-        sy = 0.82 + 0.26 * k;
-        sx = 1.12 - 0.16 * k;
-      } else {
-        const k = (t - 0.7) / 0.3;
-        sy = 1.08 - 0.08 * k;
-        sx = 0.96 + 0.04 * k;
-      }
-      scaleYRef.current = sy;
-      scaleXRef.current = sx;
-      if (t >= 1) {
-        phaseRef.current = "rest";
-        scaleYRef.current = 1;
-        scaleXRef.current = 1;
-      }
-    }
 
-    g.position.y = yRef.current;
-    g.scale.y = scaleYRef.current;
-    g.scale.x = scaleXRef.current;
-  });
+      g.position.y = yRef.current;
+      g.scale.y = scaleYRef.current;
+      g.scale.x = scaleXRef.current;
+    },
+    [restCenterY, slotIndex, totalSlots],
+  );
+
+  const getPhase = useCallback(() => phaseRef.current, []);
+
+  // Register/unregister with the parent each render so the parent
+  // sees a stable list of currently-mounted tiles. Cleanup runs on
+  // unmount or before re-register.
+  useLayoutEffect(() => {
+    const cleanup = registerTile({ advance, getPhase });
+    return cleanup;
+  }, [registerTile, advance, getPhase]);
 
   const tintColor = useMemo(() => hueToColor(slot.hue, 0.62), [slot.hue]);
-  const isFullDay = slot.end - slot.start >= HOURS;
+  const isFullDay = slot.end - slot.start >= slotCount * 2;
 
   // Text overlay sizing in CSS pixels.
   const textBoxWidthPx = Math.max(0, worldWidth * pxPerHour);
+  // tileHeight is in "rows" of HOUR_UNITS — convert to px via pxPerHour.
   const textBoxHeightPx = Math.max(0, tileHeight * pxPerHour);
   const titlePxSize = isFullDay
     ? Math.max(28, Math.min(textBoxHeightPx * 0.32, 84))
@@ -171,29 +200,23 @@ function GlassTile({
         radius={TILE_RADIUS}
         smoothness={5}
       >
-        {/* Real refractive glass via drei's MeshTransmissionMaterial.
-            transmissionSampler:false uses the env map (Lightformers)
-            as the transmission source — gives a clean tinted glass
-            look without needing a backdrop plane to refract. This is
-            the configuration used in drei's official examples. */}
-        <MeshTransmissionMaterial
+        {/* Cheaper, calmer translucent material. MeshTransmissionMaterial
+            was driving the neon look + a per-frame backbuffer pass;
+            MeshPhysicalMaterial gives a clean tinted glass without the
+            extra render target. */}
+        <meshPhysicalMaterial
           color={tintColor}
-          background={tintColor}
-          transmission={1}
-          thickness={1.4}
-          ior={1.45}
-          roughness={0.12}
-          chromaticAberration={0.08}
-          anisotropy={0.25}
-          distortion={0.15}
-          distortionScale={0.5}
-          temporalDistortion={0.0}
-          backside
-          backsideThickness={0.6}
+          transmission={0.85}
+          thickness={1.2}
+          ior={1.4}
+          roughness={0.25}
+          metalness={0}
+          transparent={true}
+          opacity={0.78}
+          clearcoat={0.35}
+          clearcoatRoughness={0.2}
           attenuationColor={tintColor}
-          attenuationDistance={1.4}
-          samples={6}
-          resolution={256}
+          attenuationDistance={2.5}
         />
       </RoundedBox>
 
@@ -257,23 +280,60 @@ function CalendarScene({
   index,
   schedules,
   pxPerHour,
+  slotCount,
 }: {
   index: AgendaIndex | null;
   schedules: Record<AgendaIndex, ReadonlyArray<Slot>>;
   pxPerHour: number;
+  slotCount: number;
 }) {
-  const { viewport } = useThree();
+  const { viewport, invalidate } = useThree();
   const worldWidth = viewport.width * 0.96;
-  const worldYTop = (HOURS * HOUR_UNITS) / 2;
+  const worldYTop = (slotCount * HOUR_UNITS) / 2;
 
   const slots = index === null ? [] : schedules[index];
   const totalSlots = slots.length;
 
+  // Tile registry — each GlassTile registers a frame handle on mount,
+  // unregisters on unmount. CalendarScene runs the only useFrame.
+  const tilesRef = useRef<Set<TileFrameHandle>>(new Set());
+  const registerTile = useCallback((handle: TileFrameHandle) => {
+    tilesRef.current.add(handle);
+    // First registration after an index change kicks the canvas into
+    // rendering at least one frame so the spawn animation can start.
+    invalidate();
+    return () => {
+      tilesRef.current.delete(handle);
+    };
+  }, [invalidate]);
+
+  // Kick a render whenever the selection changes so any new tiles get
+  // a chance to start their entry animation even if the canvas was
+  // previously parked in "rest".
+  useLayoutEffect(() => {
+    invalidate();
+  }, [index, invalidate]);
+
+  useFrame((_, dt) => {
+    let anyActive = false;
+    tilesRef.current.forEach((tile) => {
+      tile.advance(dt);
+      const phase = tile.getPhase();
+      if (phase !== "rest") anyActive = true;
+    });
+    // While any tile is still falling/squashing, keep requesting
+    // frames. Once everything's at rest the canvas parks itself.
+    if (anyActive) invalidate();
+  });
+
+  // Slot.start ∈ {9, 11, 13, 15, 17}. Each slot occupies 1 row of
+  // HOUR_UNITS height in world space; the (start - 9) / 2 mapping
+  // turns the clock value into a row index 0..(slotCount-1).
   return (
     <>
-      {/* Environment with custom Lightformers for crisp specular
-          highlights on each tile. No external HDR fetch. */}
-      <Environment background={false} resolution={256}>
+      {/* Two Lightformers — top key + front fill. Side rims dropped
+          to halve the env-map cost. */}
+      <Environment background={false} resolution={128}>
         <Lightformer
           form="rect"
           intensity={4}
@@ -281,22 +341,6 @@ function CalendarScene({
           position={[0, 8, 4]}
           rotation={[-Math.PI / 2, 0, 0]}
           scale={[14, 4, 1]}
-        />
-        <Lightformer
-          form="rect"
-          intensity={1.5}
-          color="#fff7e0"
-          position={[-6, 2, 3]}
-          rotation={[0, Math.PI / 2, 0]}
-          scale={[6, 6, 1]}
-        />
-        <Lightformer
-          form="rect"
-          intensity={1.5}
-          color="#dceeff"
-          position={[6, 2, 3]}
-          rotation={[0, -Math.PI / 2, 0]}
-          scale={[6, 6, 1]}
         />
         <Lightformer
           form="rect"
@@ -314,19 +358,22 @@ function CalendarScene({
         color="#ffffff"
       />
       {slots.map((slot, i) => {
+        const rowIndex = (slot.start - 9) / 2;
         const restTopY =
-          worldYTop - (slot.start - 9) * HOUR_UNITS - TILE_GAP / 2;
+          worldYTop - rowIndex * HOUR_UNITS - TILE_GAP / 2;
         return (
           <GlassTile
             key={`${index}-${slot.start}-${slot.end}`}
             slot={slot}
             slotIndex={i}
             totalSlots={totalSlots}
+            slotCount={slotCount}
             pxPerHour={pxPerHour}
             worldWidth={worldWidth}
             worldYTop={worldYTop}
             restTopY={restTopY}
             resetKey={`${index}-${slot.start}-${slot.end}`}
+            registerTile={registerTile}
           />
         );
       })}
@@ -339,15 +386,21 @@ export function CalendarColumn3D({
   schedules,
   dayStart,
   dayEnd,
+  slotCount = DEFAULT_SLOT_COUNT,
 }: Props) {
   const { ref, size } = useElementSize<HTMLDivElement>();
   const measuredH = size.h || 0;
-  const pxPerHour = Math.max(1, Math.floor(measuredH / (dayEnd - dayStart)));
+  // pxPerHour now means "px per slot row" — slotCount rows fill the
+  // visible body height.
+  const pxPerHour = Math.max(1, Math.floor(measuredH / slotCount));
 
-  // Camera frames HOURS + 2*WORLD_MARGIN so full-day tiles never
+  // Camera frames slotCount + 2*WORLD_MARGIN so full-day tiles never
   // touch the visible top/bottom edges. Computed zoom keeps the
   // pxPerHour used for tile/text math correct.
-  const orthoHeight = HOURS * HOUR_UNITS + WORLD_MARGIN * 2;
+  const orthoHeight = slotCount * HOUR_UNITS + WORLD_MARGIN * 2;
+
+  // Slot-row labels: 9, 11, 13, 15, 17 for the default 5-slot layout.
+  const slotInterval = (dayEnd - dayStart) / slotCount;
 
   return (
     // overflow: visible so the canvas (which extends past the body for
@@ -356,8 +409,8 @@ export function CalendarColumn3D({
       {/* Empty hour-slot containers when nothing's selected. */}
       {index === null && pxPerHour > 0 && (
         <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: dayEnd - dayStart }).map((_, i) => {
-            const hour = dayStart + i;
+          {Array.from({ length: slotCount }).map((_, i) => {
+            const hour = dayStart + i * slotInterval;
             const label = `${String(hour).padStart(2, "0")}:00`;
             return (
               <div
@@ -393,6 +446,7 @@ export function CalendarColumn3D({
       {size.w > 0 && size.h > 0 && (
         <Canvas
           orthographic
+          frameloop="demand"
           camera={{
             position: [0, 0, 5],
             zoom: measuredH / orthoHeight,
@@ -414,6 +468,7 @@ export function CalendarColumn3D({
             index={index}
             schedules={schedules}
             pxPerHour={pxPerHour}
+            slotCount={slotCount}
           />
         </Canvas>
       )}
