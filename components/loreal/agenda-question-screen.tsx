@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import dynamic from "next/dynamic";
-import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 import {
   FOOTER_BUTTON_STYLE,
@@ -112,8 +111,7 @@ export function LorealAgendaQuestionScreen({
   return (
     <div className="absolute inset-3 flex flex-col overflow-hidden rounded-[40px]">
       {/* Header */}
-      <div className="relative z-30 shrink-0 px-7 pt-20">
-        <LorealProgressBar percent={75} label="75%" />
+      <div className="relative z-30 shrink-0 px-7 pt-32">
         <motion.h1
           className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{

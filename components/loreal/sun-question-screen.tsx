@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
-import { LorealProgressBar } from "./progress-bar";
 import { useElementSize } from "@/lib/use-element-size";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
@@ -243,8 +242,7 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
       {/* Header — progress bar + question text on TOP. Header text uses
           the larger Coucou-screen scale so it reads with the same weight
           as the intro headline. */}
-      <div className="relative z-30 shrink-0 px-7 pt-20">
-        <LorealProgressBar percent={25} label="25%" />
+      <div className="relative z-30 shrink-0 px-7 pt-32">
         <motion.h1
           className="text-center font-bold leading-[1.05] tracking-tight text-[#001050]"
           style={{

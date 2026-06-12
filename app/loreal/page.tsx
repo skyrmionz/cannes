@@ -15,6 +15,7 @@ import {
 } from "@/components/loreal/agenda-question-screen";
 import { LorealAgentforceBufferScreen } from "@/components/loreal/agentforce-buffer-screen";
 import { LorealPersonaScreen } from "@/components/loreal/persona-screen";
+import { LorealProgressBar } from "@/components/loreal/progress-bar";
 
 type Step =
   | "start"
@@ -127,6 +128,30 @@ function LorealContent() {
               ].join(", "),
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Persistent progress bar — stays across question screen
+          transitions. Shows only during sun/hydration/agenda steps.
+          Fill animates smoothly via the component's built-in CSS
+          transition; label number swaps with a vertical slide. */}
+      <AnimatePresence>
+        {(step === "sun" || step === "hydration" || step === "agenda") && (
+          <motion.div
+            key="progress-bar"
+            className="pointer-events-none absolute inset-x-3 top-3 z-30 pt-12 px-7"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <LorealProgressBar
+              percent={
+                step === "sun" ? 25 : step === "hydration" ? 50 : 75
+              }
+              label={`${step === "sun" ? 25 : step === "hydration" ? 50 : 75}%`}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
