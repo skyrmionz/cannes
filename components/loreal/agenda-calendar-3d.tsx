@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Environment,
   Html,
+  Lightformer,
   MeshTransmissionMaterial,
   Preload,
   RoundedBox,
@@ -35,7 +36,7 @@ const DEFAULT_SLOT_COUNT = 5;
 const HOUR_UNITS = 1;
 const TILE_GAP = 0.06;
 const TILE_DEPTH = 0.5; // deeper for proper refraction sampling
-const TILE_RADIUS = 0.08;
+const TILE_RADIUS = 0.22;
 // Extra world-space padding above and below the calendar so tiles
 // can spawn off-screen and full-day blocks don't kiss the canvas edge.
 const WORLD_MARGIN = 0.6;
@@ -45,11 +46,10 @@ const ENTRY_DELAY_S = 0.06;
 const SPAWN_OFFSCREEN_BUFFER = 1.5;
 const FALL_GRAVITY = 175;
 
-function hueToColor(hue: number, lightness = 0.7): THREE.Color {
-  // Saturation 1.0 (was 0.85) for max vibrance; lightness pushed up
-  // so the transmitted/attenuated color still reads bright through
-  // the glass.
-  return new THREE.Color().setHSL(hue / 360, 1, lightness);
+function hueToColor(hue: number, lightness = 0.82): THREE.Color {
+  // Pastel palette — moderate saturation + high lightness so each
+  // tile reads as soft sherbet rather than saturated jewel-tone.
+  return new THREE.Color().setHSL(hue / 360, 0.65, lightness);
 }
 
 type TilePhase = "idle" | "falling" | "squash" | "rest";
@@ -182,7 +182,7 @@ function GlassTile({
     return cleanup;
   }, [registerTile, advance, getPhase]);
 
-  const tintColor = useMemo(() => hueToColor(slot.hue, 0.72), [slot.hue]);
+  const tintColor = useMemo(() => hueToColor(slot.hue, 0.85), [slot.hue]);
   const isFullDay = slot.end - slot.start >= slotCount * 2;
 
   // Text overlay sizing in CSS pixels — must match the rendered tile
@@ -211,7 +211,7 @@ function GlassTile({
         <RoundedBox
           args={[worldWidth, tileHeight, TILE_DEPTH]}
           radius={TILE_RADIUS}
-          smoothness={5}
+          smoothness={8}
         >
           {/* Based on drei's "Gelatinous Cube" storybook demo, with
               three deliberate departures for our case:
@@ -232,21 +232,21 @@ function GlassTile({
             color={tintColor}
             background={new THREE.Color("#ffffff")}
             backside={false}
-            samples={6}
-            resolution={512}
+            samples={4}
+            resolution={256}
             transmission={1}
             roughness={0}
             thickness={3.5}
             ior={1.5}
-            chromaticAberration={0.08}
-            anisotropy={0.12}
+            chromaticAberration={0.06}
+            anisotropy={0.1}
             distortion={0.0}
             distortionScale={0.3}
-            temporalDistortion={0.5}
+            temporalDistortion={0.3}
             clearcoat={1}
-            attenuationDistance={1.4}
+            attenuationDistance={3.5}
             attenuationColor={tintColor}
-            iridescence={0.4}
+            iridescence={0.5}
             iridescenceIOR={1.3}
           />
         </RoundedBox>
@@ -366,15 +366,14 @@ function CalendarScene({
   // turns the clock value into a row index 0..(slotCount-1).
   return (
     <>
-      {/* HDRI environment — same dancing_hall_1k that the canonical
-          drei MeshTransmissionMaterial storybook uses. Real-world
-          studio reflections give the clearcoat + transmission their
-          characteristic photoreal sheen. background=false so the
-          page gradient still shows behind the canvas. */}
-      <Environment
-        files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dancing_hall_1k.hdr"
-        background={false}
-      />
+      {/* Lightformer-based environment — no network fetch, renders
+          instantly. Provides the reflections the clearcoat + transmission
+          need to shimmer. */}
+      <Environment background={false} resolution={128}>
+        <Lightformer form="rect" intensity={5} color="#ffffff" position={[0, 8, 4]} rotation={[-Math.PI / 2, 0, 0]} scale={[14, 4, 1]} />
+        <Lightformer form="rect" intensity={2} color="#ffffff" position={[0, 0, 7]} rotation={[0, 0, 0]} scale={[12, 8, 1]} />
+        <Lightformer form="rect" intensity={1.5} color="#ffe8d6" position={[0, -6, 4]} rotation={[Math.PI / 2, 0, 0]} scale={[14, 4, 1]} />
+      </Environment>
       <ambientLight intensity={Math.PI} />
       {slots.map((slot, i) => {
         const rowIndex = (slot.start - 9) / 2;
@@ -409,19 +408,14 @@ function CalendarScene({
           <MeshTransmissionMaterial
             background={new THREE.Color("#ffffff")}
             backside={false}
-            samples={6}
-            resolution={512}
+            samples={4}
+            resolution={256}
             transmission={1}
             roughness={0}
             thickness={3.5}
             ior={1.5}
-            chromaticAberration={0.08}
-            anisotropy={0.12}
-            distortion={0.0}
-            distortionScale={0.3}
-            temporalDistortion={0.5}
             clearcoat={1}
-            attenuationDistance={1.4}
+            attenuationDistance={3.5}
           />
         </mesh>
       )}
