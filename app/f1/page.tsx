@@ -3,13 +3,16 @@
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TransitionProvider } from "@/components/page-transition";
+import { KioskScaler } from "@/components/f1/kiosk-scaler";
 import { StartScreen } from "@/components/f1/start-screen";
 import { IntroScreen } from "@/components/f1/intro-screen";
 import { NameEntry } from "@/components/f1/name-entry";
 import { TransitionScreen } from "@/components/f1/transition-screen";
 import { KnobQuestionScreen } from "@/components/f1/knob-question-screen";
+import { CircuitSelectScreen } from "@/components/f1/circuit-select-screen";
+import { TeamSelectScreen } from "@/components/f1/team-select-screen";
 import { LoadingScreen } from "@/components/f1/loading-screen";
-import { ResultScreen } from "@/components/f1/result-screen";
+import { ResultScreen, QRScreen } from "@/components/f1/result-screen";
 import { SpeedLines } from "@/components/f1/speed-lines";
 import {
   drivingStyleOptions,
@@ -50,7 +53,8 @@ function randomPersona(): string {
 //   5 = Q2 (celebration)  → stepIndex=1, totalSteps=3
 //   6 = Q3 (team)         → stepIndex=2, totalSteps=3
 //   7 = Loading
-//   8 = Result
+//   8 = Result (Mixer screen)
+//   9 = QR Share screen
 
 function F1Content() {
   const [showStart, setShowStart] = useState(true);
@@ -66,6 +70,7 @@ function F1Content() {
   const [persona, setPersona] = useState<string | null>(null);
   const [songUrl, setSongUrl] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   const goForward = useCallback(() => {
     setDirection(1);
@@ -94,6 +99,7 @@ function F1Content() {
       setPersona(null);
       setSongUrl(null);
       setSessionId(null);
+      setShareUrl(null);
       setShowStart(true);
       setResetting(false);
     }, 600);
@@ -142,46 +148,36 @@ function F1Content() {
         );
       case 4:
         return (
-          <KnobQuestionScreen
-            title="What's your driving style?"
-            subtitle="Tap your circuit — this sets the rhythm of your track."
-            options={drivingStyleOptions}
+          <CircuitSelectScreen
             selectedId={grandPrix}
-            onSelect={setGrandPrix}
+            onSelect={(id) => setGrandPrix(id === "" ? null : id)}
             onNext={goForward}
             onBack={goBack}
-            stepIndex={0}
-            totalSteps={3}
-            sessionId={sessionId}
           />
         );
       case 5:
         return (
-          <KnobQuestionScreen
-            title="Lights out. Your driver wins. What do you do?"
-            subtitle="Tap your reaction — this shapes the bass line."
-            options={celebrations}
-            selectedId={celebration}
-            onSelect={setCelebration}
+          <TeamSelectScreen
+            options={teamOptions}
+            selectedId={team}
+            onSelect={setTeam}
             onNext={goForward}
             onBack={goBack}
-            stepIndex={1}
-            totalSteps={3}
-            sessionId={sessionId}
           />
         );
       case 6:
         return (
           <KnobQuestionScreen
-            title="Who do you race for?"
-            subtitle="Tap your team — this picks your melody."
-            options={teamOptions}
-            selectedId={team}
-            onSelect={setTeam}
+            title="How would you react if you won a Cannes Lion?"
+            subtitle="This shapes the bass line and how much raw emotion drives your track."
+            options={celebrations}
+            selectedId={celebration}
+            onSelect={(id) => setCelebration(id === "" ? null : id)}
             onNext={handleLoadingStart}
             onBack={goBack}
-            stepIndex={2}
+            stepIndex={1}
             totalSteps={3}
+            progressImage="/Progress bar80.png"
             sessionId={sessionId}
           />
         );
@@ -209,6 +205,16 @@ function F1Content() {
             persona={persona}
             songUrl={songUrl}
             onStartOver={handleStartOver}
+            onNext={goForward}
+            onShareReady={setShareUrl}
+          />
+        );
+      case 9:
+        return (
+          <QRScreen
+            driverName={driverName}
+            shareUrl={shareUrl}
+            onStartOver={handleStartOver}
           />
         );
       default:
@@ -220,12 +226,12 @@ function F1Content() {
   void optIn;
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}>
+    <div className="relative min-h-screen overflow-hidden" style={{ background: "linear-gradient(180deg, #022AC0 35%, #066AFE 68%, #00B3FF 100%)" }}>
       <AnimatePresence>
         {resetting && (
           <motion.div
             className="fixed inset-0 z-[60]"
-            style={{ background: "linear-gradient(180deg, #022AC0 0%, #066AFE 55%, #00B3FF 100%)" }}
+            style={{ background: "linear-gradient(180deg, #022AC0 35%, #066AFE 68%, #00B3FF 100%)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -263,7 +269,9 @@ function F1Content() {
 export default function F1Page() {
   return (
     <TransitionProvider>
-      <F1Content />
+      <KioskScaler>
+        <F1Content />
+      </KioskScaler>
     </TransitionProvider>
   );
 }

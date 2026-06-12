@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { LogoHeader, AstroAvatar } from "./logo-header";
-import { DotBg } from "./dot-bg";
+import Image from "next/image";
 import { teamOptions } from "@/app/f1/options";
 
 interface LoadingScreenProps {
@@ -16,58 +15,13 @@ interface LoadingScreenProps {
 }
 
 const TOTAL_MS = 3500;
-const MESSAGE_INTERVAL_MS = 3500;
 
-const LOADING_MESSAGES: string[] = [
-  "Warming up the engines...",
-  "Tuning the DRS to D major...",
-  "Laying down heartbeat drums...",
-  "Negotiating with the FIA on tempo...",
-  "Mixing the crowd noise at Parabolica...",
-  "Polishing the trumpet fanfare...",
-  "Calibrating the bass line through Eau Rouge...",
-  "Checking tire pressure on the hi-hats...",
-  "Rolling the synth onto the grid...",
-  "Sending engineers into the mixing booth...",
-  "Teaching the snare how to podium...",
-  "Bolting on the brass section aero package...",
-  "Routing the kick drum through Casino Square...",
-  "Getting the click track up to racing speed...",
-  "Calling strategy on the bridge...",
-  "Swapping out vocals for victory horns...",
-  "Drifting through the minor key chicane...",
-  "Loading the safety car into the pre-chorus...",
-  "Queueing up the podium anthem...",
-  "Telling the bass player about the undercut...",
-  "Spooling up the turbocharged arpeggios...",
-  "Checking the mirrors for flat notes...",
-  "Blasting through the final sector...",
-  "Deploying the overtake button on beat two...",
-  "Engaging DRS on the drop...",
-  "Dropping the hammer and the beat...",
-  "Crossing the finish line in stereo...",
-];
-
-function shuffle<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-// 5 circuits → 5 drum stems, direct 1:1
 const CIRCUIT_TO_D: Record<string, number> = {
   monza: 1, monaco: 2, spa: 3, silverstone: 4, suzuka: 5,
 };
-
-// 5 celebrations → 5 bass stems, direct 1:1
 const CELEBRATION_TO_B: Record<string, number> = {
   jump: 1, nod: 2, meltdown: 3, frozen: 4, tears: 5,
 };
-
-// 11 teams → 5 snare/melody stems via melodyGroup, then melodyGroup → S number
 const MELODY_GROUP_TO_S: Record<string, number> = {
   "red-bull": 1, ferrari: 2, mclaren: 3, mercedes: 4, haas: 5,
 };
@@ -75,121 +29,122 @@ const MELODY_GROUP_TO_S: Record<string, number> = {
 function songFilename(circuit: string, celebration: string, teamId: string): string {
   const teamOpt = teamOptions.find((t) => t.id === teamId);
   const melodyGroup = teamOpt?.melodyGroup ?? "red-bull";
-
   const d = CIRCUIT_TO_D[circuit] ?? 1;
   const b = CELEBRATION_TO_B[celebration] ?? 1;
   const s = MELODY_GROUP_TO_S[melodyGroup] ?? 1;
-
-  return `/songs/F1_Cannes_D${d}B${b}S${s}_v01.wav`;
+  return `/api/songs/F1_Cannes_D${d}B${b}S${s}_v03.wav`;
 }
 
 export function LoadingScreen({
-  driverName,
   grandPrix,
   celebration,
   team,
   onComplete,
   onError,
 }: LoadingScreenProps) {
-  const messagesRef = useRef<string[]>(shuffle(LOADING_MESSAGES));
-  const messageIndexRef = useRef(0);
-  const [message, setMessage] = useState(messagesRef.current[0]);
-  const barRef = useRef<HTMLDivElement | null>(null);
   const startedRef = useRef(false);
+  const [phase, setPhase] = useState<"commentary" | "mastering">("commentary");
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
 
-    const startedAt = performance.now();
+    const circuit = grandPrix ?? "monaco";
+    const cel = celebration ?? "jump";
+    const songUrl = songFilename(circuit, cel, team ?? "red-bull");
 
-    const messageTimer = setInterval(() => {
-      messageIndexRef.current =
-        (messageIndexRef.current + 1) % messagesRef.current.length;
-      setMessage(messagesRef.current[messageIndexRef.current]);
-    }, MESSAGE_INTERVAL_MS);
-
-    let rafId = 0;
-    const tick = () => {
-      const pct = Math.min(((performance.now() - startedAt) / TOTAL_MS) * 100, 100);
-      if (barRef.current) barRef.current.style.width = `${pct}%`;
-      if (pct < 100) rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-
-    const circuit  = grandPrix ?? "monaco";
-    const cel      = celebration ?? "jump";
-    const songUrl  = songFilename(circuit, cel, team ?? "red-bull");
+    // Switch phases midway
+    const phaseTimer = setTimeout(() => setPhase("mastering"), TOTAL_MS * 0.5);
 
     const timer = setTimeout(() => {
-      clearInterval(messageTimer);
-      cancelAnimationFrame(rafId);
-      setMessage("Crossing the finish line...");
-      if (barRef.current) {
-        barRef.current.style.transition = "width 300ms ease-out";
-        barRef.current.style.width = "100%";
-      }
-      setTimeout(() => onComplete(songUrl), 400);
+      onComplete(songUrl);
     }, TOTAL_MS);
 
     return () => {
       clearTimeout(timer);
-      clearInterval(messageTimer);
-      cancelAnimationFrame(rafId);
+      clearTimeout(phaseTimer);
     };
   }, [grandPrix, celebration, team, onComplete, onError]);
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
-      <DotBg />
+    <div
+      className="relative overflow-hidden"
+      style={{
+        width: 1080,
+        height: 1920,
+        background: "linear-gradient(180deg, #022AC0 35%, #066AFE 68%, #00B3FF 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      {/* Progress bar */}
+      <div style={{ marginTop: 72, width: 730 }}>
+        <Image src="/Progress bar95.png" alt="" width={1637} height={180} unoptimized style={{ width: "100%", height: "auto" }} />
+      </div>
 
-      <motion.div
-        className="relative z-10 pt-8"
-        initial={{ opacity: 0, y: -10 }}
+      {/* Title */}
+      <motion.h1
+        className="text-center font-extrabold text-white"
+        style={{ fontSize: 132, lineHeight: 1.1, marginTop: 56, paddingLeft: 60, paddingRight: 60 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <LogoHeader className="justify-center" />
+        Your track is<br />almost ready
+      </motion.h1>
+
+      {/* Subtitle */}
+      <motion.p
+        className="text-center text-white"
+        style={{ fontSize: 48, lineHeight: 1.5, marginTop: 40, paddingLeft: 80, paddingRight: 80, opacity: 0.9 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.9 }}
+        transition={{ delay: 0.35, duration: 0.4 }}
+      >
+        Agentforce used real-time data to shape your track. It&apos;s just one of the ways Salesforce shapes incredible customer experiences.
+      </motion.p>
+
+      {/* Astro animation — switches from Anim1 to Anim2 when phase changes */}
+      <motion.div
+        style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+        initial={{ opacity: 0, scale: 0.88 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 22 }}
+      >
+        <video
+          key={phase}
+          src={phase === "commentary"
+            ? "/Animations/Cannes-F1-Astro-Anim1_1.webm"
+            : "/Animations/Cannes-F1-Astro-Anim2_1.webm"}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ width: 560, height: 560, objectFit: "contain", mixBlendMode: "multiply" }}
+        />
       </motion.div>
 
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+      {/* Animated status lines */}
+      <motion.div
+        style={{ marginBottom: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+      >
+        <p className="text-center font-bold text-white" style={{ fontSize: 52 }}>
+          Recording your race commentary…
+        </p>
+        <motion.p
+          className="text-center font-bold text-white"
+          style={{ fontSize: 52, paddingBottom: 120, }}
+          initial={{ opacity: 1.0 }}
+         
+          transition={{ duration: 0.6 }}
         >
-          <AstroAvatar className="mx-auto mb-8 h-28 w-28 md:h-36 md:w-36" />
-        </motion.div>
-
-        {driverName && (
-          <motion.p
-            className="mb-2 text-xs uppercase tracking-[0.25em] text-white/70"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.4 }}
-          >
-            Building your track, {driverName}
-          </motion.p>
-        )}
-
-        <motion.h2
-          key={message}
-          className="min-h-[2rem] px-4 text-center text-xl font-semibold uppercase tracking-[0.2em] text-white"
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {message}
-        </motion.h2>
-
-        <div className="mt-8 h-1.5 w-64 overflow-hidden rounded-full bg-white/20">
-          <div
-            ref={barRef}
-            className="h-full rounded-full bg-white"
-            style={{ width: "0%" }}
-          />
-        </div>
-      </div>
+          Mastering the final cut...
+        </motion.p>
+      </motion.div>
     </div>
   );
 }

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>F1 Tire Visualizer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #06102a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: sans-serif;
+    gap: 20px;
+  }
+  canvas {
+    display: block;
+  }
+  .controls {
+    color: #aaa;
+    font-size: 13px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  button {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover { background: rgba(255,255,255,0.25); }
+  label { color: #aaa; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  input[type=file] { color: #aaa; }
+</style>
+</head>
+<body>
+<canvas id="c" width="700" height="700"></canvas>
+
+<div class="controls">
+  <button id="btn">▶ Demo mode</button>
+  <label>or load audio: <input type="file" id="file" accept="audio/*"></label>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const CX = W / 2, CY = H / 2;
+
+// ── Sizes ──────────────────────────────────────────────────
+const TIRE_R      = 268;   // outer tire radius
+const SIDEWALL_R  = 240;   // inner sidewall (black rubber band)
+const VINYL_R     = 220;   // where grooves start
+const LABEL_R     =  80;   // center label circle
+const TREAD_DEPTH =  28;   // tire tread bump height
+
+const BAR_INNER   = TIRE_R + 18;   // gap between tire and bars
+const BAR_MAX     = 110;            // max bar height
+const N_BARS      = 128;            // number of frequency bars
+
+// ── Audio state ────────────────────────────────────────────
+let analyser = null;
+let freqData  = null;
+let audioCtx  = null;
+let source    = null;
+let audioEl   = null;
+let playing   = false;
+let angle     = 0;           // record spin angle
+let demoT     = 0;           // fake time for demo mode
+
+// ── Demo mode (simulate audio reactivity) ─────────────────
+let demoMode = true;
+
+function getDemoFreq(i) {
+  const t = demoT;
+  // simulate a music-like frequency response
+  const bass   = i < 8  ? 0.7 + 0.3 * Math.sin(t * 1.8 + i * 0.3) : 0;
+  const mid    = i >= 8 && i < 40  ? 0.4 + 0.25 * Math.sin(t * 2.3 + i * 0.15) : 0;
+  const treble = i >= 40 ? 0.15 + 0.1  * Math.sin(t * 3.1 + i * 0.08) : 0;
+  const beat   = Math.max(0, Math.sin(t * 2.0)) * (i < 12 ? 0.4 : 0.1);
+  return Math.min(1, (bass + mid + treble + beat) * (0.85 + 0.15 * Math.sin(t * 0.7 + i)));
+}
+
+function getFreqBars() {
+  const bars = new Float32Array(N_BARS);
+  if (analyser && freqData) {
+    analyser.getByteFrequencyData(freqData);
+    for (let i = 0; i < N_BARS; i++) {
+      const idx = Math.floor(i * freqData.length / N_BARS);
+      bars[i] = freqData[idx] / 255;
+    }
+  } else {
+    for (let i = 0; i < N_BARS; i++) bars[i] = getDemoFreq(i);
+  }
+  return bars;
+}
+
+// ── Draw helpers ──────────────────────────────────────────
+
+function drawVinylRecord(spin) {
+  ctx.save();
+  ctx.translate(CX, CY);
+  ctx.rotate(spin);
+
+  // ── Outer tire tread ──────────────────────────────────
+  // Base black rubber
+  const tireGrad = ctx.createRadialGradient(0,0, SIDEWALL_R, 0,0, TIRE_R);
+  tireGrad.addColorStop(0,   '#1a1a1a');
+  tireGrad.addColorStop(0.5, '#0d0d0d');
+  tireGrad.addColorStop(1,   '#2a2a2a');
+  ctx.beginPath();
+  ctx.arc(0, 0, TIRE_R, 0, Math.PI * 2);
+  ctx.fillStyle = tireGrad;
+  ctx.fill();
+
+  // Tire tread bumps (radial cuts)
+  const N_TREADS = 60;
+  for (let i = 0; i < N_TREADS; i++) {
+    const a = (i / N_TREADS) * Math.PI * 2;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.moveTo(SIDEWALL_R + 2, -3);
+    ctx.lineTo(TIRE_R - 2, -3);
+    ctx.lineTo(TIRE_R - 2,  3);
+    ctx.lineTo(SIDEWALL_R + 2,  3);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ── Vinyl surface (inside tire) ────────────────────────
+  const vinylGrad = ctx.createRadialGradient(0,0, 0, 0,0, SIDEWALL_R);
+  vinylGrad.addColorStop(0,   '#1c1c1c');
+  vinylGrad.addColorStop(0.3, '#111');
+  vinylGrad.addColorStop(0.7, '#0a0a0a');
+  vinylGrad.addColorStop(1,   '#151515');
+  ctx.beginPath();
+  ctx.arc(0, 0, SIDEWALL_R, 0, Math.PI * 2);
+  ctx.fillStyle = vinylGrad;
+  ctx.fill();
+
+  // Vinyl grooves (concentric rings)
+  for (let r = LABEL_R + 12; r < VINYL_R; r += 5) {
+    const alpha = 0.08 + 0.06 * Math.sin(r * 0.4);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Highlight sheen on vinyl
+  const sheen = ctx.createLinearGradient(-VINYL_R, -VINYL_R, VINYL_R * 0.4, VINYL_R * 0.4);
+  sheen.addColorStop(0,   'rgba(255,255,255,0.07)');
+  sheen.addColorStop(0.5, 'rgba(255,255,255,0.00)');
+  sheen.addColorStop(1,   'rgba(255,255,255,0.04)');
+  ctx.beginPath();
+  ctx.arc(0, 0, VINYL_R, 0, Math.PI * 2);
+  ctx.fillStyle = sheen;
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawLabel() {
+  ctx.save();
+  ctx.translate(CX, CY);
+
+  // Label background — blue gradient
+  const labelGrad = ctx.createRadialGradient(0, -10, 0, 0, 0, LABEL_R);
+  labelGrad.addColorStop(0,   '#2255ff');
+  labelGrad.addColorStop(0.5, '#1133cc');
+  labelGrad.addColorStop(1,   '#091580');
+  ctx.beginPath();
+  ctx.arc(0, 0, LABEL_R, 0, Math.PI * 2);
+  ctx.fillStyle = labelGrad;
+  ctx.fill();
+
+  // Label rim
+  ctx.beginPath();
+  ctx.arc(0, 0, LABEL_R, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(100,180,255,0.6)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Silver hub ring
+  const hubGrad = ctx.createRadialGradient(-4, -4, 0, 0, 0, 22);
+  hubGrad.addColorStop(0,   '#e0e0e0');
+  hubGrad.addColorStop(0.5, '#999');
+  hubGrad.addColorStop(1,   '#555');
+  ctx.beginPath();
+  ctx.arc(0, 0, 22, 0, Math.PI * 2);
+  ctx.fillStyle = hubGrad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, 22, 0, Math.PI * 2);
+  ctx.strokeStyle = '#aaa';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Small text "SALESFORCE BEACH" above
+  ctx.fillStyle = 'rgba(150,210,255,0.85)';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Salesforce ✦ Beach', 0, -34);
+
+  // "Track" text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('Track', 0, -12);
+
+  // "Star" text
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('Star', 0, 13);
+
+  ctx.restore();
+}
+
+function drawNeonRings(bars) {
+  // Compute average energy for glow pulse
+  let energy = 0;
+  for (let i = 0; i < bars.length; i++) energy += bars[i];
+  energy /= bars.length;
+  const pulse = 0.6 + energy * 0.8;
+
+  ctx.save();
+  ctx.translate(CX, CY);
+
+  // Outer neon ring — cyan/blue
+  ctx.beginPath();
+  ctx.arc(0, 0, TIRE_R + 10, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(0,220,255,${0.7 * pulse})`;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#00ddff';
+  ctx.shadowBlur = 24 * pulse;
+  ctx.stroke();
+
+  // Inner neon ring — pink/magenta
+  ctx.beginPath();
+  ctx.arc(0, 0, TIRE_R + 6, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(220,60,255,${0.6 * pulse})`;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#dd3dff';
+  ctx.shadowBlur = 18 * pulse;
+  ctx.stroke();
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
+
+function drawFreqBars(bars) {
+  ctx.save();
+  ctx.translate(CX, CY);
+
+  for (let i = 0; i < N_BARS; i++) {
+    const theta = (i / N_BARS) * Math.PI * 2 - Math.PI / 2;
+    const v     = bars[i];
+    const barH  = v * BAR_MAX;
+
+    const x1 = Math.cos(theta) * BAR_INNER;
+    const y1 = Math.sin(theta) * BAR_INNER;
+    const x2 = Math.cos(theta) * (BAR_INNER + barH);
+    const y2 = Math.sin(theta) * (BAR_INNER + barH);
+
+    // Color: cyan on top, pink on sides, gradient by angle
+    // theta=0 is right, -PI/2 is top
+    const normAngle = ((theta + Math.PI / 2) / (Math.PI * 2) + 1) % 1; // 0=top, 0.5=bottom
+    // Top half → cyan, bottom half → magenta, sides → blend
+    let r, g, b;
+    if (normAngle < 0.5) {
+      // top arc: cyan → magenta going clockwise
+      const t = normAngle * 2;
+      r = Math.round(0   + t * 220);
+      g = Math.round(220 - t * 160);
+      b = Math.round(255 - t * 0);
+    } else {
+      // bottom arc: magenta → cyan going back
+      const t = (normAngle - 0.5) * 2;
+      r = Math.round(220 - t * 220);
+      g = Math.round(60  + t * 160);
+      b = 255;
+    }
+
+    const baseAlpha = 0.5 + v * 0.5;
+
+    const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+    grad.addColorStop(0, `rgba(${r},${g},${b},${baseAlpha * 0.4})`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},${baseAlpha})`);
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = (Math.PI * 2 * BAR_INNER / N_BARS) * 0.62;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = `rgba(${r},${g},${b},0.8)`;
+    ctx.shadowBlur = 8 + v * 10;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
+
+function drawTonearm(spin) {
+  ctx.save();
+  ctx.translate(CX, CY);
+
+  // Pivot point — upper right
+  const pivotX = TIRE_R * 0.78;
+  const pivotY = -TIRE_R * 0.90;
+
+  // Arm tip rests at ~1 o'clock position on record
+  // Slight sway based on spin
+  const sway = Math.sin(spin * 0.5) * 0.04;
+  const armAngle = 0.38 + sway;
+
+  const armLength = TIRE_R * 0.85;
+  const tipX = pivotX + Math.cos(Math.PI / 2 + armAngle) * armLength;
+  const tipY = pivotY + Math.sin(Math.PI / 2 + armAngle) * armLength;
+
+  // Arm shadow
+  ctx.beginPath();
+  ctx.moveTo(pivotX + 2, pivotY + 2);
+  ctx.lineTo(tipX + 2, tipY + 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Main arm — chrome gradient
+  const armGrad = ctx.createLinearGradient(pivotX, pivotY, tipX, tipY);
+  armGrad.addColorStop(0,   '#d0d0d0');
+  armGrad.addColorStop(0.3, '#888');
+  armGrad.addColorStop(0.7, '#aaa');
+  armGrad.addColorStop(1,   '#ccc');
+  ctx.beginPath();
+  ctx.moveTo(pivotX, pivotY);
+  ctx.lineTo(tipX, tipY);
+  ctx.strokeStyle = armGrad;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Cartridge / needle head at tip
+  ctx.save();
+  ctx.translate(tipX, tipY);
+  ctx.rotate(Math.PI / 2 + armAngle + 0.15);
+  ctx.fillStyle = '#2ae8ff';
+  ctx.shadowColor = '#00ffee';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.rect(-4, -10, 8, 14);
+  ctx.fill();
+  // Needle point
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(0, 4);
+  ctx.lineTo(-2.5, -4);
+  ctx.lineTo(2.5, -4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Pivot ball
+  const pivotGrad = ctx.createRadialGradient(pivotX - 3, pivotY - 3, 1, pivotX, pivotY, 12);
+  pivotGrad.addColorStop(0, '#f0f0f0');
+  pivotGrad.addColorStop(1, '#666');
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, 10, 0, Math.PI * 2);
+  ctx.fillStyle = pivotGrad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = '#aaa';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawBackground() {
+  // Deep space bg with soft vignette
+  const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, W * 0.8);
+  bg.addColorStop(0,   '#0c1840');
+  bg.addColorStop(0.5, '#08112e');
+  bg.addColorStop(1,   '#030812');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ── Main loop ─────────────────────────────────────────────
+
+function frame() {
+  drawBackground();
+
+  const bars = getFreqBars();
+
+  let avgEnergy = 0;
+  for (let v of bars) avgEnergy += v;
+  avgEnergy /= bars.length;
+
+  // Spin speed: faster with energy
+  const spinSpeed = 0.004 + avgEnergy * 0.008;
+  if (playing || demoMode) angle += spinSpeed;
+
+  drawFreqBars(bars);
+  drawNeonRings(bars);
+  drawVinylRecord(angle);
+  drawLabel();
+  drawTonearm(angle);
+
+  demoT += 0.025;
+
+  requestAnimationFrame(frame);
+}
+
+frame();
+
+// ── Controls ──────────────────────────────────────────────
+
+document.getElementById('btn').addEventListener('click', async () => {
+  demoMode = !demoMode;
+  document.getElementById('btn').textContent = demoMode ? '▶ Demo mode' : '⏸ Demo paused';
+});
+
+document.getElementById('file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!audioCtx) audioCtx = new AudioContext();
+  if (audioEl) { audioEl.pause(); audioEl.src = ''; }
+
+  audioEl = new Audio();
+  audioEl.src = URL.createObjectURL(file);
+  audioEl.crossOrigin = 'anonymous';
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+
+  source = audioCtx.createMediaElementSource(audioEl);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audioEl.onplay  = () => { playing = true;  demoMode = false; };
+  audioEl.onpause = () => { playing = false; };
+  audioEl.onended = () => { playing = false; };
+
+  await audioEl.play();
+  document.getElementById('btn').textContent = '⏸ Playing file';
+});
+</script>
+</body>
+</html>

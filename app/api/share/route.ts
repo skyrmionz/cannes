@@ -1,74 +1,35 @@
 import { NextRequest } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
-import { createShare } from "@/lib/f1-share";
+import os from "os";
+import fs from "fs";
+import { Storage } from "@google-cloud/storage";
+import { createShare, updateShareVideo } from "@/lib/f1-share";
 import { buildArc, elevenLabsTTS } from "@/app/api/commentary/route";
-import { mixCommentaryIntoStem } from "@/lib/audio-mix";
+import { renderVideoToMp4 } from "@/lib/render-video";
+
+const GCS_BUCKET = "f1-cannes-songs";
+
+function getStorage(): Storage {
+  const jsonStr = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  if (jsonStr) {
+    try {
+      const tmpPath = path.join(os.tmpdir(), "gcp-sa-share.json");
+      fs.writeFileSync(tmpPath, jsonStr);
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
+    } catch { /* fall through to ADC */ }
+  }
+  return new Storage();
+}
+
+async function fetchSongFromGCS(filename: string): Promise<Buffer> {
+  const storage = getStorage();
+  const [buf] = await storage.bucket(GCS_BUCKET).file(filename).download();
+  return buf;
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
-
-/** Wrap raw PCM bytes (44100 Hz, 16-bit, 1 ch) in a minimal WAV header. */
-function pcmToWav(pcm: Buffer, sampleRate = 44100, numChannels = 1): Buffer {
-  const bitsPerSample = 16;
-  const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-  const blockAlign = numChannels * (bitsPerSample / 8);
-  const header = Buffer.allocUnsafe(44);
-  header.write("RIFF", 0, "ascii");
-  header.writeUInt32LE(36 + pcm.length, 4);
-  header.write("WAVE", 8, "ascii");
-  header.write("fmt ", 12, "ascii");
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(1, 20);
-  header.writeUInt16LE(numChannels, 22);
-  header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(byteRate, 28);
-  header.writeUInt16LE(blockAlign, 32);
-  header.writeUInt16LE(bitsPerSample, 34);
-  header.write("data", 36, "ascii");
-  header.writeUInt32LE(pcm.length, 40);
-  return Buffer.concat([header, pcm]);
-}
-
-/**
- * Attempt to bake commentary into the stem WAV.
- * Returns the baked WAV, or the original stem if anything fails.
- */
-async function bakeCommentary(
-  stemWav: Buffer,
-  driverName: string,
-  grandPrix: string,
-  celebration: string,
-  team: string,
-): Promise<Buffer> {
-  const elevenKey = process.env.ELEVENLABS_API_KEY;
-  if (!elevenKey) return stemWav;
-
-  try {
-    const arc = await buildArc(driverName, grandPrix, celebration, team);
-
-    // Generate all commentary clips in parallel
-    const voiceId = process.env.ELEVENLABS_VOICE_MALE ?? "KWgrCrnZUL9fUdhsHwbS";
-    const clips = await Promise.all(
-      arc.map((line) => elevenLabsTTS(line.text, voiceId, elevenKey))
-    );
-
-    // Mix each clip into the stem sequentially (each mix returns a new buffer)
-    let mixed = stemWav;
-    for (let i = 0; i < arc.length; i++) {
-      const pcm = clips[i];
-      if (!pcm) continue;
-      // elevenLabsTTS returns raw PCM from pcm_44100 format — wrap in WAV
-      const clipWav = pcmToWav(pcm);
-      mixed = mixCommentaryIntoStem(mixed, clipWav, arc[i].offsetSeconds);
-    }
-
-    return mixed;
-  } catch (err) {
-    console.warn("bakeCommentary failed, using dry stem:", err);
-    return stemWav;
-  }
-}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -91,7 +52,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // grandPrix and celebration are optional — used for commentary baking
   const grandPrix   = typeof b.grandPrix   === "string" ? b.grandPrix   : "Monaco";
   const celebration = typeof b.celebration === "string" ? b.celebration : "jump";
 
@@ -99,7 +59,12 @@ export async function POST(request: NextRequest) {
     let stemWav: Buffer;
     let mp3Mime: string;
 
-    if (b.mp3Url.startsWith("/")) {
+    if (b.mp3Url.startsWith("/api/songs/")) {
+      // Songs live in GCS — fetch directly, don't look on disk
+      const filename = b.mp3Url.replace("/api/songs/", "");
+      stemWav = await fetchSongFromGCS(filename);
+      mp3Mime = "audio/wav";
+    } else if (b.mp3Url.startsWith("/")) {
       const filePath = path.join(process.cwd(), "public", b.mp3Url);
       stemWav = await readFile(filePath);
       mp3Mime = b.mp3Url.endsWith(".wav") ? "audio/wav" : "audio/mpeg";
@@ -115,22 +80,42 @@ export async function POST(request: NextRequest) {
       mp3Mime = mp3Res.headers.get("content-type") ?? "audio/wav";
     }
 
-    // Bake commentary into the WAV before storing — this is what gets sent to the phone
-    const bakedWav = await bakeCommentary(
-      stemWav,
-      b.driverName,
-      grandPrix,
-      celebration,
-      b.team,
-    );
+    // Generate commentary — enhancement-only (non-fatal if it fails)
+    const elevenKey = process.env.ELEVENLABS_API_KEY;
+    let commentaryBuf: Buffer | null = null;
+    if (elevenKey) {
+      try {
+        const male   = process.env.ELEVENLABS_VOICE_MALE   ?? "KWgrCrnZUL9fUdhsHwbS";
+        const female = process.env.ELEVENLABS_VOICE_FEMALE ?? "bsGbk3T29FEq9lQ1FeYd";
+        const voiceId = Math.random() < 0.5 ? male : female;
+        const arc = await buildArc(b.driverName as string, grandPrix, celebration, b.team as string);
+        const fullScript = arc.map((l) => l.text).join("  ...  ");
+        commentaryBuf = await elevenLabsTTS(fullScript, voiceId, elevenKey);
+      } catch { /* non-fatal */ }
+    }
 
     const code = await createShare({
       driverName: b.driverName,
       team: b.team,
       persona: b.persona,
-      mp3: bakedWav,
+      mp3: stemWav,
       mp3Mime,
+      commentary: commentaryBuf,
+      commentaryMime: "audio/mpeg",
     });
+
+    // Fire-and-forget video render — runs after response is sent.
+    // Heroku's H12 only kills the HTTP response; the Node process keeps running.
+    const driverName = b.driverName as string;
+    (async () => {
+      try {
+        const videoBuf = await renderVideoToMp4(stemWav, mp3Mime, driverName);
+        await updateShareVideo(code, videoBuf);
+      } catch (err) {
+        console.error(`Video render failed for ${code}:`, err);
+      }
+    })();
+
     return Response.json({ code });
   } catch (err) {
     console.error("share create failed:", err);

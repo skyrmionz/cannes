@@ -14,7 +14,7 @@ function randomVoice(): string {
 }
 
 function setupGoogleAuth(): boolean {
-  const jsonStr = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  const jsonStr = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!jsonStr) return false;
   try {
     const tmpPath = path.join(os.tmpdir(), "gcp-sa.json");
@@ -51,13 +51,13 @@ async function buildArc(
 
   const prompt = [
     `You are an F1 race commentator. Write a 4-part voiceover arc for a 40-second personalised fan track.`,
-    `Fan name: "${name}". Circuit: ${grandPrix}. Team: ${team}. Celebration style: ${celebration}.`,
+    `Fan name: "${name}". Circuit: ${grandPrix}. Celebration style: ${celebration}.`,
     ``,
     `Rules:`,
     `- Part 1 (offset 0s): ~8 words. Name is the FIRST word. Lights out, explosive start.`,
     `- Part 2 (offset 10s): ~10 words. Being pushed hard, intense battle, challenged.`,
     `- Part 3 (offset 22s): ~10 words. Overtaken briefly, then fights back and reclaims position.`,
-    `- Part 4 (offset 34s): ~10 words. Crosses line, euphoric, shout the NAME and TEAM loudly.`,
+    `- Part 4 (offset 34s): ~10 words. Crosses line, euphoric, shout the NAME loudly. No team name.`,
     ``,
     `Return ONLY a valid JSON array, no markdown, no explanation:`,
     `[{"offsetSeconds":0,"text":"..."},{"offsetSeconds":10,"text":"..."},{"offsetSeconds":22,"text":"..."},{"offsetSeconds":34,"text":"..."}]`,
@@ -87,7 +87,7 @@ function fallbackArc(name: string, grandPrix: string, team: string): CommentaryL
     { offsetSeconds: 0,  text: `${n} is on pole — lights out, GO!` },
     { offsetSeconds: 10, text: `Into sector two at ${grandPrix}, pushing hard — there's a challenge!` },
     { offsetSeconds: 22, text: `${n} is overtaken! But wait — finds the gap, makes the move, takes it back!` },
-    { offsetSeconds: 34, text: `IT'S ${n.toUpperCase()}!! ${t.toUpperCase()} HAS DONE IT!! THE CROWD GOES ABSOLUTELY WILD!!` },
+    { offsetSeconds: 34, text: `IT'S ${n.toUpperCase()}!! THEY'VE DONE IT!! THE CROWD GOES ABSOLUTELY WILD!!` },
   ];
 }
 
@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
       "Content-Type": "audio/mpeg",
       "Content-Length": String(buffer.byteLength),
       "X-Commentary-Arc": encodeURIComponent(JSON.stringify(arc)),
+      "X-Commentary-Voice": voiceId,
     },
   });
 }

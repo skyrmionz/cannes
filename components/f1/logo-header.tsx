@@ -11,37 +11,28 @@ export function LogoHeader({ className }: LogoHeaderProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center gap-4",
+        "flex items-center justify-center gap-8",
         className
       )}
     >
       <Image
         src="/logos/f1.png"
         alt="F1"
-        width={100}
-        height={50}
-        className="h-8 w-auto object-contain"
+        width={200}
+        height={100}
+        className="object-contain"
+        style={{ height: "clamp(70px, 14vw, 160px)", width: "auto" }}
       />
-      <div className="h-6 w-px bg-white/40" />
+      <div className="bg-white/40" style={{ width: 2, height: "clamp(60px, 13vw, 144px)" }} />
       <Image
         src="/logos/salesforce-v2.png"
         alt="Salesforce"
-        width={120}
-        height={50}
-        className="h-10 w-auto object-contain"
+        width={220}
+        height={100}
+        className="object-contain"
+        style={{ height: "clamp(88px, 17vw, 192px)", width: "auto" }}
       />
     </div>
-  );
-}
-
-export function SlackbotAvatar({ className }: { className?: string }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="https://a.slack-edge.com/9cac913/marketing/img/features/slackbot/img-slackbot-blink.gif"
-      alt="Slackbot"
-      className={cn("object-contain", className)}
-    />
   );
 }
 

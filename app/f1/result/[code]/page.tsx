@@ -12,8 +12,9 @@ interface ShareResponse {
   team: string;
   persona: string;
   songUrl: string;
+  commentaryUrl: string | null;
+  videoUrl: string | null;
   expiresAt: string;
-  hasVideo?: boolean;
 }
 
 type LoadState =
@@ -41,31 +42,32 @@ export default function SharedResultPage({
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    async function poll(isFirstLoad: boolean) {
       try {
         const res = await fetch(`/api/share/${code}`);
         if (cancelled) return;
-        if (res.status === 404) {
-          setState({ kind: "not_found" });
-          return;
-        }
-        if (!res.ok) {
-          setState({ kind: "error", message: `HTTP ${res.status}` });
-          return;
-        }
+        if (res.status === 404) { setState({ kind: "not_found" }); return; }
+        if (!res.ok) { setState({ kind: "error", message: `HTTP ${res.status}` }); return; }
         const data = (await res.json()) as ShareResponse;
         setState({ kind: "ok", data });
+        // Keep polling until video is ready (render takes ~30s server-side)
+        if (!data.videoUrl) {
+          timer = setTimeout(() => { if (!cancelled) poll(false); }, 4000);
+        }
       } catch (err) {
         if (cancelled) return;
-        setState({
-          kind: "error",
-          message: err instanceof Error ? err.message : "unknown error",
-        });
+        if (isFirstLoad) {
+          setState({ kind: "error", message: err instanceof Error ? err.message : "unknown error" });
+        }
+        // On poll errors after first load, retry silently
+        else { timer = setTimeout(() => { if (!cancelled) poll(false); }, 6000); }
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    }
+
+    poll(true);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [code]);
 
   if (state.kind === "loading") {
@@ -97,28 +99,13 @@ export default function SharedResultPage({
         team={state.data.team}
         persona={state.data.persona}
         songUrl={state.data.songUrl}
+        commentaryUrl={state.data.commentaryUrl}
+        videoUrl={state.data.videoUrl}
         grandPrix={null}
         celebration={null}
         onStartOver={() => { window.location.href = "/f1"; }}
         sharedView
       />
-      {/* Video download — shown on the phone after scanning the QR */}
-      {state.data.hasVideo && (
-        <motion.div
-          className="fixed bottom-6 left-0 right-0 z-50 flex justify-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.4 }}
-        >
-          <a
-            href={`/api/share/${code}/video`}
-            download="my-anthem.mp4"
-            className="flex items-center gap-3 rounded-sm bg-[#E10600] px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg"
-          >
-            ↓ Download your anthem video
-          </a>
-        </motion.div>
-      )}
     </div>
   );
 }
@@ -134,7 +121,7 @@ function Shell({
 }) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#022AC0] px-4">
-      <DotBg />
+      <DotBg wave />
       <div className="relative z-10 pt-8">
         <LogoHeader className="justify-center" />
       </div>

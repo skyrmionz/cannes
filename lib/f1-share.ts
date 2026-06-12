@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { ensureSchema, getPool, purgeExpired } from "./db";
 
-const TTL_MS = 60 * 60 * 1000; // 1 hour
+const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export interface F1Share {
   code: string;
@@ -10,6 +10,8 @@ export interface F1Share {
   persona: string;
   mp3: Buffer;
   mp3Mime: string;
+  commentary: Buffer | null;
+  commentaryMime: string;
   createdAt: Date;
   expiresAt: Date;
 }
@@ -31,6 +33,9 @@ export async function createShare(input: {
   persona: string;
   mp3: Buffer;
   mp3Mime?: string;
+  commentary?: Buffer | null;
+  commentaryMime?: string;
+  video?: Buffer | null;
 }): Promise<string> {
   await ensureSchema();
   const pool = getPool();
@@ -42,8 +47,8 @@ export async function createShare(input: {
     try {
       await pool.query(
         `INSERT INTO f1_shares
-           (code, driver_name, team, persona, mp3, mp3_mime, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+           (code, driver_name, team, persona, mp3, mp3_mime, commentary, commentary_mime, video, expires_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
           code,
           input.driverName.slice(0, 50),
@@ -51,6 +56,9 @@ export async function createShare(input: {
           input.persona,
           input.mp3,
           input.mp3Mime ?? "audio/mpeg",
+          input.commentary ?? null,
+          input.commentaryMime ?? "audio/mpeg",
+          input.video ?? null,
           expiresAt,
         ]
       );
@@ -64,6 +72,14 @@ export async function createShare(input: {
     }
   }
   throw new Error("Could not allocate a unique share code");
+}
+
+export async function updateShareVideo(code: string, video: Buffer): Promise<void> {
+  const pool = getPool();
+  await pool.query(
+    `UPDATE f1_shares SET video = $1 WHERE code = $2`,
+    [video, code],
+  );
 }
 
 export async function hasVideo(code: string): Promise<boolean> {
@@ -85,10 +101,12 @@ export async function getShare(code: string): Promise<F1Share | null> {
     persona: string;
     mp3: Buffer;
     mp3_mime: string;
+    commentary: Buffer | null;
+    commentary_mime: string;
     created_at: Date;
     expires_at: Date;
   }>(
-    `SELECT code, driver_name, team, persona, mp3, mp3_mime, created_at, expires_at
+    `SELECT code, driver_name, team, persona, mp3, mp3_mime, commentary, commentary_mime, created_at, expires_at
        FROM f1_shares
       WHERE code = $1
         AND expires_at > NOW()`,
@@ -103,6 +121,8 @@ export async function getShare(code: string): Promise<F1Share | null> {
     persona: row.persona,
     mp3: row.mp3,
     mp3Mime: row.mp3_mime,
+    commentary: row.commentary ?? null,
+    commentaryMime: row.commentary_mime ?? "audio/mpeg",
     createdAt: row.created_at,
     expiresAt: row.expires_at,
   };

@@ -15,51 +15,29 @@ export interface KnobOption {
 // Driving style → circuit ID mapping.
 // D1=monza, D2=monaco, D3=spa, D4=silverstone, D5=suzuka
 // These IDs must match CIRCUIT_TO_D in loading-screen.tsx.
+// 3 visible options → 5 audio stems via CIRCUIT_TO_D in loading-screen.tsx
+// monza→D1, monaco→D2, spa→D3 (silverstone/suzuka stems still available server-side)
 export const drivingStyleOptions: KnobOption[] = [
   {
     id: "monza",
-    label: "Race Circuit",
+    label: "Permanent Race Circuit",
     subtitle: "Full throttle",
     description: "Flat-out speed, zero compromise. The throttle is wide open from lights to flag.",
     musicNote: "Relentless double-kick pattern — flat-out Italian disco-rock energy",
-    image: "/f1/circuits/photos/italian.png",
-    emoji: "🏁",
   },
   {
     id: "monaco",
-    label: "Street Circuit",
+    label: "Fast Street Circuit",
     subtitle: "Precision on the limit",
     description: "Millimetres from the barrier, every corner demands perfection.",
     musicNote: "Crisp precision rock kit — every hit locked to the grid",
-    image: "/f1/circuits/photos/monaco.jpg",
-    emoji: "🏙️",
   },
   {
     id: "spa",
-    label: "Mixed Circuit",
+    label: "Mixed Road Circuit",
     subtitle: "Anything can happen",
     description: "High-speed and technical, sunshine and storms. Spa keeps everyone guessing.",
     musicNote: "Driving acoustic rock kit with thunderous floor-tom fills",
-    image: "/f1/circuits/photos/spa.jpg",
-    emoji: "⛈️",
-  },
-  {
-    id: "silverstone",
-    label: "Home Circuit",
-    subtitle: "Fast and flowing",
-    description: "The birthplace of Formula 1 — sweeping high-speed corners, a crowd that lives for it.",
-    musicNote: "Rolling groove with wide snare crack — open, powerful, euphoric",
-    image: "/f1/circuits/photos/british.jpg",
-    emoji: "🇬🇧",
-  },
-  {
-    id: "suzuka",
-    label: "Technical Circuit",
-    subtitle: "Chess at 300 km/h",
-    description: "The figure-of-eight challenge — a driver's circuit where finesse beats horsepower.",
-    musicNote: "Tight hi-hat shuffle with syncopated kick — intricate and surgical",
-    image: "/f1/circuits/photos/suzuka.jpg",
-    emoji: "🎌",
   },
 ];
 

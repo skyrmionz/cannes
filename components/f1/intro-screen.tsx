@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { LogoHeader } from "./logo-header";
 import { DotBg } from "./dot-bg";
 
 interface IntroScreenProps {
@@ -11,79 +10,92 @@ interface IntroScreenProps {
 
 export function IntroScreen({ onNext }: IntroScreenProps) {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden px-4">
-      <DotBg />
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      <DotBg wave />
 
-      {/* Logo */}
-      <motion.div
-        className="relative z-10 pt-8"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <LogoHeader className="justify-center" />
-      </motion.div>
-
-      {/* Centered content */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0">
-        {/* Astro with headphones */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.55, type: "spring", stiffness: 260, damping: 22 }}
-        >
-          <Image
-            src="/f1/astro-headphones.png"
-            alt="Agent Astro"
-            width={160}
-            height={160}
-            unoptimized
-            className="mx-auto mb-4"
-          />
-        </motion.div>
-
+      {/* Title + subtitle + squiggle */}
+      <div className="relative z-10 flex flex-col items-center px-10 pt-20">
         <motion.h1
-          className="text-center text-4xl font-extrabold uppercase tracking-tight text-white"
+          className="text-center font-bold text-white"
+          style={{ fontSize: "clamp(4rem, 11vw, 8rem)", lineHeight: 1.05 }}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.32, duration: 0.45 }}
+          transition={{ delay: 0.2, duration: 0.45 }}
         >
-          I&apos;m Agent Astro.
+          I&apos;m Agent Astro
         </motion.h1>
 
         <motion.p
-          className="mt-3 max-w-xs text-center text-sm text-white/70"
-          initial={{ opacity: 0, y: 10 }}
+          className="mt-6 text-center text-white/90"
+          style={{ fontSize: "clamp(1.6rem, 4vw, 3rem)", lineHeight: 1.5, maxWidth: "80%" }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.44, duration: 0.4 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
         >
-          Your F1® audio producer and part of your pit crew.
+          Think of me as your pit crew.{" "}
+          I&apos;ll drive the data, you steer, and we&apos;ll create a personalized track.
         </motion.p>
 
-        <motion.p
-          className="mt-1.5 max-w-xs text-center text-xs text-white/45"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.54, duration: 0.4 }}
+        <motion.div
+          className="mt-6"
+          initial={{ opacity: 0, scaleX: 0.6 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ delay: 0.45, duration: 0.4 }}
         >
-          Let&apos;s make your personalised track.
-        </motion.p>
+          <Image
+            src="/f1/wavy-line.png"
+            alt=""
+            width={365}
+            height={24}
+            unoptimized
+            className="object-contain"
+            style={{ width: "clamp(200px, 45vw, 380px)", height: "auto" }}
+          />
+        </motion.div>
+      </div>
 
-        {/* Figma-style pill CTA */}
+      {/* Astro — large, fills middle */}
+      <motion.div
+        className="relative z-10 flex flex-1 items-center justify-center"
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.25, duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
+      >
+        <Image
+          src="/f1/astro-headphones.png"
+          alt="Agent Astro"
+          width={882}
+          height={882}
+          unoptimized
+          priority
+          className="object-contain"
+          style={{
+            width: "min(86vw, 56vh)",
+            height: "min(86vw, 56vh)",
+            filter: "drop-shadow(0 24px 60px rgba(0,30,160,0.55))",
+          }}
+        />
+      </motion.div>
+
+      {/* CTA pinned to bottom */}
+      <div className="relative z-10 flex flex-col items-center px-10 pb-16">
         <motion.button
           onClick={onNext}
+          style={{ background: "none", border: "none", padding: 0 }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          whileTap={{ scale: 0.94 }}
-          transition={{ delay: 0.68, duration: 0.4 }}
-          className="mt-8 rounded-full px-10 py-3.5 text-sm font-extrabold uppercase tracking-[0.15em]"
-          style={{
-            background: "#CCE8FF",
-            color: "#022AC0",
-            boxShadow: "0 4px 20px rgba(0,179,255,0.3)",
-          }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
         >
-          Start your engines
+          <Image
+            src="/f1/Buttons/Let's go Pill.png"
+            alt="Let's go"
+            width={880}
+            height={108}
+            unoptimized
+            className="object-contain"
+            style={{ width: "min(600px, 78vw)", height: "auto" }}
+          />
         </motion.button>
       </div>
     </div>

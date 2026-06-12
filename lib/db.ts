@@ -38,8 +38,10 @@ export async function ensureSchema(): Promise<void> {
       created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       expires_at     TIMESTAMPTZ NOT NULL
     );
-    -- Idempotent migration: add video column if upgrading from older schema
+    -- Idempotent migrations for existing deployments
     ALTER TABLE f1_shares ADD COLUMN IF NOT EXISTS video BYTEA;
+    ALTER TABLE f1_shares ADD COLUMN IF NOT EXISTS commentary BYTEA;
+    ALTER TABLE f1_shares ADD COLUMN IF NOT EXISTS commentary_mime TEXT NOT NULL DEFAULT 'audio/mpeg';
     CREATE INDEX IF NOT EXISTS f1_shares_expires_at_idx ON f1_shares(expires_at);
 
     CREATE TABLE IF NOT EXISTS cannes_sessions (

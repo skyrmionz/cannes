@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { LogoHeader } from "./logo-header";
+import Image from "next/image";
 import { DotBg } from "./dot-bg";
 import { OptionGrid } from "./option-grid";
 
@@ -30,18 +30,32 @@ interface KnobQuestionScreenProps {
   onBack: () => void;
   stepIndex: number;
   totalSteps: number;
+  progressImage: string;
   sessionId?: string | null;
 }
 
-// Per-question entrance personalities
+// Per-question screen entrance personalities
 const personalities = [
-  // Q1 — drums: pulse in like a kick hit
-  { initial: { scale: 1.04, opacity: 0 }, animate: { scale: 1, opacity: 1 }, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const } },
-  // Q2 — bass: fast upward surge
-  { initial: { y: 44, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { duration: 0.36, ease: [0.32, 0.72, 0, 1] as const } },
-  // Q3 — melody: grand fan-in
-  { initial: { y: 24, opacity: 0, rotateX: 6 }, animate: { y: 0, opacity: 1, rotateX: 0 }, transition: { duration: 0.48, ease: [0.22, 1, 0.36, 1] as const } },
+  // Q1 — drums: hard lateral shunt like a grid start
+  {
+    initial: { x: 60, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const },
+  },
+  // Q2 — team: scale up from centre, logo-wheel feel
+  {
+    initial: { scale: 0.93, opacity: 0 },
+    animate: { scale: 1, opacity: 1 },
+    transition: { duration: 0.42, ease: [0.34, 1.4, 0.64, 1] as const },
+  },
+  // Q3 — celebration: fly up like a podium leap
+  {
+    initial: { y: 56, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    transition: { duration: 0.44, ease: [0.22, 1, 0.36, 1] as const },
+  },
 ];
+
 
 export function KnobQuestionScreen({
   title,
@@ -53,13 +67,12 @@ export function KnobQuestionScreen({
   onBack,
   stepIndex,
   totalSteps,
+  progressImage,
   sessionId,
 }: KnobQuestionScreenProps) {
-  const progress = ((stepIndex + 1) / totalSteps) * 100;
   const p = personalities[stepIndex % personalities.length];
   const completedRef = useRef(false);
 
-  // Drop-off tracking — fires on unmount if user didn't complete this screen
   useEffect(() => {
     return () => {
       if (completedRef.current || !sessionId) return;
@@ -86,85 +99,77 @@ export function KnobQuestionScreen({
     >
       <DotBg />
 
-      {/* Progress bar */}
-      <div className="relative z-10 h-1 w-full bg-white/20">
-        <motion.div
-          className="h-full bg-white"
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        />
-      </div>
-
-      {/* Logo */}
-      <div className="relative z-10 pt-4">
-        <LogoHeader className="justify-center" />
-      </div>
+      {/* Progress bar image */}
+      <motion.div
+        className="relative z-10 mx-auto mt-9"
+        style={{ width: "67.5%" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Image src={progressImage} alt="" width={1637} height={180} unoptimized className="w-full" />
+      </motion.div>
 
       {/* Question header */}
-      <div className="relative z-10 px-5 pt-3">
+      <div className="relative z-10 px-8 pt-4">
         <motion.h2
-          className="text-xl font-extrabold uppercase leading-tight tracking-tight text-white"
-          initial={{ opacity: 0, x: -12 }}
+          className="font-extrabold leading-tight text-white text-center"
+          style={{ fontSize: 88, paddingLeft: 45 }}
+          initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.06, duration: 0.32 }}
+          transition={{ delay: 0.06, duration: 0.34 }}
         >
           {title}
         </motion.h2>
         <motion.p
-          className="mt-0.5 text-[11px] text-white/50"
+          className="mt-3 text-center text-white"
+          style={{ fontSize: 40 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.14, duration: 0.32 }}
+          transition={{ delay: 0.16, duration: 0.32 }}
         >
           {subtitle}
         </motion.p>
       </div>
 
-      {/* Option grid — fills remaining vertical space */}
+      {/* Option grid */}
       <div className="relative z-10 flex flex-1 flex-col justify-center py-2">
-        <OptionGrid options={options} selectedId={selectedId} onSelect={onSelect} />
+        <OptionGrid
+          options={options}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          stepIndex={stepIndex}
+        />
       </div>
 
+      {/* Hint */}
+      <p className="relative z-10 text-center text-white font-bold pb-2 whitespace-pre-line" style={{ fontSize: 44 }}>
+        {stepIndex === 1 ? "Select your reaction\nand click next" : "Select your answer\nand click next"}
+      </p>
+
       {/* Navigation */}
-      <div className="relative z-10 px-4 pb-6 pt-2">
-        <motion.div
-          className="flex items-center justify-between"
+      <div className="relative z-10 flex items-center justify-between px-6 pb-10 pt-2">
+        <motion.button
+          onClick={onBack}
+          style={{ background: "none", border: "none", padding: 0 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ delay: 0.22 }}
+        >
+          <Image src="/f1/Buttons/Back.png" alt="Back" width={120} height={120} unoptimized />
+        </motion.button>
+
+        <motion.button
+          onClick={selectedId ? handleNext : undefined}
+          style={{ background: "none", border: "none", padding: 0, cursor: selectedId ? "pointer" : "default" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: selectedId ? 1 : 0.4 }}
+          whileTap={selectedId ? { scale: 0.95 } : {}}
           transition={{ delay: 0.22, duration: 0.3 }}
         >
-          {/* Back — text only, subtle */}
-          <button
-            onClick={onBack}
-            className="text-xs uppercase tracking-[0.15em] text-white/50 transition-colors hover:text-white"
-          >
-            Back
-          </button>
-
-          {/* Next — cyan circle arrow, Figma-style */}
-          <AnimatePresence>
-            {selectedId && (
-              <motion.button
-                onClick={handleNext}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                whileTap={{ scale: 0.88 }}
-                transition={{ type: "spring", stiffness: 500, damping: 22 }}
-                className="flex h-14 w-14 items-center justify-center rounded-full"
-                style={{
-                  background: "linear-gradient(135deg, #00D4FF 0%, #0094CC 100%)",
-                  boxShadow: "0 4px 20px rgba(0,179,255,0.5)",
-                }}
-              >
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                  <path d="M8 11H14M14 11L11 8M14 11L11 14" stroke="#001050" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </motion.div>
+          <Image src="/f1/Buttons/Next.png" alt="Next" width={300} height={120} unoptimized />
+        </motion.button>
       </div>
     </motion.div>
   );

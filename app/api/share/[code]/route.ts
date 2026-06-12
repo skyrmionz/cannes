@@ -26,8 +26,9 @@ export async function GET(
       team: share.team,
       persona: share.persona,
       songUrl: `/api/share/${share.code}/song`,
+      commentaryUrl: share.commentary ? `/api/share/${share.code}/commentary` : null,
+      videoUrl: videoReady ? `/api/share/${share.code}/video` : null,
       expiresAt: share.expiresAt.toISOString(),
-      hasVideo: videoReady,
     });
   } catch (err) {
     console.error("share lookup failed:", err);
