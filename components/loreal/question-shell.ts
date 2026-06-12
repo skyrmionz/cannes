@@ -31,7 +31,7 @@ export const FOOTER_BUTTON_STYLE: React.CSSProperties = {
 // primary copy, not a quiet caption. Notably wider clamp than the
 // hint underneath so it never collapses to phone-tiny size on a kiosk.
 export const SUBTITLE_FONT_SIZE =
-  "clamp(1.25rem, min(5.4vw, 3.2vh), 1.95rem)";
+  "clamp(1.4rem, min(6vw, 3.6vh), 2.2rem)";
 
 // Margin between the progress bar and the question title — a noticeable
 // breathing room block so the bar doesn't crowd the title.
