@@ -212,9 +212,9 @@ export function LorealPersonaScreen({
 
         {/* QR area — white container, centered, holds QR + instruction */}
         <div
-          className="flex shrink-0 flex-wrap items-center justify-center self-center rounded-[28px]"
+          className="flex shrink-0 flex-wrap items-center justify-center self-center rounded-full"
           style={{
-            padding: "clamp(1.5rem, 3.5vh, 2.5rem) clamp(1.5rem, 4vw, 2.5rem)",
+            padding: "clamp(0.75rem, 2vh, 1.25rem) clamp(1.25rem, 3.5vw, 2rem)",
             gap: "clamp(1rem, 3vw, 1.5rem)",
             background: "rgba(255,255,255,0.88)",
             boxShadow: [
@@ -224,7 +224,7 @@ export function LorealPersonaScreen({
             ].join(", "),
           }}
         >
-          <div className="shrink-0" style={{ width: "min(240px, 36vw)" }}>
+          <div className="shrink-0" style={{ width: "min(160px, 24vw)" }}>
             <QRCodeSVG
               value={qrUrl}
               size={qrSize}
