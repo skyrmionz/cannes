@@ -31,8 +31,6 @@ export function LorealPersonaScreen({
   agendaIndex,
   onFinish,
 }: Props) {
-  // QR size scales with viewport. Computed in an effect so the SSR pass
-  // doesn't access `window` and trigger a hydration warning.
   const [qrSize, setQrSize] = useState(200);
   useEffect(() => {
     const compute = () =>
@@ -68,8 +66,7 @@ export function LorealPersonaScreen({
 
   return (
     <div className="absolute inset-0 text-[#001050]">
-      {/* Tap-anywhere reset — full-screen invisible button at z-0 so the
-          kiosk auto-reset / brand ambassador can advance without a CTA. */}
+      {/* Tap-anywhere reset */}
       <button
         type="button"
         aria-label="Finish"
@@ -78,18 +75,19 @@ export function LorealPersonaScreen({
         style={{ background: "transparent" }}
       />
 
-      {/* Inner glass shell — matches the question screens' inset frame so
-          this screen reads as part of the same kiosk experience. */}
+      {/* Content sits directly against the screen — no outer glassy
+          shell. Same inset-3 rounded shell used by question screens
+          just for the card frame, but NO glass background on it. */}
       <div
         className="absolute inset-3 z-10 flex flex-col items-center overflow-hidden rounded-[40px]"
         style={{
-          paddingTop: "clamp(2rem, 5vh, 3rem)",
-          paddingBottom: "clamp(1.5rem, 4vh, 2.5rem)",
-          paddingInline: "clamp(1rem, 4vw, 2rem)",
-          gap: "clamp(0.75rem, 2vh, 1.5rem)",
+          paddingTop: "clamp(1.5rem, 4vh, 2.5rem)",
+          paddingBottom: "clamp(1.25rem, 3vh, 2rem)",
+          paddingInline: "clamp(1.25rem, 4vw, 2rem)",
+          gap: "clamp(0.5rem, 1.5vh, 1rem)",
         }}
       >
-        {/* Salesforce Beach color logo at top */}
+        {/* Salesforce Beach logo — larger */}
         <Image
           src="/loreal/salesforce-beach-logo.png"
           alt="Salesforce Beach"
@@ -99,16 +97,18 @@ export function LorealPersonaScreen({
           unoptimized
           draggable={false}
           className="h-auto shrink-0 select-none"
-          style={{ width: "min(60vw, 32vh, 320px)" }}
+          style={{ width: "min(72vw, 38vh, 400px)" }}
         />
 
-        {/* Glassy header card — ONLY wraps the vibe name row. Sized
-            generously so it dominates the top of the screen. */}
+        {/* Glassy header card — taller, more top padding to space
+            away from the logo. Vibe name larger + left aligned. */}
         <div
           className="flex w-full shrink-0 items-center rounded-[36px]"
           style={{
             paddingInline: "clamp(1.5rem, 5vw, 2.5rem)",
-            paddingBlock: "clamp(1.5rem, 4vh, 2.5rem)",
+            paddingTop: "clamp(1.75rem, 5vh, 3rem)",
+            paddingBottom: "clamp(1.5rem, 4vh, 2.5rem)",
+            marginTop: "clamp(0.5rem, 1.5vh, 1rem)",
             gap: "clamp(0.75rem, 2vw, 1.25rem)",
             background:
               "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
@@ -129,13 +129,13 @@ export function LorealPersonaScreen({
             unoptimized
             draggable={false}
             className="shrink-0 select-none"
-            style={{ width: "clamp(44px, 7vw, 72px)", height: "auto" }}
+            style={{ width: "clamp(52px, 8vw, 80px)", height: "auto" }}
           />
           <div className="flex min-w-0 flex-col items-start">
             <span
               className="font-semibold leading-tight text-[#001050]/70"
               style={{
-                fontSize: "clamp(1.1rem, min(4vw, 2.4vh), 1.5rem)",
+                fontSize: "clamp(1.3rem, min(5vw, 3vh), 1.8rem)",
                 fontFamily: SYSTEM_FONT,
               }}
             >
@@ -158,7 +158,7 @@ export function LorealPersonaScreen({
           </div>
         </div>
 
-        {/* Hero vibe image — expanded to fill most of the middle */}
+        {/* Hero vibe image — centered, takes up most of the middle */}
         <div className="flex min-h-0 w-full flex-1 items-center justify-center">
           <Image
             src={status.image}
@@ -168,47 +168,42 @@ export function LorealPersonaScreen({
             priority
             unoptimized
             draggable={false}
-            className="h-auto select-none"
+            className="mx-auto h-auto select-none"
             style={{
-              width: "min(92vw, 58vh, 640px)",
-              maxHeight: "55vh",
+              width: "min(88vw, 52vh, 580px)",
+              maxHeight: "50vh",
               objectFit: "contain",
             }}
           />
         </div>
 
-        {/* Description — large, directly under image */}
+        {/* Description — center-aligned, close to image, large font.
+            Uses \n\n for paragraph breaks in the data (rendered by
+            whiteSpace: pre-line). */}
         <p
-          className="w-full shrink-0 text-left text-[#001050]/90"
+          className="w-full shrink-0 text-center text-[#001050]/90"
           style={{
-            fontSize: "clamp(1.5rem, min(6vw, 3.5vh), 2.2rem)",
+            fontSize: "clamp(1.4rem, min(5.5vw, 3.2vh), 2rem)",
             fontFamily: SYSTEM_FONT,
             fontWeight: 400,
             whiteSpace: "pre-line",
-            lineHeight: 1.3,
+            lineHeight: 1.35,
+            marginTop: "-0.25rem",
           }}
         >
           {status.description}
         </p>
 
-        {/* QR row — glassy container. Horizontal on wide screens,
-            wraps to vertical stack on narrow phones so nothing clips. */}
+        {/* QR row — no glassy container, just the content directly.
+            QR on left, instruction on right. */}
         <div
-          className="flex w-full shrink-0 flex-wrap items-center rounded-[28px]"
+          className="flex w-full shrink-0 flex-wrap items-center"
           style={{
-            padding: "clamp(1.25rem, 3vh, 2rem)",
             gap: "clamp(1rem, 3vw, 1.5rem)",
-            background: "rgba(255,255,255,0.78)",
-            backdropFilter: "blur(8px) saturate(140%)",
-            WebkitBackdropFilter: "blur(8px) saturate(140%)",
-            boxShadow: [
-              "0 0 0 1px rgba(0,16,80,0.06) inset",
-              "0 1px 0 rgba(255,255,255,0.95) inset",
-              "0 6px 22px rgba(120,160,220,0.18)",
-            ].join(", "),
+            paddingTop: "clamp(0.5rem, 1.5vh, 1rem)",
           }}
         >
-          <div className="shrink-0" style={{ width: "min(180px, 28vw)" }}>
+          <div className="shrink-0" style={{ width: "min(220px, 34vw)" }}>
             <QRCodeSVG
               value={qrUrl}
               size={qrSize}
@@ -221,13 +216,13 @@ export function LorealPersonaScreen({
           <p
             className="flex-1 text-left leading-snug text-[#001050]"
             style={{
-              fontSize: "clamp(1.5rem, min(6vw, 3.6vh), 2.2rem)",
+              fontSize: "clamp(1.4rem, min(5.5vw, 3.2vh), 2rem)",
               fontFamily: SYSTEM_FONT,
               fontWeight: 700,
+              whiteSpace: "pre-line",
             }}
           >
-            Scan to take your vibe with you and claim your SPF gift at the
-            counter.
+            {"Scan to take your vibe with you.\nClaim your SPF gift at the counter."}
           </p>
         </div>
       </div>
