@@ -352,7 +352,7 @@ function CirclePick({
             exit={{ opacity: 0, scale: 0.85 }}
             transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             style={{
-              padding: 3,
+              padding: 5,
               background:
                 "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
               WebkitMask:
@@ -457,7 +457,7 @@ function CalendarColumn2D({
             className="absolute inset-0"
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: 40, transition: { duration: 0.18, ease: "easeIn" } }}
+            exit={{ opacity: 0, y: 40, transition: { duration: 0.1, ease: "easeIn" } }}
           >
         {slots.map((slot, i) => {
           const rowIndex = (slot.start - 9) / slotInterval;
