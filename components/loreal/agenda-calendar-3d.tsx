@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   Environment,
   Html,
-  Lightformer,
+  MeshTransmissionMaterial,
   RoundedBox,
 } from "@react-three/drei";
 import * as THREE from "three";
@@ -199,37 +199,47 @@ function GlassTile({
 
   return (
     <group ref={groupRef}>
-      <RoundedBox
-        args={[worldWidth, tileHeight, TILE_DEPTH]}
-        radius={TILE_RADIUS}
-        smoothness={5}
-      >
-        {/* Squishy gummy-cube material — high transmission +
-            short attenuation distance so light passing through the
-            tile picks up a strong colored tint. Mirror-clearcoat for
-            the wet glossy specular highlight on top. Tuned to match
-            the translucent jelly-cube reference. */}
-        <meshPhysicalMaterial
-          color={tintColor}
-          transmission={1}
-          thickness={1.6}
-          ior={1.42}
-          roughness={0.06}
-          metalness={0}
-          transparent={true}
-          opacity={1}
-          clearcoat={1}
-          clearcoatRoughness={0.02}
-          attenuationColor={tintColor}
-          attenuationDistance={0.55}
-          iridescence={0.25}
-          iridescenceIOR={1.3}
-          specularIntensity={1}
-        />
-      </RoundedBox>
+      {/* Slight rotation reveals the top face + a sliver of the
+          right side of each tile, so the cubes read as 3D objects.
+          Outer groupRef drives y-position + scale (drop physics);
+          this inner rotated group only affects geometry orientation. */}
+      <group rotation={[-0.22, 0.18, 0]}>
+        <RoundedBox
+          args={[worldWidth, tileHeight, TILE_DEPTH]}
+          radius={TILE_RADIUS}
+          smoothness={5}
+        >
+          {/* Params verbatim from drei's official storybook
+              (MeshTransmissionMaterial.stories.tsx — the
+              "Gelatinous Cube" demo) at github.com/pmndrs/drei.
+              Per-tile we override `color` and `attenuationColor`
+              with the slot's hue. Everything else matches the
+              demo defaults that produce the photoreal jelly look. */}
+          <MeshTransmissionMaterial
+            color={tintColor}
+            background={new THREE.Color("#839681")}
+            backside={false}
+            samples={10}
+            resolution={1024}
+            transmission={1}
+            roughness={0}
+            thickness={3.5}
+            ior={1.5}
+            chromaticAberration={0.06}
+            anisotropy={0.1}
+            distortion={0.0}
+            distortionScale={0.3}
+            temporalDistortion={0.5}
+            clearcoat={1}
+            attenuationDistance={0.5}
+            attenuationColor={tintColor}
+          />
+        </RoundedBox>
+      </group>
 
       {/* Text overlay — DOM via drei <Html>, inherits page font, no
-          outline. */}
+          outline. Stays at the outer (un-rotated) group so text
+          renders flat-on regardless of the cube tilt. */}
       <Html
         position={[0, 0, TILE_DEPTH / 2 + 0.001]}
         center
@@ -339,41 +349,16 @@ function CalendarScene({
   // turns the clock value into a row index 0..(slotCount-1).
   return (
     <>
-      {/* Three Lightformers — top key + front fill + back rim. The
-          top key is the bright sheen along the upper edge of every
-          tile; the back rim adds depth so the bottoms aren't dead. */}
-      <Environment background={false} resolution={128}>
-        <Lightformer
-          form="rect"
-          intensity={6}
-          color="#ffffff"
-          position={[0, 8, 4]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          scale={[14, 4, 1]}
-        />
-        <Lightformer
-          form="rect"
-          intensity={1.8}
-          color="#ffffff"
-          position={[0, 0, 7]}
-          rotation={[0, 0, 0]}
-          scale={[12, 8, 1]}
-        />
-        <Lightformer
-          form="rect"
-          intensity={1.5}
-          color="#ffe8d6"
-          position={[0, -6, 4]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={[14, 4, 1]}
-        />
-      </Environment>
-      <ambientLight intensity={1.2} />
-      <directionalLight
-        position={[1.5, 6, 5]}
-        intensity={1.4}
-        color="#ffffff"
+      {/* HDRI environment — same dancing_hall_1k that the canonical
+          drei MeshTransmissionMaterial storybook uses. Real-world
+          studio reflections give the clearcoat + transmission their
+          characteristic photoreal sheen. background=false so the
+          page gradient still shows behind the canvas. */}
+      <Environment
+        files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dancing_hall_1k.hdr"
+        background={false}
       />
+      <ambientLight intensity={Math.PI} />
       {slots.map((slot, i) => {
         const rowIndex = (slot.start - 9) / 2;
         const restTopY =
@@ -480,7 +465,7 @@ export function CalendarColumn3D({
             premultipliedAlpha: false,
             powerPreference: "high-performance",
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.1,
+            toneMappingExposure: 1.15,
           }}
           style={{ background: "transparent" }}
         >

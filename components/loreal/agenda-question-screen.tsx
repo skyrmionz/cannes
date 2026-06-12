@@ -155,37 +155,8 @@ export function LorealAgendaQuestionScreen({
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Description row — fixed reserved height so the layout doesn't
-            shift when the user picks a status. Empty in null state. */}
-        <div
-          className="relative shrink-0 overflow-hidden"
-          style={{ height: isPhone ? 44 : 64 }}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {value !== null && (
-              <motion.p
-                key={descKey}
-                className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
-                style={{
-                  fontSize: "clamp(1.25rem, min(5.4vw, 3.4vh), 1.9rem)",
-                  fontFamily:
-                    'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
-                  fontWeight: 400,
-                  paddingInline: 12,
-                }}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -18 }}
-                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-              >
-                {descText}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-
         {/* Day-view calendar — capped at 38vh so it never crowds the
-            circles below. */}
+            status block + circles below. */}
         <div
           className="relative min-h-0 flex-1"
           style={{ maxHeight: "38vh" }}
@@ -199,9 +170,8 @@ export function LorealAgendaQuestionScreen({
           />
         </div>
 
-        {/* Status title — sits right above the circle picker. Fixed
-            reserved height so the row doesn't shift the circles when
-            content arrives. Empty in null state. */}
+        {/* Status title — sits right above the circle picker.
+            Reserved height so layout never shifts. */}
         <div
           className="relative shrink-0 overflow-hidden"
           style={{ height: isPhone ? 56 : 80 }}
@@ -232,6 +202,35 @@ export function LorealAgendaQuestionScreen({
                   {titleText}
                 </span>
               </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Description — sits directly under the status title.
+            Reserved height so layout never shifts when it appears. */}
+        <div
+          className="relative shrink-0 overflow-hidden"
+          style={{ height: isPhone ? 40 : 56 }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {value !== null && (
+              <motion.p
+                key={descKey}
+                className="absolute inset-0 flex items-center justify-center text-center text-[#001050]/85"
+                style={{
+                  fontSize: "clamp(1.05rem, min(4.4vw, 2.6vh), 1.5rem)",
+                  fontFamily:
+                    'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+                  fontWeight: 400,
+                  paddingInline: 12,
+                }}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              >
+                {descText}
+              </motion.p>
             )}
           </AnimatePresence>
         </div>
