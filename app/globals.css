@@ -181,6 +181,17 @@
   0%, 100% { transform: rotate(-8deg); }
   50% { transform: rotate(-6.4deg); }
 }
+/* Counter-rotation for orbital ring icons so they stay upright
+   while the parent ring spins. Used by agentforce-buffer-screen. */
+@keyframes counterSpinCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+@keyframes counterSpinCCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .umbrella-sway {
   transform: rotate(-7.2deg);
   animation: umbrellaSway 6s ease-in-out infinite;

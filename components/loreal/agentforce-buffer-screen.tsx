@@ -277,6 +277,15 @@ function OrbitalRing({
         if (iconRotation === "outward") iconAngle = angle + 180;
         else if (iconRotation === "inward") iconAngle = angle;
 
+        // Counter-rotation duration matches the parent ring's spin:
+        // parent does direction*3600° over speed*10s = one full turn
+        // per speed*10/10 = speed seconds. Counter needs one full
+        // opposite turn per speed seconds.
+        const counterAnim =
+          iconRotation === "none"
+            ? `${direction === 1 ? "counterSpinCW" : "counterSpinCCW"} ${speed}s linear infinite`
+            : undefined;
+
         return (
           <div
             key={i}
@@ -287,6 +296,7 @@ function OrbitalRing({
               width: iconSize,
               height: iconSize,
               transform: `translate(-50%, -50%) rotate(${iconAngle}deg)`,
+              animation: counterAnim,
             }}
           >
             <Image

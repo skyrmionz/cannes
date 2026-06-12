@@ -102,13 +102,14 @@ export function LorealPersonaScreen({
           style={{ width: "min(60vw, 32vh, 320px)" }}
         />
 
-        {/* Glassy header card — ONLY wraps the vibe name row */}
+        {/* Glassy header card — ONLY wraps the vibe name row. Sized
+            generously so it dominates the top of the screen. */}
         <div
-          className="flex w-full max-w-[680px] shrink-0 items-center rounded-[32px]"
+          className="flex w-full shrink-0 items-center rounded-[36px]"
           style={{
-            paddingInline: "clamp(1rem, 3vw, 1.5rem)",
-            paddingBlock: "clamp(0.75rem, 2vh, 1.25rem)",
-            gap: "clamp(0.5rem, 1.5vw, 0.75rem)",
+            paddingInline: "clamp(1.5rem, 5vw, 2.5rem)",
+            paddingBlock: "clamp(1.5rem, 4vh, 2.5rem)",
+            gap: "clamp(0.75rem, 2vw, 1.25rem)",
             background:
               "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
             backdropFilter: "blur(14px) saturate(140%)",
@@ -128,13 +129,13 @@ export function LorealPersonaScreen({
             unoptimized
             draggable={false}
             className="shrink-0 select-none"
-            style={{ width: "clamp(28px, 4vw, 40px)", height: "auto" }}
+            style={{ width: "clamp(44px, 7vw, 72px)", height: "auto" }}
           />
           <div className="flex min-w-0 flex-col items-start">
             <span
-              className="font-medium leading-tight text-[#001050]/70"
+              className="font-semibold leading-tight text-[#001050]/70"
               style={{
-                fontSize: "clamp(0.85rem, 2vh, 1.05rem)",
+                fontSize: "clamp(1.1rem, min(4vw, 2.4vh), 1.5rem)",
                 fontFamily: SYSTEM_FONT,
               }}
             >
@@ -143,7 +144,7 @@ export function LorealPersonaScreen({
             <h1
               className="font-bold leading-[1.05] tracking-tight"
               style={{
-                fontSize: "clamp(1.8rem, min(8vw, 5vh), 2.8rem)",
+                fontSize: "clamp(2.4rem, min(10vw, 6.5vh), 4rem)",
                 whiteSpace: "pre-line",
                 backgroundImage: TITLE_GRADIENT,
                 WebkitBackgroundClip: "text",
@@ -157,8 +158,8 @@ export function LorealPersonaScreen({
           </div>
         </div>
 
-        {/* Hero vibe image */}
-        <div className="flex min-h-0 w-full max-w-[680px] flex-1 items-center justify-center">
+        {/* Hero vibe image — expanded to fill most of the middle */}
+        <div className="flex min-h-0 w-full flex-1 items-center justify-center">
           <Image
             src={status.image}
             alt={status.title}
@@ -169,33 +170,33 @@ export function LorealPersonaScreen({
             draggable={false}
             className="h-auto select-none"
             style={{
-              width: "min(80vw, 48vh, 480px)",
-              height: "auto",
+              width: "min(92vw, 58vh, 640px)",
+              maxHeight: "55vh",
               objectFit: "contain",
             }}
           />
         </div>
 
-        {/* Description */}
+        {/* Description — large, directly under image */}
         <p
-          className="w-full max-w-[680px] shrink-0 text-left text-[#001050]/85"
+          className="w-full shrink-0 text-left text-[#001050]/90"
           style={{
-            fontSize: "clamp(1.2rem, min(5vw, 2.8vh), 1.6rem)",
+            fontSize: "clamp(1.5rem, min(6vw, 3.5vh), 2.2rem)",
             fontFamily: SYSTEM_FONT,
             fontWeight: 400,
             whiteSpace: "pre-line",
-            lineHeight: 1.35,
+            lineHeight: 1.3,
           }}
         >
           {status.description}
         </p>
 
-        {/* QR row — glassy container, horizontal layout */}
+        {/* QR row — glassy container, horizontal layout, bigger */}
         <div
-          className="flex w-full max-w-[680px] shrink-0 items-center rounded-[24px]"
+          className="flex w-full shrink-0 items-center rounded-[28px]"
           style={{
-            padding: "clamp(0.85rem, 2vh, 1.25rem)",
-            gap: "clamp(0.75rem, 2vw, 1rem)",
+            padding: "clamp(1.25rem, 3vh, 2rem)",
+            gap: "clamp(1rem, 3vw, 1.5rem)",
             background: "rgba(255,255,255,0.78)",
             backdropFilter: "blur(8px) saturate(140%)",
             WebkitBackdropFilter: "blur(8px) saturate(140%)",
@@ -206,7 +207,7 @@ export function LorealPersonaScreen({
             ].join(", "),
           }}
         >
-          <div className="shrink-0" style={{ width: "min(140px, 22vw)" }}>
+          <div className="shrink-0" style={{ width: "min(180px, 28vw)" }}>
             <QRCodeSVG
               value={qrUrl}
               size={qrSize}
@@ -217,9 +218,9 @@ export function LorealPersonaScreen({
             />
           </div>
           <p
-            className="flex-1 text-left leading-snug text-[#001050]/85"
+            className="flex-1 text-left leading-snug text-[#001050]"
             style={{
-              fontSize: "clamp(1.3rem, min(5vw, 3vh), 1.8rem)",
+              fontSize: "clamp(1.5rem, min(6vw, 3.6vh), 2.2rem)",
               fontFamily: SYSTEM_FONT,
               fontWeight: 700,
             }}

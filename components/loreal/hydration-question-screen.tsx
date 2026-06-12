@@ -161,7 +161,7 @@ export function LorealHydrationQuestionScreen({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.4 }}
       >
-        Slide your finger on the droplet
+        Swipe your finger on the droplet
         <br />
         and click Next
       </motion.p>
