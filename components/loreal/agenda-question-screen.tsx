@@ -53,7 +53,6 @@ const IMAGES: ReadonlyArray<string> = [
   "/loreal/agenda-salesforce-forever.png",
 ];
 
-const NULL_TITLE = "Choose your status above";
 
 const DAY_START = 9;
 const DAY_END = 19;
@@ -103,7 +102,9 @@ export function LorealAgendaQuestionScreen({
   const bodyW = bodySize.w || 360;
   const isPhone = bodyW < 420;
 
-  const titleText = value === null ? NULL_TITLE : TITLES[value];
+  // Both title and description are blank in null state — reserved
+  // rows are still rendered so layout doesn't shift when content arrives.
+  const titleText = value === null ? "" : TITLES[value];
   const descText = value === null ? "" : DESCRIPTIONS[value];
   const titleKey = value === null ? "null" : `t-${value}`;
   const descKey = value === null ? "null" : `d-${value}`;
@@ -149,53 +150,16 @@ export function LorealAgendaQuestionScreen({
         className="relative flex min-h-0 flex-1 flex-col"
         style={{
           paddingInline: "16px",
-          paddingTop: "clamp(0.75rem, 2vh, 1.5rem)",
+          paddingTop: "clamp(0.5rem, 1.5vh, 1rem)",
           paddingBottom: "clamp(0.5rem, 1.2vh, 1rem)",
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Status title row */}
+        {/* Description row — fixed reserved height so the layout doesn't
+            shift when the user picks a status. Empty in null state. */}
         <div
           className="relative shrink-0 overflow-hidden"
-          style={{ minHeight: isPhone ? 60 : 88 }}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={titleKey}
-              className="absolute inset-0 flex items-center justify-center"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -18 }}
-              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-            >
-              <span
-                className="font-bold tracking-tight"
-                style={{
-                  fontSize: "clamp(2.1rem, min(10vw, 6.2vh), 3.4rem)",
-                  whiteSpace: "nowrap",
-                  // Same purple→coral gradient as the progress-bar fill,
-                  // applied as gradient text via background-clip.
-                  background:
-                    "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  color: "transparent",
-                }}
-              >
-                {titleText}
-              </span>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Description row — always mounted so the height collapse/expand
-            transitions smoothly. Height animates from 0 (null state) to
-            the natural row height when a status is selected. */}
-        <motion.div
-          className="relative shrink-0 overflow-hidden"
-          animate={{ height: value === null ? 0 : isPhone ? 44 : 64 }}
-          transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+          style={{ height: isPhone ? 44 : 64 }}
         >
           <AnimatePresence mode="wait" initial={false}>
             {value !== null && (
@@ -218,7 +182,7 @@ export function LorealAgendaQuestionScreen({
               </motion.p>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
 
         {/* Day-view calendar — capped at 38vh so it never crowds the
             circles below. */}
@@ -235,8 +199,44 @@ export function LorealAgendaQuestionScreen({
           />
         </div>
 
-        {/* Circle picker — 4 round image buttons, sits between the
-            calendar and the hint. */}
+        {/* Status title — sits right above the circle picker. Fixed
+            reserved height so the row doesn't shift the circles when
+            content arrives. Empty in null state. */}
+        <div
+          className="relative shrink-0 overflow-hidden"
+          style={{ height: isPhone ? 56 : 80 }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {value !== null && (
+              <motion.div
+                key={titleKey}
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+              >
+                <span
+                  className="font-bold tracking-tight"
+                  style={{
+                    fontSize: "clamp(2.1rem, min(10vw, 6.2vh), 3.4rem)",
+                    whiteSpace: "nowrap",
+                    background:
+                      "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    color: "transparent",
+                  }}
+                >
+                  {titleText}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Circle picker — 4 round image buttons. */}
         <div
           className="relative shrink-0"
           style={{
@@ -326,7 +326,7 @@ function CirclePick({
   onSelect: () => void;
   isPhone: boolean;
 }) {
-  const size = isPhone ? 108 : 152;
+  const size = isPhone ? 124 : 178;
   // Outer ring is 6px thicker on each side when selected, so the circle
   // image stays the same size but the gradient ring wraps around it.
   const ringPad = 5;

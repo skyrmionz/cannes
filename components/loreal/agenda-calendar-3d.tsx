@@ -60,7 +60,9 @@ interface TileProps {
   slotIndex: number;
   totalSlots: number;
   slotCount: number;
-  pxPerHour: number;
+  // CSS pixels per world unit (camera zoom) — used to size the DOM
+  // text overlay so it matches the rendered tile bounds exactly.
+  pxPerWorldUnit: number;
   worldWidth: number;
   worldYTop: number;
   restTopY: number;
@@ -73,7 +75,7 @@ function GlassTile({
   slotIndex,
   totalSlots,
   slotCount,
-  pxPerHour,
+  pxPerWorldUnit,
   worldWidth,
   worldYTop,
   restTopY,
@@ -179,10 +181,12 @@ function GlassTile({
   const tintColor = useMemo(() => hueToColor(slot.hue, 0.62), [slot.hue]);
   const isFullDay = slot.end - slot.start >= slotCount * 2;
 
-  // Text overlay sizing in CSS pixels.
-  const textBoxWidthPx = Math.max(0, worldWidth * pxPerHour);
-  // tileHeight is in "rows" of HOUR_UNITS — convert to px via pxPerHour.
-  const textBoxHeightPx = Math.max(0, tileHeight * pxPerHour);
+  // Text overlay sizing in CSS pixels — must match the rendered tile
+  // mesh, which is `worldWidth × tileHeight` in world units. Multiply
+  // both by the camera's px-per-world-unit so the DOM overlay box
+  // exactly fits the tile (no left-side bleed).
+  const textBoxWidthPx = Math.max(0, worldWidth * pxPerWorldUnit);
+  const textBoxHeightPx = Math.max(0, tileHeight * pxPerWorldUnit);
   const titlePxSize = isFullDay
     ? Math.max(28, Math.min(textBoxHeightPx * 0.32, 84))
     : Math.max(14, Math.min(textBoxHeightPx * 0.42, 26));
@@ -200,23 +204,27 @@ function GlassTile({
         radius={TILE_RADIUS}
         smoothness={5}
       >
-        {/* Cheaper, calmer translucent material. MeshTransmissionMaterial
-            was driving the neon look + a per-frame backbuffer pass;
-            MeshPhysicalMaterial gives a clean tinted glass without the
-            extra render target. */}
+        {/* Squishy gummy-cube material — high transmission +
+            short attenuation distance so light passing through the
+            tile picks up a strong colored tint. Mirror-clearcoat for
+            the wet glossy specular highlight on top. Tuned to match
+            the translucent jelly-cube reference. */}
         <meshPhysicalMaterial
           color={tintColor}
-          transmission={0.85}
-          thickness={1.2}
-          ior={1.4}
-          roughness={0.25}
+          transmission={1}
+          thickness={1.6}
+          ior={1.42}
+          roughness={0.06}
           metalness={0}
           transparent={true}
-          opacity={0.78}
-          clearcoat={0.35}
-          clearcoatRoughness={0.2}
+          opacity={1}
+          clearcoat={1}
+          clearcoatRoughness={0.02}
           attenuationColor={tintColor}
-          attenuationDistance={2.5}
+          attenuationDistance={0.55}
+          iridescence={0.25}
+          iridescenceIOR={1.3}
+          specularIntensity={1}
         />
       </RoundedBox>
 
@@ -279,12 +287,12 @@ function GlassTile({
 function CalendarScene({
   index,
   schedules,
-  pxPerHour,
+  pxPerWorldUnit,
   slotCount,
 }: {
   index: AgendaIndex | null;
   schedules: Record<AgendaIndex, ReadonlyArray<Slot>>;
-  pxPerHour: number;
+  pxPerWorldUnit: number;
   slotCount: number;
 }) {
   const { viewport, invalidate } = useThree();
@@ -331,12 +339,13 @@ function CalendarScene({
   // turns the clock value into a row index 0..(slotCount-1).
   return (
     <>
-      {/* Two Lightformers — top key + front fill. Side rims dropped
-          to halve the env-map cost. */}
+      {/* Three Lightformers — top key + front fill + back rim. The
+          top key is the bright sheen along the upper edge of every
+          tile; the back rim adds depth so the bottoms aren't dead. */}
       <Environment background={false} resolution={128}>
         <Lightformer
           form="rect"
-          intensity={4}
+          intensity={6}
           color="#ffffff"
           position={[0, 8, 4]}
           rotation={[-Math.PI / 2, 0, 0]}
@@ -344,17 +353,25 @@ function CalendarScene({
         />
         <Lightformer
           form="rect"
-          intensity={1.2}
+          intensity={1.8}
           color="#ffffff"
           position={[0, 0, 7]}
           rotation={[0, 0, 0]}
           scale={[12, 8, 1]}
         />
+        <Lightformer
+          form="rect"
+          intensity={1.5}
+          color="#ffe8d6"
+          position={[0, -6, 4]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={[14, 4, 1]}
+        />
       </Environment>
-      <ambientLight intensity={0.9} />
+      <ambientLight intensity={1.2} />
       <directionalLight
         position={[1.5, 6, 5]}
-        intensity={1.1}
+        intensity={1.4}
         color="#ffffff"
       />
       {slots.map((slot, i) => {
@@ -368,7 +385,7 @@ function CalendarScene({
             slotIndex={i}
             totalSlots={totalSlots}
             slotCount={slotCount}
-            pxPerHour={pxPerHour}
+            pxPerWorldUnit={pxPerWorldUnit}
             worldWidth={worldWidth}
             worldYTop={worldYTop}
             restTopY={restTopY}
@@ -390,14 +407,17 @@ export function CalendarColumn3D({
 }: Props) {
   const { ref, size } = useElementSize<HTMLDivElement>();
   const measuredH = size.h || 0;
-  // pxPerHour now means "px per slot row" — slotCount rows fill the
-  // visible body height.
+  // pxPerHour drives the empty-state guide rows — they fill the
+  // visible body height, slotCount rows of equal height.
   const pxPerHour = Math.max(1, Math.floor(measuredH / slotCount));
 
   // Camera frames slotCount + 2*WORLD_MARGIN so full-day tiles never
-  // touch the visible top/bottom edges. Computed zoom keeps the
-  // pxPerHour used for tile/text math correct.
+  // touch the visible top/bottom edges.
   const orthoHeight = slotCount * HOUR_UNITS + WORLD_MARGIN * 2;
+  // CSS pixels per world unit — matches the orthographic camera zoom
+  // exactly, so DOM overlays sized in px line up with mesh sizes
+  // expressed in world units.
+  const pxPerWorldUnit = Math.max(1, measuredH / orthoHeight);
 
   // Slot-row labels: 9, 11, 13, 15, 17 for the default 5-slot layout.
   const slotInterval = (dayEnd - dayStart) / slotCount;
@@ -467,7 +487,7 @@ export function CalendarColumn3D({
           <CalendarScene
             index={index}
             schedules={schedules}
-            pxPerHour={pxPerHour}
+            pxPerWorldUnit={pxPerWorldUnit}
             slotCount={slotCount}
           />
         </Canvas>
