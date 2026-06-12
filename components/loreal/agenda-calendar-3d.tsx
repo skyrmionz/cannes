@@ -46,10 +46,10 @@ const ENTRY_DELAY_S = 0.06;
 const SPAWN_OFFSCREEN_BUFFER = 1.5;
 const FALL_GRAVITY = 175;
 
-function hueToColor(hue: number, lightness = 0.82): THREE.Color {
-  // Pastel palette — moderate saturation + high lightness so each
-  // tile reads as soft sherbet rather than saturated jewel-tone.
-  return new THREE.Color().setHSL(hue / 360, 0.65, lightness);
+function hueToColor(hue: number, lightness = 0.62): THREE.Color {
+  // Vibrant pastel — enough saturation + mid lightness so text on
+  // top stays readable while the tile still reads as colorful glass.
+  return new THREE.Color().setHSL(hue / 360, 0.8, lightness);
 }
 
 type TilePhase = "idle" | "falling" | "squash" | "rest";
@@ -182,7 +182,7 @@ function GlassTile({
     return cleanup;
   }, [registerTile, advance, getPhase]);
 
-  const tintColor = useMemo(() => hueToColor(slot.hue, 0.85), [slot.hue]);
+  const tintColor = useMemo(() => hueToColor(slot.hue, 0.6), [slot.hue]);
   const isFullDay = slot.end - slot.start >= slotCount * 2;
 
   // Text overlay sizing in CSS pixels — must match the rendered tile
@@ -232,10 +232,10 @@ function GlassTile({
             color={tintColor}
             background={new THREE.Color("#ffffff")}
             backside={false}
-            samples={4}
-            resolution={256}
+            samples={1}
+            resolution={128}
             transmission={1}
-            roughness={0}
+            roughness={0.02}
             thickness={3.5}
             ior={1.5}
             chromaticAberration={0.06}
@@ -244,7 +244,7 @@ function GlassTile({
             distortionScale={0.3}
             temporalDistortion={0.3}
             clearcoat={1}
-            attenuationDistance={3.5}
+            attenuationDistance={2.0}
             attenuationColor={tintColor}
             iridescence={0.5}
             iridescenceIOR={1.3}
@@ -408,14 +408,14 @@ function CalendarScene({
           <MeshTransmissionMaterial
             background={new THREE.Color("#ffffff")}
             backside={false}
-            samples={4}
-            resolution={256}
+            samples={1}
+            resolution={128}
             transmission={1}
-            roughness={0}
+            roughness={0.02}
             thickness={3.5}
             ior={1.5}
             clearcoat={1}
-            attenuationDistance={3.5}
+            attenuationDistance={2.0}
           />
         </mesh>
       )}
@@ -493,7 +493,7 @@ export function CalendarColumn3D({
       {size.w > 0 && size.h > 0 && (
         <Canvas
           orthographic
-          frameloop="demand"
+          frameloop="always"
           camera={{
             position: [0, 0, 5],
             zoom: measuredH / orthoHeight,
