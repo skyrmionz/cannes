@@ -338,8 +338,9 @@ function CirclePick({
         border: "none",
       }}
     >
-      {/* Gradient ring — only visible when selected. Uses the same
-          purple→coral palette as the progress bar. */}
+      {/* Gradient ring — ONLY the ring border, NOT a filled circle.
+          Uses mask to cut out the center so the page gradient shows
+          through the middle. */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -353,6 +354,11 @@ function CirclePick({
             style={{
               background:
                 "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
+              // Mask: opaque outer ring, transparent center hole
+              WebkitMask:
+                "radial-gradient(circle, transparent calc(50% - 4px), #000 calc(50% - 3px))",
+              mask:
+                "radial-gradient(circle, transparent calc(50% - 4px), #000 calc(50% - 3px))",
             }}
           />
         )}
@@ -442,13 +448,32 @@ function CalendarColumn2D({
         })}
 
       {/* Event blocks — liquid glass 2D with Framer Motion drop animation */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
+        {slots.length > 0 && (
+          <motion.div
+            key={`slots-${index}`}
+            className="absolute inset-0"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: 40, transition: { duration: 0.3, ease: "easeIn" } }}
+          >
         {slots.map((slot, i) => {
           const rowIndex = (slot.start - 9) / slotInterval;
           const rowSpan = (slot.end - slot.start) / slotInterval;
           const top = rowIndex * pxPerSlot;
           const height = rowSpan * pxPerSlot - 3;
           const isFullDay = rowSpan >= slotCount;
+          // Color each block along the progress bar gradient
+          // (purple #9675FE → coral #FF7371). Position 0..1 based on
+          // where the block sits in the slot list.
+          const t = slots.length > 1 ? i / (slots.length - 1) : 0.5;
+          // Interpolate RGB: purple (150,117,254) → coral (255,115,113)
+          const r = Math.round(150 + t * (255 - 150));
+          const g = Math.round(117 + t * (115 - 117));
+          const b = Math.round(254 + t * (113 - 254));
+          const blockColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+          const borderColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
+          const glowColor = `rgba(${r}, ${g}, ${b}, 0.3)`;
 
           return (
             <motion.div
@@ -458,16 +483,15 @@ function CalendarColumn2D({
                 top,
                 height: Math.max(0, height),
                 borderRadius: 18,
-                // Liquid glass: more translucent, stronger blur,
-                // visible inner highlight + outer colored glow.
-                background: `hsla(${slot.hue}, 85%, 68%, 0.45)`,
+                // Liquid glass with progress-bar gradient colors
+                background: blockColor,
                 backdropFilter: "blur(12px) saturate(180%)",
                 WebkitBackdropFilter: "blur(12px) saturate(180%)",
                 boxShadow: [
-                  `0 0 0 1.5px hsla(${slot.hue}, 75%, 55%, 0.6)`,
+                  `0 0 0 1.5px ${borderColor}`,
                   "0 2px 0 rgba(255,255,255,0.7) inset",
                   "0 -1px 0 rgba(0,16,80,0.1) inset",
-                  `0 6px 16px hsla(${slot.hue}, 65%, 50%, 0.25)`,
+                  `0 6px 16px ${glowColor}`,
                 ].join(", "),
                 overflow: "hidden",
               }}
@@ -533,6 +557,8 @@ function CalendarColumn2D({
             </motion.div>
           );
         })}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
