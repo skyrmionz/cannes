@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+
 import { motion, AnimatePresence } from "motion/react";
-import dynamic from "next/dynamic";
 import { useElementSize } from "@/lib/use-element-size";
 import {
   FOOTER_BUTTON_STYLE,
@@ -11,16 +10,6 @@ import {
   SUBTITLE_FONT_SIZE,
   TITLE_MARGIN_TOP,
 } from "./question-shell";
-
-// 3D calendar is lazy-loaded so the three.js bundle only ships when
-// the agenda screen actually mounts.
-const CalendarColumn3D = dynamic(
-  () =>
-    import("./agenda-calendar-3d").then((m) => ({
-      default: m.CalendarColumn3D,
-    })),
-  { ssr: false },
-);
 
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
@@ -85,12 +74,6 @@ export function LorealAgendaQuestionScreen({
   value,
   onChange,
 }: Props) {
-  // Preload the 3D calendar bundle as soon as the agenda screen
-  // mounts so the first circle tap doesn't pay a chunk-load + WebGL
-  // init delay.
-  useEffect(() => {
-    void import("./agenda-calendar-3d");
-  }, []);
 
   const handleNext = () => {
     if (value === null) return;
@@ -153,17 +136,15 @@ export function LorealAgendaQuestionScreen({
           gap: "clamp(0.5rem, 1.2vh, 0.85rem)",
         }}
       >
-        {/* Day-view calendar — capped at 38vh so it never crowds the
-            status block + circles below. */}
+        {/* Day-view calendar — thinner, capped height so circles/status
+            below have more room. */}
         <div
           className="relative min-h-0 flex-1"
-          style={{ maxHeight: "38vh" }}
+          style={{ maxHeight: "30vh" }}
         >
-          <CalendarColumn3D
+          <CalendarColumn2D
             index={value}
             schedules={SCHEDULES}
-            dayStart={DAY_START}
-            dayEnd={DAY_END}
             slotCount={5}
           />
         </div>
@@ -376,26 +357,16 @@ function CirclePick({
         )}
       </AnimatePresence>
 
-      {/* Circle content — frosted glass surface (matches the question
-          screens' glassmorphism). Sits on top of the gradient ring;
-          ring is revealed only via the parent's padding. */}
+      {/* Circle content — just a clean outline, no inner fill/highlight.
+          The gradient ring around it (when selected) provides enough
+          visual emphasis. */}
       <div
         className="relative grid place-items-center overflow-hidden rounded-full"
         style={{
           width: size,
           height: size,
-          // Glassy fill — translucent white + saturate backdrop, two
-          // inset highlights, soft drop shadow. Mirrors the formula
-          // used by the back/next buttons and the progress bar.
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
-          backdropFilter: "blur(14px) saturate(140%)",
-          WebkitBackdropFilter: "blur(14px) saturate(140%)",
-          boxShadow: [
-            "0 0 0 1px rgba(255,255,255,0.55) inset",
-            "0 1px 0 rgba(255,255,255,0.85) inset",
-            "0 8px 24px rgba(120,160,220,0.22)",
-          ].join(", "),
+          background: "rgba(255,255,255,0.15)",
+          boxShadow: "0 0 0 2px rgba(0,16,80,0.12)",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -416,3 +387,143 @@ function CirclePick({
   );
 }
 
+
+function CalendarColumn2D({
+  index,
+  schedules,
+  slotCount,
+}: {
+  index: AgendaIndex | null;
+  schedules: Record<AgendaIndex, ReadonlyArray<Slot>>;
+  slotCount: number;
+}) {
+  const { ref, size } = useElementSize<HTMLDivElement>();
+  const measuredH = size.h || 0;
+  const pxPerSlot = Math.max(1, Math.floor(measuredH / slotCount));
+  const slotInterval = 2; // each slot = 2 hours
+
+  const slots = index === null ? [] : schedules[index];
+
+  return (
+    <div ref={ref} className="relative h-full w-full">
+      {/* Empty calendar guide rows — always visible as the backdrop
+          so users understand this is a day-view calendar. */}
+      {pxPerSlot > 0 &&
+        Array.from({ length: slotCount }).map((_, i) => {
+          const hour = 9 + i * slotInterval;
+          const label = `${String(hour).padStart(2, "0")}:00`;
+          return (
+            <div
+              key={`guide-${i}`}
+              className="absolute inset-x-0"
+              style={{
+                top: i * pxPerSlot,
+                height: pxPerSlot - 3,
+                borderRadius: 16,
+                background: "transparent",
+                boxShadow: "0 0 0 1px rgba(0,16,80,0.1) inset",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 6,
+                  left: 12,
+                  color: "rgba(0,16,80,0.35)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </div>
+            </div>
+          );
+        })}
+
+      {/* Event blocks — liquid glass 2D with Framer Motion drop animation */}
+      <AnimatePresence mode="sync">
+        {slots.map((slot, i) => {
+          const rowIndex = (slot.start - 9) / slotInterval;
+          const rowSpan = (slot.end - slot.start) / slotInterval;
+          const top = rowIndex * pxPerSlot;
+          const height = rowSpan * pxPerSlot - 3;
+          const isFullDay = rowSpan >= slotCount;
+
+          return (
+            <motion.div
+              key={`${index}-${slot.start}-${slot.end}`}
+              className="absolute inset-x-0"
+              style={{
+                top,
+                height: Math.max(0, height),
+                borderRadius: 16,
+                // Liquid glass: translucent vibrant fill, slight blur
+                background: `hsla(${slot.hue}, 80%, 62%, 0.65)`,
+                backdropFilter: "blur(6px) saturate(150%)",
+                WebkitBackdropFilter: "blur(6px) saturate(150%)",
+                boxShadow: [
+                  `0 0 0 1.5px hsla(${slot.hue}, 70%, 50%, 0.5)`,
+                  "0 1px 0 rgba(255,255,255,0.6) inset",
+                  `0 4px 12px hsla(${slot.hue}, 60%, 45%, 0.2)`,
+                ].join(", "),
+                overflow: "hidden",
+              }}
+              // Drop in from above
+              initial={{ y: -measuredH, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: measuredH * 0.6, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 340,
+                damping: 24,
+                // Bottom slot (highest index) enters first
+                delay: (slots.length - 1 - i) * 0.08,
+              }}
+            >
+              {/* Top glare strip */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "45%",
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%)",
+                  pointerEvents: "none",
+                }}
+              />
+              {/* Event label */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: isFullDay ? "center" : "flex-start",
+                  paddingInline: isFullDay ? 12 : 14,
+                  color: "#FFFFFF",
+                  fontFamily:
+                    'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
+                  fontWeight: 700,
+                  fontSize: isFullDay
+                    ? Math.max(20, Math.min(height * 0.28, 48))
+                    : Math.max(12, Math.min(height * 0.4, 20)),
+                  textShadow: "0 1px 3px rgba(0,16,80,0.5)",
+                  WebkitTextStroke: "0.3px rgba(0,16,80,0.25)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  letterSpacing: isFullDay ? "-0.02em" : "0",
+                }}
+              >
+                {slot.title}
+              </div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </div>
+  );
+}
