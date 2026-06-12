@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { use } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import { Download } from "lucide-react";
+import { Download, Check } from "lucide-react";
 import {
   decodeLorealResult,
   getStatus,
@@ -70,13 +70,16 @@ export default function ResultPage({
   // the current matrix's title/description/image.
   const status = getStatus(data.sun, data.hydration, data.agenda);
 
-  const handleDownload = () => {
+  const [saved, setSaved] = useState(false);
+  const handleSave = () => {
     const a = document.createElement("a");
     a.href = status.download;
     a.download = `cannes-ooo-${data.code}.jpg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   };
 
   return (
@@ -106,7 +109,7 @@ export default function ResultPage({
 
         {/* Glassy vibe card — ONLY wraps the header row */}
         <motion.div
-          className="flex w-full max-w-[480px] shrink-0 items-center justify-center gap-3 rounded-[32px]"
+          className="flex w-full max-w-[480px] shrink-0 items-center justify-center gap-3 overflow-visible rounded-[32px]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.5, ease: "easeOut" }}
@@ -213,17 +216,30 @@ export default function ResultPage({
         >
           <motion.button
             type="button"
-            onClick={handleDownload}
+            onClick={handleSave}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             className="flex w-full items-center justify-center gap-3 rounded-full font-semibold text-[#001050]"
-            style={GLASS_BUTTON_STYLE}
+            style={{
+              ...GLASS_BUTTON_STYLE,
+              background: saved
+                ? "rgba(150, 220, 150, 0.7)"
+                : GLASS_BUTTON_STYLE.background,
+              transition: "background 0.3s ease",
+            }}
           >
-            <Download
-              aria-hidden
-              style={{ width: "clamp(20px, 5vw, 26px)", height: "auto" }}
-            />
-            <span>Download image</span>
+            {saved ? (
+              <Check
+                aria-hidden
+                style={{ width: "clamp(20px, 5vw, 26px)", height: "auto" }}
+              />
+            ) : (
+              <Download
+                aria-hidden
+                style={{ width: "clamp(20px, 5vw, 26px)", height: "auto" }}
+              />
+            )}
+            <span>{saved ? "Saved!" : "Save image"}</span>
           </motion.button>
 
           <motion.a

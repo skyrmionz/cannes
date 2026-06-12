@@ -13,8 +13,7 @@ const LOADING_TEXT_SWITCH_MS = 4200;
 const ANIM_START_DELAY_MS = 120;
 
 const SUN_COUNT = 6;
-const WATER_COUNT = 5;
-const TREE_COUNT = 8;
+const WATER_COUNT = 6;
 
 export function LorealAgentforceBufferScreen({ onComplete }: Props) {
   const [phase, setPhase] = useState<
@@ -75,9 +74,8 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22, duration: 0.5, ease: "easeOut" }}
       >
-        Agentforce is turning your style into a tailored status, just like
-        Salesforce helps companies deliver personalized moments for customers
-        everyday.
+        Agentforce is tailoring your vibe, like how Salesforce helps companies
+        deliver personalized customer moments everyday.
       </motion.p>
 
       {/* Orbital ring animation — fixed height so the loading caption can
@@ -134,25 +132,13 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         <OrbitalRing
           src="/loreal/icon-water-droplet.png"
           count={WATER_COUNT}
-          radius="min(25vw, 17vh)"
-          iconSize="min(11vw, 7.5vh)"
+          radius="min(34vw, 22vh)"
+          iconSize="min(16vw, 11vh)"
           direction={-1}
           speed={14}
           phase={phase}
           delay={0.12}
           spiralTurns={0.8}
-          iconRotation="none"
-        />
-        <OrbitalRing
-          src="/loreal/crab.png"
-          count={TREE_COUNT}
-          radius="min(36vw, 24vh)"
-          iconSize="min(15vw, 10vh)"
-          direction={1}
-          speed={18}
-          phase={phase}
-          delay={0.2}
-          spiralTurns={1}
           iconRotation="none"
         />
       </div>
