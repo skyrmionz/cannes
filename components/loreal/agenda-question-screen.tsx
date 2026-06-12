@@ -325,7 +325,10 @@ function CirclePick({
   onSelect: () => void;
   isPhone: boolean;
 }) {
-  const size = isPhone ? 124 : 178;
+  // Size responsive to available width: on phones (375px) with 4
+  // circles + gaps, each can be at most ~78px to fit. On kiosk 1080px
+  // they can be generous.
+  const size = isPhone ? 76 : 178;
   // Outer ring is 6px thicker on each side when selected, so the circle
   // image stays the same size but the gradient ring wraps around it.
   const ringPad = 5;

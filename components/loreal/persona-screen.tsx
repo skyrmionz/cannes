@@ -191,9 +191,10 @@ export function LorealPersonaScreen({
           {status.description}
         </p>
 
-        {/* QR row — glassy container, horizontal layout, bigger */}
+        {/* QR row — glassy container. Horizontal on wide screens,
+            wraps to vertical stack on narrow phones so nothing clips. */}
         <div
-          className="flex w-full shrink-0 items-center rounded-[28px]"
+          className="flex w-full shrink-0 flex-wrap items-center rounded-[28px]"
           style={{
             padding: "clamp(1.25rem, 3vh, 2rem)",
             gap: "clamp(1rem, 3vw, 1.5rem)",

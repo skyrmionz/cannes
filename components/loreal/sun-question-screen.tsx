@@ -50,10 +50,11 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
   );
   const SUN_MIN_SCALE = 0.7;
 
-  // Side padding = half the *largest* sun + buffer so the sun (at full size,
-  // i.e. at the right end) never goes off-screen.
-  const sidePad = sunPxMax / 2 + 18;
-  const pathW = Math.max(120, bodyW - sidePad * 2);
+  // Side padding = half the *largest* sun + buffer so the sun (at full
+  // size, i.e. at the right end) never goes off-screen. On narrow
+  // viewports cap sidePad so the curve doesn't collapse to nothing.
+  const sidePad = Math.min(sunPxMax / 2 + 18, bodyW * 0.22);
+  const pathW = Math.max(160, bodyW - sidePad * 2);
   // Top padding from the body's top edge — leaves just enough room for the
   // largest sun (at the plateau peak) to render fully without crossing the
   // subtitle above. Half-sun + tiny buffer.

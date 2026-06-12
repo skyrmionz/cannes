@@ -14,9 +14,9 @@ export const HINT_TEXT_FONT_SIZE = "clamp(1.3rem, min(6.2vw, 3.8vh), 2rem)";
 
 // Bigger Back/Next footer buttons used on every question screen.
 export const FOOTER_BUTTON_STYLE: React.CSSProperties = {
-  paddingInline: "clamp(3rem, 9vw, 5.5rem)",
-  paddingBlock: "clamp(1.3rem, 3.4vh, 2.2rem)",
-  fontSize: "clamp(1.5rem, min(5.8vw, 4vh), 2.1rem)",
+  paddingInline: "clamp(2rem, 7vw, 5rem)",
+  paddingBlock: "clamp(1.1rem, 3vh, 2rem)",
+  fontSize: "clamp(1.3rem, min(5.2vw, 3.6vh), 1.9rem)",
   background: "rgba(255,255,255,0.45)",
   boxShadow: [
     "0 0 0 1px rgba(255,255,255,0.6) inset",
