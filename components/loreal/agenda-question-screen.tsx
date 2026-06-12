@@ -338,9 +338,9 @@ function CirclePick({
         border: "none",
       }}
     >
-      {/* Gradient ring — ONLY the ring border, NOT a filled circle.
-          Uses mask to cut out the center so the page gradient shows
-          through the middle. */}
+      {/* Gradient ring — thin 3px border using the progress bar
+          gradient. Uses the mask-composite trick (content-box vs
+          padding-box) to create a hollow ring from a gradient. */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -352,13 +352,15 @@ function CirclePick({
             exit={{ opacity: 0, scale: 0.85 }}
             transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             style={{
+              padding: 3,
               background:
                 "linear-gradient(105.2deg, #9675FE 21.37%, #FF7371 99.99%)",
-              // Mask: opaque outer ring, transparent center hole
               WebkitMask:
-                "radial-gradient(circle, transparent calc(50% - 4px), #000 calc(50% - 3px))",
+                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
               mask:
-                "radial-gradient(circle, transparent calc(50% - 4px), #000 calc(50% - 3px))",
+                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              maskComposite: "exclude",
             }}
           />
         )}
@@ -455,7 +457,7 @@ function CalendarColumn2D({
             className="absolute inset-0"
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: 40, transition: { duration: 0.3, ease: "easeIn" } }}
+            exit={{ opacity: 0, y: 40, transition: { duration: 0.18, ease: "easeIn" } }}
           >
         {slots.map((slot, i) => {
           const rowIndex = (slot.start - 9) / slotInterval;
@@ -471,9 +473,10 @@ function CalendarColumn2D({
           const r = Math.round(150 + t * (255 - 150));
           const g = Math.round(117 + t * (115 - 117));
           const b = Math.round(254 + t * (113 - 254));
-          const blockColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
-          const borderColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
-          const glowColor = `rgba(${r}, ${g}, ${b}, 0.3)`;
+          // Darker/more vibrant: higher opacity
+          const blockColor = `rgba(${r}, ${g}, ${b}, 0.72)`;
+          const borderColor = `rgba(${r}, ${g}, ${b}, 0.85)`;
+          const glowColor = `rgba(${r}, ${g}, ${b}, 0.35)`;
 
           return (
             <motion.div
@@ -520,7 +523,24 @@ function CalendarColumn2D({
                   pointerEvents: "none",
                 }}
               />
-              {/* Time + event label */}
+              {/* Time label — top-left corner */}
+              {!isFullDay && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 5,
+                    left: 10,
+                    color: "#FFFFFF",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    opacity: 0.9,
+                    textShadow: "0 1px 3px rgba(0,16,80,0.5)",
+                  }}
+                >
+                  {`${String(slot.start).padStart(2, "0")}:00`}
+                </div>
+              )}
+              {/* Event name — centered */}
               <div
                 style={{
                   position: "absolute",
@@ -528,8 +548,8 @@ function CalendarColumn2D({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: isFullDay ? "center" : "flex-start",
-                  paddingInline: isFullDay ? 12 : 12,
-                  gap: 8,
+                  paddingInline: isFullDay ? 12 : 14,
+                  paddingTop: isFullDay ? 0 : 16,
                   color: "#FFFFFF",
                   fontFamily:
                     'system-ui, -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
@@ -545,14 +565,7 @@ function CalendarColumn2D({
                   letterSpacing: isFullDay ? "-0.02em" : "0",
                 }}
               >
-                {!isFullDay && (
-                  <span style={{ opacity: 0.85, flexShrink: 0 }}>
-                    {`${String(slot.start).padStart(2, "0")}:00`}
-                  </span>
-                )}
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {slot.title}
-                </span>
+                {slot.title}
               </div>
             </motion.div>
           );
