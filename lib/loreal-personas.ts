@@ -5,7 +5,7 @@ export type SunStop = 0 | 1 | 2;
 export type HydrationLevel = 0 | 1 | 2;
 export type AgendaIndex = 0 | 1 | 2 | 3;
 
-export const LOREAL_RESULT_TTL_MS = 24 * 60 * 60 * 1000;
+export const LOREAL_RESULT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface LorealStatus {
   title: string;

@@ -192,7 +192,7 @@ export function LorealPersonaScreen({
             fontWeight: 400,
             whiteSpace: "pre-line",
             lineHeight: 1.35,
-            marginTop: "clamp(-2.5rem, -3.5vh, -1.5rem)",
+            marginTop: "clamp(-4rem, -6vh, -2.5rem)",
             marginBottom: "clamp(0.5rem, 1.5vh, 1rem)",
           }}
         >
@@ -203,7 +203,7 @@ export function LorealPersonaScreen({
         <div
           className="flex shrink-0 flex-wrap items-center justify-center self-center rounded-[28px]"
           style={{
-            padding: "clamp(1rem, 2.5vh, 1.5rem) clamp(1.25rem, 3vw, 2rem)",
+            padding: "clamp(1.5rem, 3.5vh, 2.5rem) clamp(1.5rem, 4vw, 2.5rem)",
             gap: "clamp(1rem, 3vw, 1.5rem)",
             background: "rgba(255,255,255,0.88)",
             boxShadow: [
@@ -213,7 +213,7 @@ export function LorealPersonaScreen({
             ].join(", "),
           }}
         >
-          <div className="shrink-0" style={{ width: "min(200px, 30vw)" }}>
+          <div className="shrink-0" style={{ width: "min(240px, 36vw)" }}>
             <QRCodeSVG
               value={qrUrl}
               size={qrSize}
@@ -226,7 +226,7 @@ export function LorealPersonaScreen({
           <p
             className="flex-1 text-left leading-snug text-[#001050]"
             style={{
-              fontSize: "clamp(1.4rem, min(5.5vw, 3.2vh), 2rem)",
+              fontSize: "clamp(1.6rem, min(6.5vw, 3.8vh), 2.4rem)",
               fontFamily: SYSTEM_FONT,
               fontWeight: 700,
               whiteSpace: "pre-line",

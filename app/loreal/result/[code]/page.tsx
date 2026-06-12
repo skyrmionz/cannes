@@ -81,24 +81,7 @@ export default function ResultPage({
 
   return (
     <div className="text-[#001050]" style={FULLPAGE_STYLE}>
-      {/* Persistent glass card backplate — same shell used by the kiosk so
-          the unique link feels like a continuation of the kiosk experience. */}
-      <div
-        className="pointer-events-none absolute inset-3 z-0 rounded-[40px]"
-        style={{
-          WebkitBackdropFilter: "blur(10px) saturate(120%)",
-          backdropFilter: "blur(10px) saturate(120%)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.16) 100%)",
-          boxShadow: [
-            "0 0 0 1px rgba(255,255,255,0.45) inset",
-            "0 1px 0 rgba(255,255,255,0.65) inset",
-            "0 18px 50px rgba(120,160,220,0.18)",
-          ].join(", "),
-        }}
-      />
-
-      {/* Content — flex column inset to match the glass card */}
+      {/* Content — flex column, no background glass container */}
       <div
         className="relative z-10 flex h-full w-full flex-col items-center"
         style={{
@@ -121,16 +104,15 @@ export default function ResultPage({
           style={{ width: "min(60vw, 32vh, 320px)" }}
         />
 
-        {/* Glassy persona card — fills remaining height */}
+        {/* Glassy vibe card — ONLY wraps the header row */}
         <motion.div
-          className="relative flex w-full max-w-[480px] flex-1 flex-col items-center overflow-hidden rounded-[32px]"
+          className="flex w-full max-w-[480px] shrink-0 items-center justify-center gap-3 rounded-[32px]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05, duration: 0.5, ease: "easeOut" }}
           style={{
             paddingInline: "clamp(1rem, 4vw, 1.5rem)",
             paddingBlock: "clamp(1rem, 2.5vh, 1.5rem)",
-            gap: "clamp(0.5rem, 1.5vh, 1rem)",
             background:
               "linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.5) 100%)",
             backdropFilter: "blur(14px) saturate(140%)",
@@ -143,130 +125,128 @@ export default function ResultPage({
           }}
         >
           {/* Header row — sun emoji left, label + name stacked right */}
-          <div className="flex w-full shrink-0 items-center justify-center gap-3">
+          <Image
+            src="/loreal/sun-emoji.png"
+            alt=""
+            width={64}
+            height={64}
+            unoptimized
+            draggable={false}
+            className="shrink-0 select-none"
+            style={{ width: "clamp(28px, 8vw, 40px)", height: "auto" }}
+          />
+          <div className="flex min-w-0 flex-col items-start">
+            <span
+              className="font-medium leading-tight text-[#001050]/70"
+              style={{
+                fontSize: "clamp(0.85rem, 3.4vw, 1.05rem)",
+                fontFamily: SYSTEM_FONT,
+              }}
+            >
+              Your Cannes OOO vibe:
+            </span>
+            <h1
+              className="font-bold leading-[1.05] tracking-tight"
+              style={{
+                fontSize: "clamp(1.5rem, min(7vw, 4.4vh), 2.4rem)",
+                whiteSpace: "pre-line",
+                backgroundImage: TITLE_GRADIENT,
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {status.title}
+            </h1>
+          </div>
+        </motion.div>
+
+        {/* Hero vibe image — outside the glass card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.18, duration: 0.55, ease: "easeOut" }}
+          className="flex min-h-0 w-full max-w-[480px] flex-1 items-center justify-center"
+        >
+          <Image
+            src={status.image}
+            alt={status.title}
+            width={989}
+            height={989}
+            priority
+            unoptimized
+            draggable={false}
+            className="h-auto select-none"
+            style={{
+              width: "min(70vw, 38vh, 380px)",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
+        </motion.div>
+
+        {/* Description — outside the glass card */}
+        <motion.p
+          className="w-full max-w-[480px] shrink-0 text-center text-[#001050]/85"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+          style={{
+            fontSize: "clamp(1rem, min(4.2vw, 2.4vh), 1.35rem)",
+            fontFamily: SYSTEM_FONT,
+            fontWeight: 400,
+            whiteSpace: "pre-line",
+            lineHeight: 1.35,
+          }}
+        >
+          {status.description}
+        </motion.p>
+
+        {/* Two action buttons — outside the glass card */}
+        <motion.div
+          className="flex w-full max-w-[480px] shrink-0 flex-col items-stretch"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.42, duration: 0.5, ease: "easeOut" }}
+          style={{ gap: "clamp(0.5rem, 1.5vh, 1rem)" }}
+        >
+          <motion.button
+            type="button"
+            onClick={handleDownload}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex w-full items-center justify-center gap-3 rounded-full font-semibold text-[#001050]"
+            style={GLASS_BUTTON_STYLE}
+          >
+            <Download
+              aria-hidden
+              style={{ width: "clamp(20px, 5vw, 26px)", height: "auto" }}
+            />
+            <span>Download image</span>
+          </motion.button>
+
+          <motion.a
+            href="https://www.salesforce.com/agentforce/"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex w-full items-center justify-center gap-3 rounded-full font-semibold text-[#001050]"
+            style={GLASS_BUTTON_STYLE}
+          >
             <Image
-              src="/loreal/sun-emoji.png"
+              src="/loreal/agentforce-icon.png"
               alt=""
-              width={64}
-              height={64}
+              width={128}
+              height={128}
               unoptimized
               draggable={false}
               className="shrink-0 select-none"
-              style={{ width: "clamp(28px, 8vw, 40px)", height: "auto" }}
+              style={{ width: "clamp(24px, 6vw, 28px)", height: "auto" }}
             />
-            <div className="flex min-w-0 flex-col items-start">
-              <span
-                className="font-medium leading-tight text-[#001050]/70"
-                style={{
-                  fontSize: "clamp(0.85rem, 3.4vw, 1.05rem)",
-                  fontFamily: SYSTEM_FONT,
-                }}
-              >
-                Your Cannes OOO vibe:
-              </span>
-              <h1
-                className="font-bold leading-[1.05] tracking-tight"
-                style={{
-                  fontSize: "clamp(1.5rem, min(7vw, 4.4vh), 2.4rem)",
-                  whiteSpace: "pre-line",
-                  backgroundImage: TITLE_GRADIENT,
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {status.title}
-              </h1>
-            </div>
-          </div>
-
-          {/* Hero vibe image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.18, duration: 0.55, ease: "easeOut" }}
-            className="flex min-h-0 w-full flex-1 items-center justify-center"
-          >
-            <Image
-              src={status.image}
-              alt={status.title}
-              width={989}
-              height={989}
-              priority
-              unoptimized
-              draggable={false}
-              className="h-auto select-none"
-              style={{
-                width: "min(70vw, 38vh, 380px)",
-                height: "auto",
-                objectFit: "contain",
-              }}
-            />
-          </motion.div>
-
-          {/* Description */}
-          <motion.p
-            className="w-full shrink-0 text-center text-[#001050]/85"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-            style={{
-              fontSize: "clamp(1rem, min(4.2vw, 2.4vh), 1.35rem)",
-              fontFamily: SYSTEM_FONT,
-              fontWeight: 400,
-              whiteSpace: "pre-line",
-              lineHeight: 1.35,
-            }}
-          >
-            {status.description}
-          </motion.p>
-
-          {/* Two action buttons — replace the QR container on the kiosk */}
-          <motion.div
-            className="flex w-full shrink-0 flex-col items-stretch"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.42, duration: 0.5, ease: "easeOut" }}
-            style={{ gap: "clamp(0.5rem, 1.5vh, 1rem)" }}
-          >
-            <motion.button
-              type="button"
-              onClick={handleDownload}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex w-full items-center justify-center gap-3 rounded-full font-semibold text-[#001050]"
-              style={GLASS_BUTTON_STYLE}
-            >
-              <Download
-                aria-hidden
-                style={{ width: "clamp(20px, 5vw, 26px)", height: "auto" }}
-              />
-              <span>Download image</span>
-            </motion.button>
-
-            <motion.a
-              href="https://www.salesforce.com/agentforce/"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex w-full items-center justify-center gap-3 rounded-full font-semibold text-[#001050]"
-              style={GLASS_BUTTON_STYLE}
-            >
-              <Image
-                src="/loreal/agent-astro.png"
-                alt=""
-                width={128}
-                height={128}
-                unoptimized
-                draggable={false}
-                className="shrink-0 select-none"
-                style={{ width: "clamp(24px, 6vw, 28px)", height: "auto" }}
-              />
-              <span>Visit agentforce.com</span>
-            </motion.a>
-          </motion.div>
+            <span>Visit agentforce.com</span>
+          </motion.a>
         </motion.div>
       </div>
     </div>

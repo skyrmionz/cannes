@@ -333,14 +333,14 @@ export function LorealSunQuestionScreen({ onNext, onBack, value, onChange }: Pro
               style={{
                 left: pathLeft + t * pathW,
                 bottom: baselineFromBottom + plateau(t) * verticalSpan,
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 transform: "translate(-50%, 50%)",
                 background:
                   value >= i
                     ? "linear-gradient(180deg, #FFE08A 0%, #FF9A40 100%)"
                     : "rgba(255,255,255,0.95)",
-                boxShadow: "0 0 0 3px rgba(255,200,100,0.5), 0 0 12px rgba(255,180,80,0.6), 0 4px 10px rgba(120,160,220,0.18)",
+                boxShadow: "0 0 0 4px rgba(255,200,100,0.7), 0 0 18px 4px rgba(255,180,80,0.8), 0 0 32px 8px rgba(255,160,60,0.5), 0 4px 10px rgba(120,160,220,0.18)",
                 transition: "background 300ms ease",
               }}
             />

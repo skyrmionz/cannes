@@ -158,7 +158,7 @@ export function LorealStartScreen({ onStart }: StartScreenProps) {
           priority
           unoptimized
           className="h-auto select-none"
-          style={{ width: "min(85vw, 40vh, 620px)" }}
+          style={{ width: "min(90vw, 44vh, 700px)" }}
         />
       </motion.div>
     </div>
