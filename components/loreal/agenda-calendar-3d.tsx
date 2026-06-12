@@ -118,20 +118,29 @@ function GlassTile({
     }
   }, [restCenterY, spawnY, slot.start, slot.end, slotIndex]);
 
-  // When the exiting prop flips to true, switch phase to "exiting"
-  // and give the tile a downward velocity.
+  // When the exiting prop flips to true, switch ANY visible tile to
+  // "exiting" regardless of its current phase (rest, squash, falling,
+  // or even idle). This ensures ALL tiles animate out when the user
+  // picks a new status — even tiles that are still mid-entry.
   const prevExitingRef = useRef(false);
   useLayoutEffect(() => {
     if (exiting && !prevExitingRef.current) {
-      if (phaseRef.current === "rest" || phaseRef.current === "squash") {
+      const phase = phaseRef.current;
+      if (phase !== "exiting") {
         phaseRef.current = "exiting";
+        // If the tile was hidden (idle, hasn't spawned yet), make it
+        // visible so the exit animation shows it briefly falling out.
+        if (groupRef.current && !groupRef.current.visible) {
+          groupRef.current.visible = true;
+          yRef.current = restCenterY; // start from rest position
+        }
         vyRef.current = 0;
         timeRef.current = 0;
         opacityRef.current = 1;
       }
     }
     prevExitingRef.current = exiting;
-  }, [exiting]);
+  }, [exiting, restCenterY]);
 
   // Frame advance closure — invoked by the parent CalendarScene's
   // single useFrame. Each tile reports its own phase; parent decides
@@ -183,13 +192,42 @@ function GlassTile({
           scaleYRef.current = 1;
           scaleXRef.current = 1;
         }
+      } else if (phaseRef.current === "exiting") {
+        // Staggered exit: top slot (index 0) exits first, bottom last.
+        // Each tile waits slotIndex * 0.06s before starting to fall.
+        const exitDelay = slotIndex * 0.06;
+        if (timeRef.current < exitDelay) {
+          // Waiting for stagger — hold position
+        } else {
+          // Accelerate downward + fade out
+          vyRef.current -= FALL_GRAVITY * 1.8 * dt;
+          yRef.current += vyRef.current * dt;
+          opacityRef.current = Math.max(0, opacityRef.current - dt * 3.5);
+        }
+        // Once well below the screen, mark as done
+        if (yRef.current < -(worldYTop * 2)) {
+          phaseRef.current = "rest";
+          g.visible = false;
+        }
       }
 
       g.position.y = yRef.current;
       g.scale.y = scaleYRef.current;
       g.scale.x = scaleXRef.current;
+      // Apply opacity for exit fade
+      if (phaseRef.current === "exiting") {
+        g.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mat = (child as THREE.Mesh).material as THREE.Material;
+            if (mat) {
+              mat.transparent = true;
+              mat.opacity = opacityRef.current;
+            }
+          }
+        });
+      }
     },
-    [restCenterY, slotIndex, totalSlots],
+    [restCenterY, slotIndex, totalSlots, worldYTop],
   );
 
   const getPhase = useCallback(() => phaseRef.current, []);
@@ -329,6 +367,8 @@ function GlassTile({
   );
 }
 
+const EXIT_DURATION_MS = 500;
+
 function CalendarScene({
   index,
   schedules,
@@ -344,7 +384,33 @@ function CalendarScene({
   const worldWidth = viewport.width * 0.96;
   const worldYTop = (slotCount * HOUR_UNITS) / 2;
 
-  const slots = index === null ? [] : schedules[index];
+  // displayedIndex lags behind index by EXIT_DURATION_MS so old tiles
+  // can play their exit animation before new tiles mount.
+  const [displayedIndex, setDisplayedIndex] = useState<AgendaIndex | null>(index);
+  const [isExiting, setIsExiting] = useState(false);
+  const prevIndexRef = useRef<AgendaIndex | null>(index);
+
+  useEffect(() => {
+    if (index === prevIndexRef.current) return;
+    const hadPrev = prevIndexRef.current !== null;
+    prevIndexRef.current = index;
+
+    if (hadPrev) {
+      // Start exit animation on old tiles
+      setIsExiting(true);
+      invalidate();
+      const timer = setTimeout(() => {
+        setIsExiting(false);
+        setDisplayedIndex(index);
+      }, EXIT_DURATION_MS);
+      return () => clearTimeout(timer);
+    } else {
+      // First selection — no exit needed, mount immediately
+      setDisplayedIndex(index);
+    }
+  }, [index, invalidate]);
+
+  const slots = displayedIndex === null ? [] : schedules[displayedIndex];
   const totalSlots = slots.length;
 
   // Tile registry — each GlassTile registers a frame handle on mount,
@@ -367,7 +433,7 @@ function CalendarScene({
   // before the user's first click.
   useLayoutEffect(() => {
     invalidate();
-  }, [index, invalidate]);
+  }, [displayedIndex, invalidate]);
 
   useFrame((_, dt) => {
     let anyActive = false;
@@ -376,9 +442,9 @@ function CalendarScene({
       const phase = tile.getPhase();
       if (phase !== "rest") anyActive = true;
     });
-    // While any tile is still falling/squashing, keep requesting
+    // While any tile is still falling/squashing/exiting, keep requesting
     // frames. Once everything's at rest the canvas parks itself.
-    if (anyActive) invalidate();
+    if (anyActive || isExiting) invalidate();
   });
 
   // Slot.start ∈ {9, 11, 13, 15, 17}. Each slot occupies 1 row of
@@ -401,7 +467,7 @@ function CalendarScene({
           worldYTop - rowIndex * HOUR_UNITS - TILE_GAP / 2;
         return (
           <GlassTile
-            key={`${index}-${slot.start}-${slot.end}`}
+            key={`${displayedIndex}-${slot.start}-${slot.end}`}
             slot={slot}
             slotIndex={i}
             totalSlots={totalSlots}
@@ -410,8 +476,9 @@ function CalendarScene({
             worldWidth={worldWidth}
             worldYTop={worldYTop}
             restTopY={restTopY}
-            resetKey={`${index}-${slot.start}-${slot.end}`}
+            resetKey={`${displayedIndex}-${slot.start}-${slot.end}`}
             registerTile={registerTile}
+            exiting={isExiting}
           />
         );
       })}
@@ -422,7 +489,7 @@ function CalendarScene({
           to compile + allocate the transmission render target on
           mount, so the user's first circle tap doesn't pay that
           cost. Invisible because it's tiny + behind the camera. */}
-      {index === null && (
+      {displayedIndex === null && (
         <mesh position={[0, 0, -10]} scale={0.01}>
           <boxGeometry args={[1, 1, 1]} />
           <MeshTransmissionMaterial

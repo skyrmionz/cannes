@@ -120,8 +120,8 @@ export function LorealAgentforceBufferScreen({ onComplete }: Props) {
         <OrbitalRing
           src="/loreal/icon-sun.png"
           count={SUN_COUNT}
-          radius="min(15vw, 10vh)"
-          iconSize="min(7vw, 5vh)"
+          radius="min(18vw, 12vh)"
+          iconSize="min(11vw, 7.5vh)"
           direction={1}
           speed={10}
           phase={phase}

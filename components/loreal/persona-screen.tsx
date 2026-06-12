@@ -192,7 +192,7 @@ export function LorealPersonaScreen({
             fontWeight: 400,
             whiteSpace: "pre-line",
             lineHeight: 1.35,
-            marginTop: "clamp(-3rem, -4vh, -1rem)",
+            marginTop: "clamp(-5rem, -8vh, -2rem)",
             marginBottom: "clamp(0.75rem, 2vh, 1.25rem)",
           }}
         >
