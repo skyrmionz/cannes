@@ -257,7 +257,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
       >
         <div ref={carScope} style={{ transform: "translateY(600px) scale(0.88)" }}>
           <Image
-            src="/f1/F1 car.png"
+            src="/f1/f1-car-hero.png"
             alt="F1 car"
             width={860}
             height={1290}
@@ -341,7 +341,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
             transition={{ duration: 2, repeat: phase === "idle" ? Infinity : 0, ease: "easeInOut" }}
           >
             <Image
-              src="/f1/Buttons/Start your engines Pil.png"
+              src="/f1/Buttons/start-your-engines-pill.png"
               alt="Start your engines"
               width={880}
               height={108}

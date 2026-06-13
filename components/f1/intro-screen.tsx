@@ -88,7 +88,7 @@ export function IntroScreen({ onNext }: IntroScreenProps) {
           transition={{ delay: 0.6, duration: 0.4 }}
         >
           <Image
-            src="/f1/Buttons/Let's go Pill.png"
+            src="/f1/Buttons/lets-go-pill.png"
             alt="Let's go"
             width={880}
             height={108}

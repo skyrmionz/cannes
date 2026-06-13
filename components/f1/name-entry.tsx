@@ -254,7 +254,7 @@ export function NameEntry({
               }}
             >
               <Image
-                src="/f1/Slack Text Entry/Salck Send Button.png"
+                src="/f1/slack-text-entry/slack-send-button.png"
                 alt="Send"
                 width={80}
                 height={80}
