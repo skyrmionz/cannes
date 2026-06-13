@@ -457,7 +457,7 @@ function CalendarColumn2D({
             className="absolute inset-0"
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: 40, transition: { duration: 0.1, ease: "easeIn" } }}
+            exit={{ opacity: 0, y: 30, transition: { duration: 0.25, ease: "easeIn" } }}
           >
         {slots.map((slot, i) => {
           const rowIndex = (slot.start - 9) / slotInterval;
